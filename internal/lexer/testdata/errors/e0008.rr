@@ -1,0 +1,3 @@
+let a = "{}"                # want "E0008"
+let b = "one } brace"     # want "E0008"
+let c = "{f("{x}")}"        # want "E0008"

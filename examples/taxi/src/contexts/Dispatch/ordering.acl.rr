@@ -1,0 +1,28 @@
+# taxi/contexts/Dispatch/ordering.acl.rr
+# Ordering orders in Dispatch's terms: a trip with the same uuid as the
+# order, its own money, point and class.
+
+acl Ordering
+  ## An order is placed: open a trip and start matching a driver
+  on Ordering.Order.placed
+    [Trip.Id(id)].open(
+      pickupPoint: GeoPoint(lat: orderRoute.from.lat, lon: orderRoute.from.lon),
+      requestedClass: CarClass(requestedClass),
+      price: Money(amount: orderPrice.amount, currency: Currency(orderPrice.currency)),
+    )
+
+  ## The route and class changed while no driver was found
+  on Ordering.Order.edited
+    [Trip.Id(id)].update(
+      pickupPoint: GeoPoint(lat: orderRoute.from.lat, lon: orderRoute.from.lon),
+      requestedClass: CarClass(requestedClass),
+      price: Money(amount: orderPrice.amount, currency: Currency(orderPrice.currency)),
+    )
+
+  ## The order is cancelled: withdraw the offer and release the driver
+  on Ordering.Order.orderCancelled
+    [Trip.Id(id)].close()
+
+  ## The customer left a tip: tell the driver
+  on Ordering.Order.tipped
+    [Trip.Id(id)].tip(amount: Money(amount: amount.amount, currency: Currency(amount.currency)))

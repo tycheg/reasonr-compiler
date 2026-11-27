@@ -1,0 +1,10 @@
+## The second part of the order: the commands of a large aggregate, by file
+aggregate Order
+  command(admin) Rename(newStatus string)
+    for s in [Stop]
+      if not s.arrived
+        return
+    renamed(newStatus: newStatus)
+
+  event renamed(newStatus string)
+    status = newStatus

@@ -1,0 +1,36 @@
+# want "W1102"
+role admin
+
+enum Color  # want "E1101"
+  red
+  green
+
+value Tag
+  label int  # want "E1101"
+
+aggregate Item  # want "W1102" "W1101" "E1102"
+  id uuid
+  title string
+  count string  # want "E1101"
+  note string  # want "E1103"
+  color Color
+  total int was renamed
+  tag Tag
+  extra int
+
+  index byTitle(title) unique titleTaken  # want "W1103"
+  index byCount(count)
+
+  command(admin) Make(t string)
+    made(t: t)
+
+  command(admin) Move(a string, b int)
+    moved(x: a, z: b)
+
+  event made(t string)
+    title = t
+
+  event moved(x string, z int)  # want "E1102" "E1102" "E1102"
+    count = x
+
+  error titleTaken(title string)

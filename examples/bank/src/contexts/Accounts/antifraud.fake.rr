@@ -1,0 +1,15 @@
+# bank/contexts/Accounts/antifraud.fake.rr
+
+fake Antifraud
+  limit decimal
+
+  ## Transfers larger than limitAmount are suspicious
+  command Setup(limitAmount decimal)
+    configured(limitAmount: limitAmount)
+
+  event configured(limitAmount decimal)
+    limit = limitAmount
+
+  request score(accountId Account.Id, target Account.Id, sum decimal)
+    if sum > limit
+      [accountId].Freeze(reason: "suspicious transfer")

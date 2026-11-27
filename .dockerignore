@@ -1,0 +1,5 @@
+# The compiler build context of platform images (--build-context compiler=…).
+**/node_modules
+/editors/vscode/out
+/editors/vscode/*.vsix
+/cmd/reasonr/reasonr

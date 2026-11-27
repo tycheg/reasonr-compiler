@@ -1,0 +1,4 @@
+primitive Badge2
+
+screen InPrims  # want "E1404"
+  Link Home

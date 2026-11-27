@@ -1,0 +1,68 @@
+role admin
+
+## Tips for the driver
+feature tips "2026-11-07"
+feature bonus "2026-11-08"
+feature late "2026-11-09"  # want "W1501"
+feature badDate "2026-02-30"  # want "E1501"
+feature shortDate "2026-1-7"  # want "E1501"
+feature tips "2026-11-07"  # want "E0101"
+feature now "2026-11-07"  # want "E0108"
+feature Upper "2026-11-07"  # want "E0106"
+
+aggregate Order
+  id uuid
+  tip int
+  tipsOn bool
+
+  command(admin) LeaveTip(amount int)
+    if tips
+      tipped(amount: amount)
+    else
+      if bonus  # want "E1502"
+        tipped(amount: 1)
+    if tips and bonus  # want "E1503"
+      tipped(amount: 2)
+    if tips
+      let x = tips  # want "E1502"
+    let both = tips or bonus
+    if both
+      tipped(amount: 3)
+
+  event tipped(amount int)
+    tip = amount
+    tipsOn = tips  # want "E1504"
+
+  query(admin) Card() int
+    if tips
+      return 1
+    return 0
+
+  rule bonusOn() bool
+    return bonus
+
+value Money
+  amount int
+
+  doubled() int
+    if tips  # want "E1504"
+      return amount * 2
+    return amount
+
+test "Tips"
+  feature tips, bonus, badDate, shortDate, now, Upper
+  let o1 = new Order.Id
+  when
+    [o1].LeaveTip(amount: 10) as admin
+
+test "Flag not first"
+  let o1 = new Order.Id
+  feature tips  # want "E0020"
+  when
+    [o1].LeaveTip(amount: 10) as admin
+
+test "Unknown flag"
+  feature nope  # want "E1505"
+  let x = tips  # want "E1504"
+  when
+    time offset +1s

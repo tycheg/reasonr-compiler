@@ -1,0 +1,140 @@
+# taxi/contexts/Dispatch/driver.rr
+
+actor Driver
+  id uuid
+  name string
+  car Car
+  status DriverStatus              # offline by default
+  currentTrip Trip.Id?
+
+  index byStatus(status, car.carClass)
+  index byPlate(car.plate) unique plateTaken
+
+  command(admin) Register(driverName string, driverCar Car)
+    if [id]
+      alreadyRegistered()
+      return
+    driverRegistered(driverName: driverName, driverCar: driverCar)
+
+  command(self) GoOnline()
+    if not [id]
+      notRegistered()
+    if status != offline
+      alreadyOnline()
+    if hasErrors
+      return
+    wentOnline()
+
+  command(self) GoOffline()
+    if status != free
+      cannotGoOffline(currentStatus: status)
+      return
+    wentOffline()
+
+  command offerTrip(tripId Trip.Id, pickup GeoPoint, fare Money)
+    if status != free
+      offerRejectedBusy(tripId: tripId)        # a fact: the driver is busy, the offer is not taken
+      [tripId].driverDeclined(driverId: id)    # the trip goes to the next driver
+      return
+    tripOffered(tripId: tripId)
+    newOffer(tripId: tripId, pickup: pickup, fare: fare) to id
+
+  ## Accept the offered order
+  command(self) Accept()
+    if status != offered or currentTrip is none
+      noActiveOffer()
+      return
+    offerAccepted()
+    [currentTrip].assignDriver(driverId: id, assignedName: name, assignedPlate: car.plate)  # an order error cancels offerAccepted too
+
+  ## Decline the offered order
+  command(self) Decline()
+    if status != offered or currentTrip is none
+      noActiveOffer()
+      return
+    offerDeclined()
+    [currentTrip].driverDeclined(driverId: id)
+
+  command withdrawOffer(tripId Trip.Id)
+    if status != offered or currentTrip != tripId
+      return
+    offerWithdrawn()
+    offerCancelled(tripId: tripId) to id
+
+  ## Finish the ride
+  command(self) FinishRide()
+    if status != busy or currentTrip is none
+      noActiveRide()
+      return
+    rideFinished()
+    [currentTrip].finishRide(driverId: id)
+
+  command releaseTrip(tripId Trip.Id)
+    if currentTrip != tripId
+      return
+    rideFinished()
+
+  event driverRegistered(driverName string, driverCar Car)
+    name = driverName
+    car = driverCar
+
+  event wentOnline()
+    status = free
+
+  event wentOffline()
+    status = offline
+
+  event tripOffered(tripId Trip.Id)
+    status = offered
+    currentTrip = tripId
+
+  event offerAccepted()
+    status = busy
+
+  event offerRejectedBusy(tripId Trip.Id)    # an empty event — a fact for audit and analytics
+
+  event offerDeclined()
+    status = free
+    currentTrip = none
+
+  event offerWithdrawn()
+    status = free
+    currentTrip = none
+
+  event rideFinished()
+    status = free
+    currentTrip = none
+
+  notification newOffer(tripId Trip.Id, pickup GeoPoint, fare Money)
+  notification offerCancelled(tripId Trip.Id)
+
+  error alreadyRegistered
+  error notRegistered
+  error alreadyOnline
+  error cannotGoOffline(currentStatus DriverStatus)
+  error noActiveOffer
+  error noActiveRide
+  error plateTaken
+  error driverNotFound
+
+  ## The current driver's state
+  query(Driver) MyState() DriverState
+    let d = [me]
+    if d is none
+      notRegistered()
+      return
+    return DriverState(status: d.status, currentTrip: d.currentTrip)
+
+  ## Free drivers for the dispatcher
+  query(dispatcher) FreeDrivers(wantedClass CarClass, pageReq PageRequest) page<DriverInfo>
+    return [Driver]
+      where status == free and car.carClass == wantedClass
+      page pageReq
+      select DriverInfo(driverId: id, name: name, plate: car.plate)
+
+  query info(driverId Driver.Id) DriverInfo
+    let d = [driverId]
+    if d is none
+      driverNotFound()
+      return
+    return DriverInfo(driverId: driverId, name: d.name, plate: d.car.plate)

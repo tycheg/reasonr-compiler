@@ -1,0 +1,10 @@
+{"date": "2026-01-01", "methods": [
+  {"type": "Order", "name": "Cancel", "kind": "command", "params": [{"name": "reason", "type": "string"}]},
+  {"type": "Order", "name": "Pay", "kind": "command", "params": [{"name": "amount", "type": "decimal"}]},
+  {"type": "Order", "name": "Tip", "kind": "command", "params": [{"name": "amount", "type": "decimal"}]},
+  {"type": "Order", "name": "Gone", "kind": "command"},
+  {"type": "Order", "name": "Info", "kind": "query", "params": [{"name": "orderId", "type": "Order.Id"}], "result": "Card"}
+], "types": [
+  {"name": "Card", "fields": [{"name": "status", "type": "Status"}, {"name": "total", "type": "decimal"}]},
+  {"name": "Status", "values": ["open", "closed", "archived"]}
+]}

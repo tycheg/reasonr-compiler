@@ -1,0 +1,146 @@
+# taxi/contexts/Ordering/ride.test.rr
+# End-to-end scenarios: the matching and payment services are replaced by
+# fakes (matching.fake.rr, payments.fake.rr); the test does not call the
+# systems' answers itself.
+
+let kia = Car(plate: "B002BB77", model: "Kia Rio", carClass: economy)
+let lada = Car(plate: "E003EE77", model: "Lada Vesta", carClass: economy)
+let point = GeoPoint(lat: 55.75, lon: 37.62)
+let trip = Route(from: point, to: point, distanceKm: 3)
+
+test "A ride on fakes: matching, the ride, payment"
+  let c1 = new Customer.Id
+  let d1 = new Driver.Id
+  let o1 = new Order.Id
+  given
+    Matching.Setup(freeDrivers: [d1])
+    Payments.Setup(limitAmount: 1000)
+    [c1].SignUp(phoneNumber: "+79990000010") as c1
+    [d1].Register(driverName: "John", driverCar: kia) as admin
+    [d1].GoOnline() as d1
+    [c1].OrderTaxi(orderId: o1, orderRoute: trip, requestedClass: economy) as c1
+    [d1].Accept() as d1
+    [d1].FinishRide() as d1
+  when
+    time offset +5s
+  then
+    notification receipt(orderId: o1) to c1
+    Order.Card(orderId: o1) as c1 matches (status: paid)
+
+test "A customer tips the driver"
+  feature tips
+  let c1 = new Customer.Id
+  let d1 = new Driver.Id
+  let o1 = new Order.Id
+  given
+    Matching.Setup(freeDrivers: [d1])
+    Payments.Setup(limitAmount: 1000)
+    [c1].SignUp(phoneNumber: "+79990000013") as c1
+    [d1].Register(driverName: "John", driverCar: kia) as admin
+    [d1].GoOnline() as d1
+    [c1].OrderTaxi(orderId: o1, orderRoute: trip, requestedClass: economy) as c1
+    [d1].Accept() as d1
+    [d1].FinishRide() as d1
+    time offset +5s
+  when
+    [o1].LeaveTip(amount: Money(amount: 50, currency: rub)) as c1
+  then
+    notification tipReceived(tripId: Trip.Id(o1)) to d1
+    Order.Card(orderId: o1) as c1 matches (status: paid, tip: Money(amount: 50, currency: rub))
+
+test "No tips before payment"
+  feature tips
+  let c1 = new Customer.Id
+  let d1 = new Driver.Id
+  let o1 = new Order.Id
+  given
+    Matching.Setup(freeDrivers: [d1])
+    [c1].SignUp(phoneNumber: "+79990000014") as c1
+    [d1].Register(driverName: "John", driverCar: kia) as admin
+    [d1].GoOnline() as d1
+    [c1].OrderTaxi(orderId: o1, orderRoute: trip, requestedClass: economy) as c1
+    [d1].Accept() as d1
+  when
+    [o1].LeaveTip(amount: Money(amount: 50, currency: rub)) as c1
+  then
+    error cannotTip(currentStatus: assigned)
+
+test "A payment over the limit is declined"
+  let c1 = new Customer.Id
+  let d1 = new Driver.Id
+  let o1 = new Order.Id
+  given
+    Matching.Setup(freeDrivers: [d1])
+    Payments.Setup(limitAmount: 100)
+    [c1].SignUp(phoneNumber: "+79990000011") as c1
+    [d1].Register(driverName: "John", driverCar: kia) as admin
+    [d1].GoOnline() as d1
+    [c1].OrderTaxi(orderId: o1, orderRoute: trip, requestedClass: economy) as c1
+    [d1].Accept() as d1
+  when
+    [d1].FinishRide() as d1
+  then
+    notification paymentProblem(orderId: o1, reason: "limit exceeded") to c1
+    Order.Card(orderId: o1) as c1 matches (status: unpaid)
+
+test "No free drivers"
+  let c1 = new Customer.Id
+  let o1 = new Order.Id
+  given
+    Matching.Setup(freeDrivers: [])
+    [c1].SignUp(phoneNumber: "+79990000012") as c1
+  when
+    [c1].OrderTaxi(orderId: o1, orderRoute: trip, requestedClass: economy) as c1
+  then
+    notification noDriversAvailable(orderId: o1) to c1
+    Order.Card(orderId: o1) as c1 matches (status: noDrivers)
+
+test "The first driver is busy: the fake offers the next one"
+  let c1 = new Customer.Id
+  let c2 = new Customer.Id
+  let d1 = new Driver.Id
+  let d2 = new Driver.Id
+  let o1 = new Order.Id
+  let o2 = new Order.Id
+  given
+    Matching.Setup(freeDrivers: [d1, d2])
+    [c1].SignUp(phoneNumber: "+79990000013") as c1
+    [c2].SignUp(phoneNumber: "+79990000014") as c2
+    [d1].Register(driverName: "John", driverCar: kia) as admin
+    [d2].Register(driverName: "Peter", driverCar: lada) as admin
+    [d1].GoOnline() as d1
+    [d2].GoOnline() as d2
+    [c1].OrderTaxi(orderId: o1, orderRoute: trip, requestedClass: economy) as c1
+    [d1].Accept() as d1
+  when
+    [c2].OrderTaxi(orderId: o2, orderRoute: trip, requestedClass: economy) as c2
+  then
+    request Matching.findDriver(tripId: Trip.Id(o2), exclude: [d1])
+    Order.Card(orderId: o2) as c2 matches (status: offered)
+    Driver.MyState() as d2 matches (status: offered)
+
+test "The matching service is silent: no drivers after three attempts"
+  let c1 = new Customer.Id
+  let o1 = new Order.Id
+  given
+    Matching.GoSilent()
+    [c1].SignUp(phoneNumber: "+79990000015") as c1
+    [c1].OrderTaxi(orderId: o1, orderRoute: trip, requestedClass: economy) as c1
+  when
+    time offset +240s
+  then
+    notification noDriversAvailable(orderId: o1) to c1
+    Order.Card(orderId: o1) as c1 matches (status: noDrivers)
+
+test "Cancelling an order while matching is silent"
+  let c1 = new Customer.Id
+  let o1 = new Order.Id
+  given
+    Matching.GoSilent()
+    [c1].SignUp(phoneNumber: "+79990000016") as c1
+    [c1].OrderTaxi(orderId: o1, orderRoute: trip, requestedClass: economy) as c1
+    [o1].Cancel(reason: "changed my mind") as c1
+  when
+    time offset +60s
+  then
+    Order.Card(orderId: o1) as c1 matches (status: cancelled)

@@ -1,0 +1,14 @@
+entity Ordering.Customer 00000000-0000-0000-0000-000000000001 existed=true version=1
+  #0 event Ordering.Customer.orderStarted(orderId: 00000000-0000-0000-0000-000000000001)
+  state Customer(phone: +79990000000, blocked: false, activeOrder: 00000000-0000-0000-0000-000000000001, homeAddress: none)
+entity Ordering.Order 00000000-0000-0000-0000-000000000001 existed=false version=0
+  #1 event Ordering.Order.placed(customerId: 00000000-0000-0000-0000-000000000001, orderRoute: Route(from: GeoPoint(lat: 55.75, lon: 37.62), to: GeoPoint(lat: 55.8, lon: 37.6), distanceKm: 3), requestedClass: economy, orderPrice: Money(amount: 175, currency: rub), at: 2026-10-04T12:00:00Z)
+  state Order(status: searching, customer: 00000000-0000-0000-0000-000000000001, route: Route(from: GeoPoint(lat: 55.75, lon: 37.62), to: GeoPoint(lat: 55.8, lon: 37.6), distanceKm: 3), carClass: economy, price: Money(amount: 175, currency: rub), driverName: none, driverPlate: none, placedAt: 2026-10-04T12:00:00Z, tip: none, costCenter: none)
+entity Dispatch.Trip 00000000-0000-0000-0000-000000000001 existed=false version=0
+  #3 event Dispatch.Trip.searchOpened(pickupPoint: GeoPoint(lat: 55.75, lon: 37.62), requestedClass: economy, tripFare: Money(amount: 175, currency: rub))
+  #4 event Dispatch.Trip.searchStarted(timer: ee000000-0000-0000-0000-000000000001)
+  state Trip(stage: searching, pickup: GeoPoint(lat: 55.75, lon: 37.62), carClass: economy, fare: Money(amount: 175, currency: rub), driver: none, candidate: none, searchTimer: ee000000-0000-0000-0000-000000000001, offerTimer: none, searchRetries: 0, Offer: [:])
+#2 projection upsert Ordering.OrderMart 00000000-0000-0000-0000-000000000001 {status: searching, driverName: none, plate: none, placedAt: 2026-10-04T12:00:00Z}
+timer ee000000-0000-0000-0000-000000000001 at 2026-10-04T12:01:00Z: [00000000-0000-0000-0000-000000000001].Dispatch.Trip.searchTimedOut()
+notify Ordering.Order.orderPlaced(orderId: 00000000-0000-0000-0000-000000000001, price: Money(amount: 175, currency: rub)) to initiator
+request Dispatch.Matching.findDriver(tripId: 00000000-0000-0000-0000-000000000001, pickup: GeoPoint(lat: 55.75, lon: 37.62), requestedClass: economy, exclude: [], timeout: ee000000-0000-0000-0000-000000000001) key 24314f49-6ba8-8c53-a8c5-116df68e1eaf

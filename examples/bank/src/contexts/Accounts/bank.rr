@@ -1,0 +1,151 @@
+# bank/contexts/Accounts/bank.rr
+
+role compliance
+role antifraud
+
+value AccountRow
+  accountId Account.Id
+  balance decimal
+  frozen bool
+
+value ClientProfile
+  fullName string?
+
+actor Client
+  id uuid
+  fullName string? personal
+
+  command(self) Join(clientName string personal)
+    if [id]
+      alreadyJoined()
+      return
+    joined(clientName: clientName)
+
+  ## Change the name
+  command(self) Rename(clientName string personal)
+    if not [id]
+      notJoined()
+      return
+    renamed(clientName: clientName)
+
+  ## Delete the client's personal data: the accounts and the transfer history stay
+  command(self, compliance) Forget()
+    if not [id]
+      notJoined()
+      return
+    forget id
+    forgotten()
+
+  event joined(clientName string? personal)
+    fullName = clientName
+
+  event renamed(clientName string? personal)
+    fullName = clientName
+
+  event forgotten()
+
+  error alreadyJoined
+  error notJoined
+
+  query(Client) Profile() ClientProfile
+    let c = [me]
+    if c is none
+      notJoined()
+      return
+    return ClientProfile(fullName: c.fullName)
+
+aggregate Account
+  id uuid
+  owner Client.Id?
+  balance decimal
+  overdraft decimal
+  frozen bool
+
+  index byOwner(owner)
+
+  ## Open an account: the bank issues the number, the client learns it from the response
+  command(Client) create Open()
+    accountCreated(ownerId: me)
+    accountOpened(accountId: id)
+
+  ## Transfer to another account
+  command(owner) Transfer(target Account.Id, sum decimal, comment string)
+    if sum <= 0
+      invalidSum(sum: sum)
+    if target == id
+      sameAccount()
+    if not [target]
+      accountNotFound(accountId: target)
+    if frozen
+      accountFrozen(accountId: id)
+    if comment.length > 140
+      commentTooLong(max: 140)
+    if hasErrors
+      return                                   # the client gets all errors at once
+
+    withdrawn(amount: sum, target: target, note: comment)
+    if after.balance < -overdraft              # the state after withdrawn
+      insufficientFunds(available: balance + overdraft)
+      return
+
+    [target].deposit(amount: sum, source: id)                  # an error of the target cancels the whole transfer
+    Antifraud.score(accountId: id, target: target, sum: sum)   # sent after commit
+    transferDone(newBalance: after.balance)
+
+  command deposit(amount decimal, source Account.Id)
+    if frozen
+      accountFrozen(accountId: id)
+      return
+    deposited(amount: amount, source: source)
+
+  command(compliance, antifraud) Freeze(reason string)
+    frozenBy(reason: reason)
+
+  ## The allowed overdraft of the account
+  command(compliance) SetOverdraft(limit decimal)
+    if limit < 0
+      invalidSum(sum: limit)
+      return
+    overdraftSet(limit: limit)
+
+  event accountCreated(ownerId Client.Id)
+    owner = ownerId
+
+  event withdrawn(amount decimal, target Account.Id, note string)
+    balance = balance - amount
+
+  event deposited(amount decimal, source Account.Id)
+    balance = balance + amount
+
+  event frozenBy(reason string)
+    frozen = true
+
+  event overdraftSet(limit decimal)
+    overdraft = limit
+
+  notification accountOpened(accountId Account.Id)
+  notification transferDone(newBalance decimal)
+
+  error invalidSum(sum decimal)
+  error sameAccount
+  error accountFrozen(accountId Account.Id)
+  error accountNotFound(accountId Account.Id)
+  error commentTooLong(max int)
+  error insufficientFunds(available decimal)
+
+  query(Client) MyAccounts(pageReq PageRequest) page<AccountRow>
+    return [Account]
+      where owner == me
+      page pageReq
+      select AccountRow(accountId: id, balance: balance, frozen: frozen)
+
+  query(Client) Details(accountId Account.Id) AccountRow
+    let a = [accountId]
+    if a is none or a.owner != me
+      accountNotFound(accountId: accountId)
+      return
+    return AccountRow(accountId: accountId, balance: a.balance, frozen: a.frozen)
+
+## Antifraud: scores transfers, freezes a suspicious account (Freeze)
+external(antifraud) Antifraud
+  request score(accountId Account.Id, target Account.Id, sum decimal)

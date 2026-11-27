@@ -1,0 +1,4 @@
+entity Ordering.Customer 00000000-0000-0000-0000-000000000001 existed=true version=1
+  #0 event Ordering.Customer.forgotten()
+  state Customer(phone: +79990000000, blocked: false, activeOrder: none, homeAddress: none)
+forget Ordering.Customer 00000000-0000-0000-0000-000000000001

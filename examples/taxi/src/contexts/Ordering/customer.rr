@@ -1,0 +1,106 @@
+# taxi/contexts/Ordering/customer.rr
+
+actor Customer
+  id uuid
+  phone string? personal
+  blocked bool
+  activeOrder Order.Id?
+  homeAddress string?
+
+  index byPhone(phone) unique phoneTaken
+
+  ## Sign up
+  command(self) SignUp(phoneNumber string personal)
+    if [id]
+      alreadyRegistered()
+      return
+    signedUp(phoneNumber: phoneNumber)
+
+  ## Become a customer through a Keycloak account: an Auth user is a
+  ## customer with the same identifier (auth.acl.rr)
+  command(self) Join(phoneNumber string personal)
+    if [id]
+      alreadyRegistered()
+      return
+    joined(phoneNumber: phoneNumber)
+
+  ## Home address, filled into new orders
+  command(self) SetHome(address string)
+    homeSet(address: address)
+
+  ## Order a taxi. The client generates the order identifier; staff may
+  ## also place an order for a customer.
+  command(self, admin, support) OrderTaxi(orderId Order.Id, orderRoute Route, requestedClass CarClass)
+    if not [id]
+      notRegistered()
+    if blocked
+      customerBlocked()
+    if activeOrder is not none
+      alreadyHasOrder(orderId: activeOrder)
+    if hasErrors
+      return
+    orderStarted(orderId: orderId)
+    [orderId].place(customerId: id, orderRoute: orderRoute, requestedClass: requestedClass)
+
+  ## Delete personal data
+  command(self, support) Forget()
+    if activeOrder is not none
+      hasActiveOrder()
+      return
+    forget id
+    forgotten()
+
+  command orderFinished(orderId Order.Id)
+    if activeOrder == orderId
+      orderClosed()
+
+  command orderUnpaid(orderId Order.Id)
+    blockedForDebt(orderId: orderId)
+
+  event signedUp(phoneNumber string? personal)
+    phone = phoneNumber
+
+  event joined(phoneNumber string? personal)
+    phone = phoneNumber
+
+  event homeSet(address string)
+    homeAddress = address
+
+  event orderStarted(orderId Order.Id)
+    activeOrder = orderId
+
+  event orderClosed()
+    activeOrder = none
+
+  event blockedForDebt(orderId Order.Id)
+    blocked = true
+    activeOrder = none
+
+  event forgotten()
+
+  error alreadyRegistered
+  error notRegistered
+  error customerBlocked
+  error alreadyHasOrder(orderId Order.Id)
+  error hasActiveOrder
+  error phoneTaken
+
+  query(Customer) Profile() CustomerProfile
+    let c = [me]
+    if c is none
+      notRegistered()
+      return
+    return CustomerProfile(phone: c.phone, blocked: c.blocked)
+
+  query(Customer) Home() HomeAddress
+    let c = [me]
+    if c is none
+      return HomeAddress(address: none)
+    return HomeAddress(address: c.homeAddress)
+
+  ## Find a customer by phone
+  query(admin, support) FindByPhone(phoneNumber string personal) list<CustomerRow>
+    return [Customer]
+      where phone == phoneNumber
+      limit 10
+      select CustomerRow(customerId: id, phone: phone)

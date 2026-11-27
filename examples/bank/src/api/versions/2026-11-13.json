@@ -1,0 +1,140 @@
+{
+  "date": "2026-11-13",
+  "methods": [
+    {
+      "type": "Accounts.Account",
+      "name": "Details",
+      "kind": "query",
+      "params": [
+        {
+          "name": "accountId",
+          "type": "Accounts.Account.Id"
+        }
+      ],
+      "result": "Accounts.AccountRow"
+    },
+    {
+      "type": "Accounts.Account",
+      "name": "Freeze",
+      "kind": "command",
+      "params": [
+        {
+          "name": "reason",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "type": "Accounts.Account",
+      "name": "MyAccounts",
+      "kind": "query",
+      "params": [
+        {
+          "name": "pageReq",
+          "type": "pageRequest"
+        }
+      ],
+      "result": "page\u003cAccounts.AccountRow\u003e"
+    },
+    {
+      "type": "Accounts.Account",
+      "name": "Open",
+      "kind": "command",
+      "create": true
+    },
+    {
+      "type": "Accounts.Account",
+      "name": "SetOverdraft",
+      "kind": "command",
+      "params": [
+        {
+          "name": "limit",
+          "type": "decimal"
+        }
+      ]
+    },
+    {
+      "type": "Accounts.Account",
+      "name": "Transfer",
+      "kind": "command",
+      "params": [
+        {
+          "name": "target",
+          "type": "Accounts.Account.Id"
+        },
+        {
+          "name": "sum",
+          "type": "decimal"
+        },
+        {
+          "name": "comment",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "type": "Accounts.Client",
+      "name": "Forget",
+      "kind": "command"
+    },
+    {
+      "type": "Accounts.Client",
+      "name": "Join",
+      "kind": "command",
+      "params": [
+        {
+          "name": "clientName",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "type": "Accounts.Client",
+      "name": "Profile",
+      "kind": "query",
+      "result": "Accounts.ClientProfile"
+    },
+    {
+      "type": "Accounts.Client",
+      "name": "Rename",
+      "kind": "command",
+      "params": [
+        {
+          "name": "clientName",
+          "type": "string"
+        }
+      ]
+    }
+  ],
+  "types": [
+    {
+      "name": "Accounts.AccountRow",
+      "fields": [
+        {
+          "name": "accountId",
+          "type": "Accounts.Account.Id"
+        },
+        {
+          "name": "balance",
+          "type": "decimal",
+          "default": true
+        },
+        {
+          "name": "frozen",
+          "type": "bool",
+          "default": true
+        }
+      ]
+    },
+    {
+      "name": "Accounts.ClientProfile",
+      "fields": [
+        {
+          "name": "fullName",
+          "type": "string?",
+          "default": true
+        }
+      ]
+    }
+  ]
+}

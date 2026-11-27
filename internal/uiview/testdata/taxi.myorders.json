@@ -1,0 +1,209 @@
+{
+  "version": 1,
+  "app": "Taxi",
+  "screen": "Ordering.MyOrders",
+  "lang": "en",
+  "platform": "web",
+  "title": "My orders",
+  "nodes": [
+    {
+      "bind": {
+        "type": "Ordering.Order",
+        "method": "MyOrders",
+        "result": "page\u003cOrdering.OrderRow\u003e",
+        "args": [
+          {
+            "name": "pageReq",
+            "type": "PageRequest",
+            "from": "primitive"
+          }
+        ]
+      },
+      "children": [
+        {
+          "field": "status",
+          "fieldType": "Ordering.OrderStatus",
+          "id": 2,
+          "key": "status",
+          "kind": "field",
+          "label": "Status",
+          "primitive": "Tag",
+          "text": "Ordering.OrderRow.status",
+          "types": {
+            "E": "Ordering.OrderStatus"
+          }
+        },
+        {
+          "children": [
+            {
+              "auto": true,
+              "field": "amount",
+              "fieldType": "decimal",
+              "id": 4,
+              "key": "amount",
+              "kind": "field",
+              "label": "Amount",
+              "primitive": "Text",
+              "text": "Ordering.Money.amount",
+              "types": {
+                "T": "decimal"
+              }
+            },
+            {
+              "auto": true,
+              "field": "currency",
+              "fieldType": "Ordering.Currency",
+              "id": 5,
+              "key": "currency",
+              "kind": "field",
+              "label": "Currency",
+              "primitive": "Tag",
+              "text": "Ordering.Money.currency",
+              "types": {
+                "E": "Ordering.Currency"
+              }
+            }
+          ],
+          "field": "price",
+          "fieldType": "Ordering.Money",
+          "id": 3,
+          "key": "price",
+          "kind": "field",
+          "label": "Price",
+          "primitive": "Fields",
+          "text": "Ordering.OrderRow.price",
+          "types": {
+            "V": "Ordering.Money"
+          }
+        },
+        {
+          "field": "placedAt",
+          "fieldType": "timestamp",
+          "id": 6,
+          "key": "placedAt",
+          "kind": "field",
+          "label": "Placed",
+          "primitive": "DateTime",
+          "text": "Ordering.OrderRow.placedAt"
+        },
+        {
+          "event": "open",
+          "id": 7,
+          "kind": "on",
+          "to": {
+            "screen": "Ordering.MyOrder",
+            "args": [
+              {
+                "name": "orderId",
+                "type": "Ordering.Order.Id",
+                "from": "event",
+                "node": 1,
+                "field": "orderId"
+              }
+            ]
+          }
+        }
+      ],
+      "id": 1,
+      "key": "Order.MyOrders",
+      "kind": "primitive",
+      "label": "My orders",
+      "place": "Taxi.MyOrders:Order.MyOrders",
+      "primitive": "List",
+      "rows": true,
+      "types": {
+        "Row": "Ordering.OrderRow"
+      }
+    }
+  ],
+  "types": {
+    "Ordering.Currency": {
+      "values": [
+        "rub"
+      ],
+      "labels": {
+        "rub": "Rub"
+      }
+    },
+    "Ordering.Money": {
+      "fields": [
+        {
+          "name": "amount",
+          "type": "decimal",
+          "label": "Amount"
+        },
+        {
+          "name": "currency",
+          "type": "Ordering.Currency",
+          "label": "Currency"
+        }
+      ]
+    },
+    "Ordering.OrderRow": {
+      "fields": [
+        {
+          "name": "orderId",
+          "type": "Ordering.Order.Id",
+          "label": "Order id"
+        },
+        {
+          "name": "status",
+          "type": "Ordering.OrderStatus",
+          "label": "Status"
+        },
+        {
+          "name": "price",
+          "type": "Ordering.Money",
+          "label": "Price"
+        },
+        {
+          "name": "placedAt",
+          "type": "timestamp",
+          "label": "Placed"
+        }
+      ]
+    },
+    "Ordering.OrderStatus": {
+      "values": [
+        "searching",
+        "offered",
+        "assigned",
+        "completed",
+        "paid",
+        "unpaid",
+        "cancelled",
+        "noDrivers"
+      ],
+      "labels": {
+        "assigned": "The driver is on the way",
+        "cancelled": "Cancelled",
+        "completed": "Ride completed",
+        "noDrivers": "No drivers",
+        "offered": "Offered to a driver",
+        "paid": "Paid",
+        "searching": "Looking for a driver",
+        "unpaid": "Not paid"
+      }
+    }
+  },
+  "messages": {
+    "Ordering.Order.cannotCancel": {
+      "text": "Cannot cancel an order with status {currentStatus}"
+    },
+    "Ordering.Order.cannotEdit": {
+      "text": "Cannot change an order with status {currentStatus}"
+    },
+    "Ordering.Order.cannotTip": {
+      "text": "Tips come after the ride is paid, now {currentStatus}"
+    },
+    "Ordering.Order.driverOnTheWay": {
+      "text": "The driver is on the way"
+    },
+    "Ordering.Order.orderPlaced": {
+      "text": "Order placed, price {price}"
+    },
+    "Ordering.Order.tipsDisabled": {
+      "text": "Tips are not available yet"
+    }
+  }
+}

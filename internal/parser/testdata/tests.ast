@@ -1,0 +1,123 @@
+File
+  Name: "testdata/tests.rr"
+  Decls:
+    - LetDecl
+        Let: LetStmt
+          Name: center
+          Value: CallExpr
+            Fun: GeoPoint
+            Args: ArgList
+              Args:
+                - Arg
+                    Name: lat
+                    Value: BasicLit DECIMAL 55.75
+                - Arg
+                    Name: lon
+                    Value: BasicLit DECIMAL 37.62
+    - TestDecl
+        Name: BasicLit STRING "A driver accepts an offer"
+        Setup:
+          - LetStmt
+              Name: c1
+              Value: NewIDExpr
+                Type: NamedType Customer.Id
+        Given: GivenBlock
+          Steps:
+            - TestCall
+                Call: CallExpr
+                  Fun: SelectorExpr
+                    X: BracketExpr
+                      Elems:
+                        - c1
+                    Sel: SignUp
+                  Args: ArgList
+                    Args:
+                      - Arg
+                          Name: phoneNumber
+                          Value: BasicLit STRING "+79990000000"
+                As: c1
+            - TimeOffset
+                Duration: BasicLit DURATION 20s
+        When: WhenBlock
+          Steps:
+            - TestCall
+                Call: CallExpr
+                  Fun: SelectorExpr
+                    X: BracketExpr
+                      Elems:
+                        - d1
+                    Sel: Accept
+                  Args: ArgList
+                As: d1
+        Then: ThenBlock
+          Items:
+            - ThenNotification
+                Name: driverOnTheWay
+                Args: ArgList
+                  Args:
+                    - Arg
+                        Name: orderId
+                        Value: o1
+                To: c1
+            - ThenError
+                Name: plateTaken
+            - ThenError
+                Name: cannotCancel
+                Args: ArgList
+                  Args:
+                    - Arg
+                        Name: currentStatus
+                        Value: paid
+            - ThenRequest
+                System: Matching
+                Name: findDriver
+                Args: ArgList
+                  Args:
+                    - Arg
+                        Name: orderId
+                        Value: o2
+                    - Arg
+                        Name: exclude
+                        Value: BracketExpr
+                          Elems:
+                            - d1
+            - ThenMatches
+                Call: TestCall
+                  Call: CallExpr
+                    Fun: SelectorExpr
+                      X: Order
+                      Sel: Card
+                    Args: ArgList
+                      Args:
+                        - Arg
+                            Name: orderId
+                            Value: o1
+                  As: c1
+                Fields: ArgList
+                  Args:
+                    - Arg
+                        Name: status
+                        Value: assigned
+    - TestDecl
+        Name: BasicLit STRING "Query"
+        When: WhenBlock
+          Steps:
+            - TestCall
+                Call: CallExpr
+                  Fun: SelectorExpr
+                    X: Order
+                    Sel: Card
+                  Args: ArgList
+                    Args:
+                      - Arg
+                          Name: orderId
+                          Value: o1
+                As: c2
+        Then: ThenBlock
+          Items:
+            - ThenMatches
+                Fields: ArgList
+                  Args:
+                    - Arg
+                        Name: status
+                        Value: searching

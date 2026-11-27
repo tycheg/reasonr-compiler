@@ -1,0 +1,41 @@
+role admin
+
+value Money
+  amount float  # want "W1005"
+
+aggregate Order
+  id uuid
+  status string
+  unused int  # want "W1001"
+  items list<Order.Id>
+
+  command(admin) Go(price float)  # want "W1005"
+    let n = 0
+    while n < 10  # want "W1003"
+      done()
+    for i in items
+      [i].tick()  # want "W1004"
+    for j in [id, id]
+      [j].tick()
+    let t = schedule(at: now, run: fire())
+
+  command tick()
+    done()
+
+  command fire()
+    sent()  # want "W1006"
+
+  command neverCalled()  # want "W1001"
+    done()
+
+  event done()
+    status = "x"
+
+  event neverRaised()  # want "W1001"
+
+  error neverUsed  # want "W1001"
+
+  rule neverApplied() int  # want "W1001"
+    return 1
+
+  notification sent()

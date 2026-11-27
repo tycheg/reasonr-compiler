@@ -1,0 +1,617 @@
+{
+  "date": "2026-11-13",
+  "methods": [
+    {
+      "type": "Auth.User",
+      "name": "Me",
+      "kind": "query",
+      "result": "Auth.Account"
+    },
+    {
+      "type": "Auth.User",
+      "name": "Sync",
+      "kind": "command",
+      "params": [
+        {
+          "name": "userName",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "type": "Dispatch.Driver",
+      "name": "Accept",
+      "kind": "command"
+    },
+    {
+      "type": "Dispatch.Driver",
+      "name": "Decline",
+      "kind": "command"
+    },
+    {
+      "type": "Dispatch.Driver",
+      "name": "FinishRide",
+      "kind": "command"
+    },
+    {
+      "type": "Dispatch.Driver",
+      "name": "FreeDrivers",
+      "kind": "query",
+      "params": [
+        {
+          "name": "wantedClass",
+          "type": "Dispatch.CarClass"
+        },
+        {
+          "name": "pageReq",
+          "type": "pageRequest"
+        }
+      ],
+      "result": "page\u003cDispatch.DriverInfo\u003e"
+    },
+    {
+      "type": "Dispatch.Driver",
+      "name": "GoOffline",
+      "kind": "command"
+    },
+    {
+      "type": "Dispatch.Driver",
+      "name": "GoOnline",
+      "kind": "command"
+    },
+    {
+      "type": "Dispatch.Driver",
+      "name": "MyState",
+      "kind": "query",
+      "result": "Dispatch.DriverState"
+    },
+    {
+      "type": "Dispatch.Driver",
+      "name": "Register",
+      "kind": "command",
+      "params": [
+        {
+          "name": "driverName",
+          "type": "string"
+        },
+        {
+          "name": "driverCar",
+          "type": "Dispatch.Car"
+        }
+      ]
+    },
+    {
+      "type": "Ordering.Customer",
+      "name": "FindByPhone",
+      "kind": "query",
+      "params": [
+        {
+          "name": "phoneNumber",
+          "type": "string"
+        }
+      ],
+      "result": "list\u003cOrdering.CustomerRow\u003e"
+    },
+    {
+      "type": "Ordering.Customer",
+      "name": "Forget",
+      "kind": "command"
+    },
+    {
+      "type": "Ordering.Customer",
+      "name": "Home",
+      "kind": "query",
+      "result": "Ordering.HomeAddress"
+    },
+    {
+      "type": "Ordering.Customer",
+      "name": "Join",
+      "kind": "command",
+      "params": [
+        {
+          "name": "phoneNumber",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "type": "Ordering.Customer",
+      "name": "OrderTaxi",
+      "kind": "command",
+      "params": [
+        {
+          "name": "orderId",
+          "type": "Ordering.Order.Id"
+        },
+        {
+          "name": "orderRoute",
+          "type": "Ordering.Route"
+        },
+        {
+          "name": "requestedClass",
+          "type": "Ordering.CarClass"
+        }
+      ]
+    },
+    {
+      "type": "Ordering.Customer",
+      "name": "Profile",
+      "kind": "query",
+      "result": "Ordering.CustomerProfile"
+    },
+    {
+      "type": "Ordering.Customer",
+      "name": "SetHome",
+      "kind": "command",
+      "params": [
+        {
+          "name": "address",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "type": "Ordering.Customer",
+      "name": "SignUp",
+      "kind": "command",
+      "params": [
+        {
+          "name": "phoneNumber",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "type": "Ordering.Order",
+      "name": "Cancel",
+      "kind": "command",
+      "params": [
+        {
+          "name": "reason",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "type": "Ordering.Order",
+      "name": "Card",
+      "kind": "query",
+      "params": [
+        {
+          "name": "orderId",
+          "type": "Ordering.Order.Id"
+        }
+      ],
+      "result": "Ordering.OrderCard"
+    },
+    {
+      "type": "Ordering.Order",
+      "name": "Details",
+      "kind": "query",
+      "params": [
+        {
+          "name": "orderId",
+          "type": "Ordering.Order.Id"
+        }
+      ],
+      "result": "Ordering.OrderDetails"
+    },
+    {
+      "type": "Ordering.Order",
+      "name": "Edit",
+      "kind": "command",
+      "params": [
+        {
+          "name": "orderRoute",
+          "type": "Ordering.Route"
+        },
+        {
+          "name": "requestedClass",
+          "type": "Ordering.CarClass"
+        }
+      ]
+    },
+    {
+      "type": "Ordering.Order",
+      "name": "LeaveTip",
+      "kind": "command",
+      "params": [
+        {
+          "name": "amount",
+          "type": "Ordering.Money"
+        }
+      ]
+    },
+    {
+      "type": "Ordering.Order",
+      "name": "List",
+      "kind": "query",
+      "params": [
+        {
+          "name": "wanted",
+          "type": "Ordering.OrderStatus",
+          "default": true
+        },
+        {
+          "name": "pageReq",
+          "type": "pageRequest"
+        }
+      ],
+      "result": "page\u003cOrdering.OrderRow\u003e"
+    },
+    {
+      "type": "Ordering.Order",
+      "name": "MyOrders",
+      "kind": "query",
+      "params": [
+        {
+          "name": "pageReq",
+          "type": "pageRequest"
+        }
+      ],
+      "result": "page\u003cOrdering.OrderRow\u003e"
+    },
+    {
+      "type": "Ordering.Order",
+      "name": "PaymentCaptured",
+      "kind": "command",
+      "params": [
+        {
+          "name": "transactionId",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "type": "Ordering.Order",
+      "name": "PaymentDeclined",
+      "kind": "command",
+      "params": [
+        {
+          "name": "reason",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "type": "Ordering.OrderMart",
+      "name": "Board",
+      "kind": "query",
+      "params": [
+        {
+          "name": "wanted",
+          "type": "Ordering.OrderStatus"
+        },
+        {
+          "name": "pageReq",
+          "type": "pageRequest"
+        }
+      ],
+      "result": "page\u003cOrdering.BoardRow\u003e"
+    }
+  ],
+  "types": [
+    {
+      "name": "Auth.Account",
+      "fields": [
+        {
+          "name": "name",
+          "type": "string?",
+          "default": true
+        }
+      ]
+    },
+    {
+      "name": "Dispatch.Car",
+      "fields": [
+        {
+          "name": "plate",
+          "type": "string",
+          "default": true
+        },
+        {
+          "name": "model",
+          "type": "string",
+          "default": true
+        },
+        {
+          "name": "carClass",
+          "type": "Dispatch.CarClass",
+          "default": true
+        }
+      ]
+    },
+    {
+      "name": "Dispatch.DriverInfo",
+      "fields": [
+        {
+          "name": "driverId",
+          "type": "Dispatch.Driver.Id"
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "default": true
+        },
+        {
+          "name": "plate",
+          "type": "string",
+          "default": true
+        }
+      ]
+    },
+    {
+      "name": "Dispatch.DriverState",
+      "fields": [
+        {
+          "name": "status",
+          "type": "Dispatch.DriverStatus",
+          "default": true
+        },
+        {
+          "name": "currentTrip",
+          "type": "Dispatch.Trip.Id?",
+          "default": true
+        }
+      ]
+    },
+    {
+      "name": "Ordering.AssignedDriver",
+      "fields": [
+        {
+          "name": "name",
+          "type": "string",
+          "default": true
+        },
+        {
+          "name": "plate",
+          "type": "string",
+          "default": true
+        }
+      ]
+    },
+    {
+      "name": "Ordering.BoardRow",
+      "fields": [
+        {
+          "name": "orderId",
+          "type": "Ordering.Order.Id"
+        },
+        {
+          "name": "status",
+          "type": "Ordering.OrderStatus",
+          "default": true
+        },
+        {
+          "name": "driverName",
+          "type": "string?",
+          "default": true
+        },
+        {
+          "name": "plate",
+          "type": "string?",
+          "default": true
+        }
+      ]
+    },
+    {
+      "name": "Ordering.CustomerProfile",
+      "fields": [
+        {
+          "name": "phone",
+          "type": "string?",
+          "default": true
+        },
+        {
+          "name": "blocked",
+          "type": "bool",
+          "default": true
+        }
+      ]
+    },
+    {
+      "name": "Ordering.CustomerRow",
+      "fields": [
+        {
+          "name": "customerId",
+          "type": "Ordering.Customer.Id"
+        },
+        {
+          "name": "phone",
+          "type": "string?",
+          "default": true
+        }
+      ]
+    },
+    {
+      "name": "Ordering.GeoPoint",
+      "fields": [
+        {
+          "name": "lat",
+          "type": "float",
+          "default": true
+        },
+        {
+          "name": "lon",
+          "type": "float",
+          "default": true
+        }
+      ]
+    },
+    {
+      "name": "Ordering.HomeAddress",
+      "fields": [
+        {
+          "name": "address",
+          "type": "string?",
+          "default": true
+        }
+      ]
+    },
+    {
+      "name": "Ordering.Money",
+      "fields": [
+        {
+          "name": "amount",
+          "type": "decimal",
+          "default": true
+        },
+        {
+          "name": "currency",
+          "type": "Ordering.Currency",
+          "default": true
+        }
+      ]
+    },
+    {
+      "name": "Ordering.OrderCard",
+      "fields": [
+        {
+          "name": "status",
+          "type": "Ordering.OrderStatus",
+          "default": true
+        },
+        {
+          "name": "price",
+          "type": "Ordering.Money",
+          "default": true
+        },
+        {
+          "name": "driver",
+          "type": "Ordering.AssignedDriver?",
+          "default": true
+        },
+        {
+          "name": "tip",
+          "type": "Ordering.Money?",
+          "default": true
+        }
+      ]
+    },
+    {
+      "name": "Ordering.OrderDetails",
+      "fields": [
+        {
+          "name": "orderId",
+          "type": "Ordering.Order.Id"
+        },
+        {
+          "name": "status",
+          "type": "Ordering.OrderStatus",
+          "default": true
+        },
+        {
+          "name": "orderRoute",
+          "type": "Ordering.Route",
+          "default": true
+        },
+        {
+          "name": "requestedClass",
+          "type": "Ordering.CarClass",
+          "default": true
+        },
+        {
+          "name": "price",
+          "type": "Ordering.Money",
+          "default": true
+        },
+        {
+          "name": "placedAt",
+          "type": "timestamp",
+          "default": true
+        },
+        {
+          "name": "driverName",
+          "type": "string?",
+          "default": true
+        }
+      ]
+    },
+    {
+      "name": "Ordering.OrderRow",
+      "fields": [
+        {
+          "name": "orderId",
+          "type": "Ordering.Order.Id"
+        },
+        {
+          "name": "status",
+          "type": "Ordering.OrderStatus",
+          "default": true
+        },
+        {
+          "name": "price",
+          "type": "Ordering.Money",
+          "default": true
+        },
+        {
+          "name": "placedAt",
+          "type": "timestamp",
+          "default": true
+        }
+      ]
+    },
+    {
+      "name": "Ordering.Route",
+      "fields": [
+        {
+          "name": "from",
+          "type": "Ordering.GeoPoint",
+          "default": true
+        },
+        {
+          "name": "to",
+          "type": "Ordering.GeoPoint",
+          "default": true
+        },
+        {
+          "name": "distanceKm",
+          "type": "float",
+          "default": true
+        }
+      ]
+    },
+    {
+      "name": "Dispatch.CarClass",
+      "values": [
+        "economy",
+        "comfort"
+      ]
+    },
+    {
+      "name": "Dispatch.DriverStatus",
+      "values": [
+        "offline",
+        "free",
+        "offered",
+        "busy"
+      ]
+    },
+    {
+      "name": "Ordering.CarClass",
+      "values": [
+        "economy",
+        "comfort"
+      ]
+    },
+    {
+      "name": "Ordering.Currency",
+      "values": [
+        "rub"
+      ]
+    },
+    {
+      "name": "Ordering.OrderStatus",
+      "values": [
+        "searching",
+        "offered",
+        "assigned",
+        "completed",
+        "paid",
+        "unpaid",
+        "cancelled",
+        "noDrivers"
+      ]
+    }
+  ]
+}

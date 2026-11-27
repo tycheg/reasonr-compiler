@@ -1,0 +1,11 @@
+extend Order
+  costCenter string?
+
+  on placed
+    if orderPrice.amount > 5000
+      orderLimitExceeded(limit: 5000)
+
+  rule perKmRate(requestedClass CarClass) decimal
+    return 25
+
+exclude test "A customer orders a taxi" because "acme has a 5000 limit"

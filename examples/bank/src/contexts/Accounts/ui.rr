@@ -1,0 +1,21 @@
+# bank/contexts/Accounts/ui.rr
+# Bank client screens (apps/Bank): accounts, a transfer, the profile (§22)
+
+screen MyAccounts "My accounts"
+  Button Account.Open "Open an account"         # the engine issues the number
+  List Account.MyAccounts
+    balance
+    frozen
+    on open AccountCard
+
+screen AccountCard(accountId Account.Id) "Account"
+  Card Account.Details
+    Actions
+      Edit Account.Transfer "Transfer"
+
+screen Profile "Profile"
+  Edit Client.Join "Become a client"
+  Card Client.Profile
+    Actions
+      Edit Client.Rename "Change name"
+      Confirm Client.Forget

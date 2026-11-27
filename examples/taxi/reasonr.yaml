@@ -1,0 +1,6 @@
+# Model project: sources; the engine is reasonrd from PATH.
+src: src
+# Modules (RFC §23): authentication through Keycloak, system Auth.
+# reasonr mod download puts it into the module cache (reasonr.lock).
+requires:
+  github.com/tycheg/reasonr-auth: v0.1.0

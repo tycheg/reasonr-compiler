@@ -1,0 +1,45 @@
+# taxi/contexts/Dispatch/types.rr
+# Dispatch's own types: money, a point and a car class are copies of the
+# Ordering types, translated by the ACL (ordering.acl.rr).
+
+enum DriverStatus
+  offline
+  free
+  offered
+  busy
+
+enum OfferOutcome
+  pending
+  accepted
+  declined
+  expired
+  withdrawn
+
+enum CarClass
+  economy
+  comfort
+
+enum Currency
+  rub
+
+value Money
+  amount decimal
+  currency Currency
+
+value GeoPoint
+  lat float
+  lon float
+
+value Car
+  plate string
+  model string
+  carClass CarClass
+
+value DriverInfo
+  driverId Driver.Id
+  name string
+  plate string
+
+value DriverState
+  status DriverStatus
+  currentTrip Trip.Id?

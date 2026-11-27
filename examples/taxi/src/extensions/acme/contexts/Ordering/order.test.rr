@@ -1,0 +1,13 @@
+# taxi/extensions/acme/contexts/Ordering/order.test.rr
+let spot = GeoPoint(lat: 55.75, lon: 37.62)
+
+test "An empty cost center is rejected"
+  let c1 = new Customer.Id
+  let o1 = new Order.Id
+  given
+    [c1].SignUp(phoneNumber: "+79990000030") as c1
+    [c1].OrderTaxi(orderId: o1, orderRoute: Route(from: spot, to: spot, distanceKm: 2), requestedClass: economy) as c1
+  when
+    [o1].SetCostCenter(code: "") as c1
+  then
+    error invalidCostCenter

@@ -1,0 +1,1 @@
+error Ordering.Customer.alreadyRegistered()

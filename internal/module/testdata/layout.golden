@@ -1,0 +1,22 @@
+== (base)
+  Role admin
+  Entity Order
+    ID id
+  Screen Home
+  App Inline
+  Primitive Badge
+  Entity B
+    ID id
+  Entity A
+    ID id
+  App Backoffice
+  App Admin
+  Entity InApp
+    ID id
+  Texts
+  Primitive Badge2
+  Screen InPrims
+  Entity Root
+    ID id
+  Entity Loose
+    ID id

@@ -1,0 +1,5 @@
+# taxi/contexts/Dispatch/texts.en.rr
+# Dispatch texts in the apps' base language
+
+texts en
+  Trip.tipReceived "Tip {amount}"

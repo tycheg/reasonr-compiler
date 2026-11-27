@@ -1,0 +1,6 @@
+let a = 007     # want "E0007"
+let b = 1__0    # want "E0007"
+let c = 1_      # want "E0007"
+let d = 1.      # want "E0007"
+let e = 30sec   # want "E0007"
+let f = 1.5h    # want "E0007"

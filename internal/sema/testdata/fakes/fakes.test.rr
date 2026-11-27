@@ -1,0 +1,9 @@
+test "Fake commands"
+  let o1 = new Order.Id
+  given
+    Matching.Setup()
+    Matching.Setup() as support  # want "E1210"
+  when
+    [o1].place() as support  # want "E0802"
+  then
+    request Matching.ping()

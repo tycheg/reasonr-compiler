@@ -1,0 +1,5 @@
+test "Base"
+  when
+    [o].place() as admin
+  then
+    error failed

@@ -1,0 +1,21 @@
+# taxi/contexts/Dispatch/trip.offer.rr
+
+## An offer of the trip to a driver: its own identity inside the trip
+entity Trip.Offer
+  id sequence                      # offer number within the trip: 1, 2, 3…
+  driver Driver.Id?
+  outcome OfferOutcome             # pending until the driver answers
+
+  command open(offeredTo Driver.Id)
+    opened(offeredTo: offeredTo)
+
+  command close(result OfferOutcome)
+    if outcome != pending
+      return
+    closed(result: result)
+
+  event opened(offeredTo Driver.Id)
+    driver = offeredTo
+
+  event closed(result OfferOutcome)
+    outcome = result

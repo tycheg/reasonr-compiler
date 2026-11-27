@@ -1,0 +1,39 @@
+# taxi/contexts/Ordering/ui.rr
+# Passenger screens (apps/Taxi) and the dispatcher board (apps/Dispatch); admin screens are in admin.rr (§22.3)
+
+screen NewOrder "Order a taxi"
+  Form Customer.OrderTaxi(orderId: new)          # the target is me; route and class are form fields
+    on done MyOrder
+
+screen MyOrders "My orders"
+  List Order.MyOrders                            # pageReq is pagination
+    status
+    price
+    placedAt
+    on open MyOrder
+
+screen MyOrder(orderId Order.Id) "Order"
+  Card Order.Card                                # fields are automatic
+    Actions
+      Confirm Order.Cancel if status in [searching, offered, assigned]
+      Edit Order.LeaveTip "Tip" if tips and status == paid
+
+screen Profile "Profile"
+  Edit Customer.SignUp "Sign up"
+  Card Customer.Profile
+    Actions
+      Confirm Customer.Forget
+
+screen JoinTaxi "Become a customer"
+  Form Customer.Join                             # the target is me: an Auth user acts as a customer
+
+screen TaxiAccount "Taxi customer"
+  Card Customer.Profile
+
+screen Home "Home"
+  Card Customer.Home
+    Actions
+      Edit Customer.SetHome "Change address"
+
+screen Board "Order board"
+  Table OrderMart.Board                          # wanted is a filter, pageReq is pagination

@@ -1,0 +1,184 @@
+# taxi/contexts/Dispatch/trip.rr
+# The trip: driver matching, offers, the ride. It opens for an Ordering order
+# (ordering.acl.rr) and knows about it only what the ACL passed. Offers to
+# drivers are the inner entity Trip.Offer (trip.offer.rr).
+
+enum TripStage
+  searching
+  offered
+  assigned
+  completed
+  noDrivers
+  cancelled
+
+aggregate Trip
+  id uuid
+  stage TripStage
+  pickup GeoPoint
+  carClass CarClass
+  fare Money
+  driver Driver.Id?
+  candidate Driver.Id?
+  searchTimer Timer.Id?
+  offerTimer Timer.Id?
+  searchRetries int
+
+  # ---------- the order (ordering.acl.rr) ----------
+
+  command open(pickupPoint GeoPoint, requestedClass CarClass, price Money)
+    searchOpened(pickupPoint: pickupPoint, requestedClass: requestedClass, tripFare: price)
+    findDriver()
+
+  command update(pickupPoint GeoPoint, requestedClass CarClass, price Money)
+    searchUpdated(pickupPoint: pickupPoint, requestedClass: requestedClass, tripFare: price)
+
+  command close()
+    delete searchTimer
+    delete offerTimer
+    closeOffer(result: withdrawn)
+    [candidate]?.withdrawOffer(tripId: id)
+    [driver]?.releaseTrip(tripId: id)
+    rideCancelled(tripId: id) to driver
+    dispatchClosed()
+
+  command tip(amount Money)
+    tipReceived(tripId: id, amount: amount) to driver
+
+  # ---------- matching ----------
+
+  ## Drivers already offered the trip are not matched again
+  command findDriver()
+    let offered set<Driver.Id> = []
+    for o in [Offer]
+      if o.driver is not none
+        offered = offered.with(o.driver)
+    let timer = schedule(at: now + 60s, run: searchTimedOut())
+    Matching.findDriver(tripId: id, pickup: pickup, requestedClass: carClass, exclude: offered, timeout: timer)
+    searchStarted(timer: timer)
+
+  ## The matching service answers: a driver is found.
+  ## The offer goes to the driver as the last step: if the driver is busy,
+  ## they return the order at once (driverDeclined), and matching the next driver starts.
+  command(matching) DriverFound(driverId Driver.Id)
+    if not [id] or stage != searching
+      return                                   # no trip or it is closed: a stale answer
+    delete searchTimer
+    let timer = schedule(at: now + 20s, run: expireOffer(driverId: driverId))
+    [new Offer.Id].open(offeredTo: driverId)
+    offerSent(driverId: driverId, timer: timer)
+    [driverId].offerTrip(tripId: id, pickup: pickup, fare: fare)
+
+  ## The matching service answers: no drivers
+  command(matching) NoDriverFound()
+    if not [id] or stage != searching
+      return
+    delete searchTimer
+    giveUp()
+
+  ## The search gave no result in time: start over, give up after three attempts
+  command searchTimedOut()
+    if stage != searching
+      return
+    if searchRetries >= 3
+      giveUp()
+      return
+    searchRetried()
+    findDriver()
+
+  command giveUp()
+    searchFailed(at: now)
+
+  command searchAgain(skipped Driver.Id)
+    driverSkipped(driverId: skipped)
+    findDriver()
+
+  command expireOffer(driverId Driver.Id)
+    if stage != offered or candidate != driverId
+      return
+    closeOffer(result: expired)
+    [driverId].withdrawOffer(tripId: id)
+    searchAgain(skipped: driverId)
+
+  ## The driver declined the offer or was busy
+  command driverDeclined(driverId Driver.Id)
+    if stage != offered or candidate != driverId
+      return
+    delete offerTimer
+    closeOffer(result: declined)
+    searchAgain(skipped: driverId)
+
+  ## The driver's answer to the open offer
+  command closeOffer(result OfferOutcome)
+    for o in [Offer]
+      if o.outcome == pending
+        [o.id].close(result: result)
+
+  # ---------- the ride ----------
+
+  command assignDriver(driverId Driver.Id, assignedName string, assignedPlate string)
+    if stage != offered or candidate != driverId
+      offerNoLongerValid()
+      return
+    delete offerTimer
+    closeOffer(result: accepted)
+    driverAssigned(driverId: driverId, assignedName: assignedName, assignedPlate: assignedPlate)
+
+  command finishRide(driverId Driver.Id)
+    if stage != assigned or driver != driverId
+      rideNotActive()
+      return
+    rideCompleted(at: now)
+
+  # ---------- events ----------
+
+  event searchOpened(pickupPoint GeoPoint, requestedClass CarClass, tripFare Money)
+    pickup = pickupPoint
+    carClass = requestedClass
+    fare = tripFare
+    stage = searching
+
+  event searchUpdated(pickupPoint GeoPoint, requestedClass CarClass, tripFare Money)
+    pickup = pickupPoint
+    carClass = requestedClass
+    fare = tripFare
+
+  event searchStarted(timer Timer.Id)
+    searchTimer = timer
+
+  event searchRetried()
+    searchRetries = searchRetries + 1
+
+  event offerSent(driverId Driver.Id, timer Timer.Id)
+    candidate = driverId
+    offerTimer = timer
+    searchTimer = none
+    stage = offered
+
+  event driverSkipped(driverId Driver.Id)
+    candidate = none
+    offerTimer = none
+    stage = searching
+
+  event driverAssigned(driverId Driver.Id, assignedName string, assignedPlate string)
+    driver = driverId
+    candidate = none
+    offerTimer = none
+    stage = assigned
+
+  event rideCompleted(at timestamp)
+    stage = completed
+
+  event searchFailed(at timestamp)
+    stage = noDrivers
+    searchTimer = none
+
+  event dispatchClosed()
+    stage = cancelled
+    searchTimer = none
+    offerTimer = none
+
+  notification rideCancelled(tripId Trip.Id)
+  notification tipReceived(tripId Trip.Id, amount Money)
+
+  error offerNoLongerValid
+  error rideNotActive

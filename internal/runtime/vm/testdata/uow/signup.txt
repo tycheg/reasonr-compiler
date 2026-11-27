@@ -1,0 +1,3 @@
+entity Ordering.Customer 00000000-0000-0000-0000-000000000005 existed=false version=0
+  #0 event Ordering.Customer.signedUp(phoneNumber: +79991112233)
+  state Customer(phone: +79991112233, blocked: false, activeOrder: none, homeAddress: none)

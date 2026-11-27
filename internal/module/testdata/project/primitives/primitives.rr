@@ -1,0 +1,3 @@
+## Order number
+primitive OrderNumber<K id>
+  binds input K

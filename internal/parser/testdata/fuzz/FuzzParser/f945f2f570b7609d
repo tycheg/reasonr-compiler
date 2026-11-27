@@ -1,0 +1,2 @@
+go test fuzz v1
+[]byte("entity\n query\n  [A]\n      limit \n      where")

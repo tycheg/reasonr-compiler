@@ -1,0 +1,194 @@
+# The standard catalog of UI primitives (RFC §22.8). It is included in every
+# module implicitly; platform runtimes implement it.
+
+# Navigation and layout
+
+## The app menu: its items are screens
+primitive Menu
+  children binds screens
+
+## Tabs: each is a screen
+primitive Tabs
+  children binds screens
+
+## A transition to a screen
+primitive Link
+  binds screen
+
+## An action bar
+primitive Toolbar
+
+## Elements in a row
+primitive Row
+
+## Elements in a column
+primitive Stack
+
+## A section
+primitive Section
+
+# Data
+
+## A table: a page of a query result with filters and pagination
+primitive Table<Row>(size int = 20)
+  binds page<Row>
+  part Filters binds params
+  part Columns binds Row
+  part RowActions binds Row
+  event open(row Row)
+
+## A list: a page or a list of a query result; the children are row fields
+primitive List<Row>
+  binds page<Row> | list<Row>
+  part Filters binds params
+  children binds Row
+  part RowActions binds Row
+  event open(row Row)
+
+## A card: a query result as "field — value"
+primitive Card<V value>
+  binds V
+  children binds V
+  part Actions
+
+# Showing fields
+
+## A field value as text
+primitive Text<T>
+  binds field T
+
+## An enum value
+primitive Tag<E enum>
+  binds field E
+
+## A date and time
+primitive DateTime
+  binds field timestamp
+
+## The fields of a nested value object
+primitive Fields<V value>
+  binds field V
+  children binds V
+
+## The elements of a list or a set
+primitive Items<T>
+  binds field list<T> | set<T>
+
+# Commands
+
+## A command form on the screen
+primitive Form
+  binds command
+  children binds inputs
+  event done
+
+## A button that opens a command form in a dialog
+primitive Edit
+  binds command
+  children binds inputs
+  event done
+
+## A button with a confirmation; parameters not passed go into the confirmation dialog
+primitive Confirm
+  binds command
+  children binds inputs
+  event done
+
+## A button: all command parameters are set
+primitive Button
+  binds command
+  event done
+
+# Input
+
+## A string
+primitive TextInput
+  binds input string
+
+## A number
+primitive NumberInput
+  binds input int | bigint | decimal | float
+
+## A checkbox
+primitive Checkbox
+  binds input bool
+
+## Choosing an enum value
+primitive Select<E enum>
+  binds input E
+
+## Choosing several enum values
+primitive MultiSelect<E enum>
+  binds input set<E>
+
+## A date
+primitive DateInput
+  binds input date
+
+## A time
+primitive TimeInput
+  binds input time
+
+## A date and time
+primitive DateTimeInput
+  binds input timestamp
+
+## A duration
+primitive DurationInput
+  binds input duration
+
+## Choosing entities with autocompletion
+primitive EntityPicker<R, K id>(search(text string) list<R>, key field<R, K> = auto, label field<R> = auto)
+  binds input K | set<K>
+
+## Entering the fields of a value object
+primitive Group<V value>
+  binds input V
+  children binds V
+
+## Entering a list or a set
+primitive ListInput<T>
+  binds input list<T> | set<T>
+
+# Default primitives: display
+
+default string Text
+default int Text
+default bigint Text
+default decimal Text
+default float Text
+default bool Text
+default uuid Text
+default date Text
+default time Text
+default duration Text
+default timestamp DateTime
+default enum Tag
+default value Fields
+default id Text
+default list<string> Items
+default list<enum> Items
+default list<value> Items
+default list<id> Items
+default set<string> Items
+default set<enum> Items
+default set<id> Items
+
+# Default primitives: input
+
+default string TextInput
+default int NumberInput
+default bigint NumberInput
+default decimal NumberInput
+default float NumberInput
+default bool Checkbox
+default date DateInput
+default time TimeInput
+default timestamp DateTimeInput
+default duration DurationInput
+default enum Select
+default set<enum> MultiSelect
+default value Group
+default list<string> ListInput
+default list<value> ListInput
+default set<string> ListInput

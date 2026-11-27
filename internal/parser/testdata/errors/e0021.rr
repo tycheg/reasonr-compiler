@@ -1,0 +1,12 @@
+aggregate A
+  query q() list<R>
+    return [A]
+      limit 10
+      where x == 1      # want "E0021"
+      select R()
+
+  query r() list<R>
+    return [A]
+      page p
+      limit 10          # want "E0018"
+      select R()

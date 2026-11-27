@@ -1,0 +1,79 @@
+{
+  "version": 1,
+  "diagnostics": [
+    {
+      "code": "E0902",
+      "severity": "error",
+      "file": "taxi/customer.rr",
+      "range": {
+        "start": {
+          "line": 3,
+          "column": 45
+        },
+        "end": {
+          "line": 3,
+          "column": 50
+        }
+      },
+      "message": "personal data flows into an unprotected place",
+      "notes": [
+        {
+          "message": "\"phone\" is personal (subject Customer)",
+          "file": "taxi/customer.rr",
+          "range": {
+            "start": {
+              "line": 3,
+              "column": 45
+            },
+            "end": {
+              "line": 3,
+              "column": 50
+            }
+          }
+        }
+      ],
+      "fixes": [
+        {
+          "message": "declare the parameter as \"contact string? personal\"",
+          "edits": [
+            {
+              "file": "taxi/customer.rr",
+              "range": {
+                "start": {
+                  "line": 3,
+                  "column": 36
+                },
+                "end": {
+                  "line": 3,
+                  "column": 36
+                }
+              },
+              "text": "x"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "W1002",
+      "severity": "warning",
+      "file": "taxi/customer.rr",
+      "range": {
+        "start": {
+          "line": 4,
+          "column": 2
+        },
+        "end": {
+          "line": 4,
+          "column": 8
+        }
+      },
+      "message": "unreachable code after \"return\"",
+      "fixes": [
+        {
+          "message": "remove the line"
+        }
+      ]
+    }
+  ]
+}

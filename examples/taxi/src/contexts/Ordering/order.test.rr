@@ -1,0 +1,112 @@
+# taxi/contexts/Ordering/order.test.rr
+
+let car1 = Car(plate: "A001AA77", model: "Kia Rio", carClass: economy)
+let center = GeoPoint(lat: 55.75, lon: 37.62)
+let ride = Route(from: center, to: center, distanceKm: 3)
+
+test "The driver accepts the offer and the order is assigned"
+  let c1 = new Customer.Id
+  let d1 = new Driver.Id
+  let o1 = new Order.Id
+  given
+    [c1].SignUp(phoneNumber: "+79990000000") as c1
+    [d1].Register(driverName: "John", driverCar: car1) as admin
+    [d1].GoOnline() as d1
+    [c1].OrderTaxi(orderId: o1, orderRoute: ride, requestedClass: economy) as c1
+    [Trip.Id(o1)].DriverFound(driverId: d1) as matching
+  when
+    [d1].Accept() as d1
+  then
+    notification driverOnTheWay(orderId: o1) to c1
+    Order.Card(orderId: o1) as c1 matches (status: assigned)
+    Driver.MyState() as d1 matches (status: busy, currentTrip: Trip.Id(o1))
+
+test "A busy driver: the order goes to the next driver"
+  let c1 = new Customer.Id
+  let c2 = new Customer.Id
+  let d1 = new Driver.Id
+  let o1 = new Order.Id
+  let o2 = new Order.Id
+  given
+    [c1].SignUp(phoneNumber: "+79990000001") as c1
+    [c2].SignUp(phoneNumber: "+79990000002") as c2
+    [d1].Register(driverName: "John", driverCar: car1) as admin
+    [d1].GoOnline() as d1
+    [c1].OrderTaxi(orderId: o1, orderRoute: ride, requestedClass: economy) as c1
+    [Trip.Id(o1)].DriverFound(driverId: d1) as matching
+    [d1].Accept() as d1
+    [c2].OrderTaxi(orderId: o2, orderRoute: ride, requestedClass: economy) as c2
+  when
+    [Trip.Id(o2)].DriverFound(driverId: d1) as matching
+  then
+    request Matching.findDriver(tripId: Trip.Id(o2), exclude: [d1])
+    Order.Card(orderId: o2) as c2 matches (status: searching)
+    Driver.MyState() as d1 matches (status: busy, currentTrip: Trip.Id(o1))
+
+test "A search without an answer restarts"
+  let c1 = new Customer.Id
+  let o1 = new Order.Id
+  given
+    [c1].SignUp(phoneNumber: "+79990000000") as c1
+    [c1].OrderTaxi(orderId: o1, orderRoute: ride, requestedClass: economy) as c1
+  when
+    time offset +60s
+  then
+    request Matching.findDriver(tripId: Trip.Id(o1))
+    Order.Card(orderId: o1) as c1 matches (status: searching)
+
+test "The car plate is unique"
+  let d1 = new Driver.Id
+  let d2 = new Driver.Id
+  given
+    [d1].Register(driverName: "John", driverCar: car1) as admin
+  when
+    [d2].Register(driverName: "Peter", driverCar: car1) as admin
+  then
+    error plateTaken
+
+test "After forgetting personal data the phone is unreadable"
+  let c1 = new Customer.Id
+  given
+    [c1].SignUp(phoneNumber: "+79990000000") as c1
+  when
+    [c1].Forget() as c1
+  then
+    Customer.Profile() as c1 matches (phone: none)
+
+test "Another customer may take a forgotten customer's number"
+  let c1 = new Customer.Id
+  let c2 = new Customer.Id
+  given
+    [c1].SignUp(phoneNumber: "+79990000000") as c1
+    [c1].Forget() as c1
+  when
+    [c2].SignUp(phoneNumber: "+79990000000") as c2
+  then
+    Customer.Profile() as c2 matches (phone: "+79990000000")
+    Customer.Profile() as c1 matches (phone: none)
+
+test "Forgetting with an active order erases nothing"
+  let c1 = new Customer.Id
+  let o1 = new Order.Id
+  given
+    [c1].SignUp(phoneNumber: "+79990000000") as c1
+    [c1].OrderTaxi(orderId: o1, orderRoute: ride, requestedClass: economy) as c1
+  when
+    [c1].Forget() as c1
+  then
+    error hasActiveOrder
+    Customer.Profile() as c1 matches (phone: "+79990000000")
+
+test "Another customer's order is not visible"
+  let c1 = new Customer.Id
+  let c2 = new Customer.Id
+  let o1 = new Order.Id
+  given
+    [c1].SignUp(phoneNumber: "+79990000001") as c1
+    [c2].SignUp(phoneNumber: "+79990000002") as c2
+    [c1].OrderTaxi(orderId: o1, orderRoute: ride, requestedClass: economy) as c1
+  when
+    Order.Card(orderId: o1) as c2
+  then
+    error orderNotFound

@@ -1,0 +1,383 @@
+File
+  Name: "testdata/stmts.rr"
+  Decls:
+    - EntityDecl
+        IsAggregate: true
+        Name: Account
+        Members:
+          - IDDecl
+              Type: NamedType sequence
+          - CommandDecl
+              Access: AccessList
+                Names:
+                  - owner
+              Name: Transfer
+              Params: ParamList
+                List:
+                  - Param
+                      Name: target
+                      Type: NamedType Account.Id
+                  - Param
+                      Name: sum
+                      Type: NamedType decimal
+                  - Param
+                      Name: comment
+                      Type: NamedType string
+              Body: Block
+                List:
+                  - IfStmt
+                      Cond: BinaryExpr
+                        X: sum
+                        Op: <=
+                        Y: BasicLit INT 0
+                      Body: Block
+                        List:
+                          - ExprStmt
+                              X: CallExpr
+                                Fun: invalidSum
+                                Args: ArgList
+                                  Args:
+                                    - Arg
+                                        Name: sum
+                                        Value: sum
+                      Else: IfStmt
+                        Cond: UnaryExpr
+                          Op: not
+                          X: BracketExpr
+                            Elems:
+                              - target
+                        Body: Block
+                          List:
+                            - ExprStmt
+                                X: CallExpr
+                                  Fun: accountNotFound
+                                  Args: ArgList
+                                    Args:
+                                      - Arg
+                                          Name: accountId
+                                          Value: target
+                        Else: Block
+                          List:
+                            - ExprStmt
+                                X: CallExpr
+                                  Fun: ok
+                                  Args: ArgList
+                  - LetStmt
+                      Name: perKm
+                      Type: NamedType decimal
+                      Value: BasicLit INT 30
+                  - LetStmt
+                      Name: total
+                      Value: CallExpr
+                        Fun: SelectorExpr
+                          X: price
+                          Sel: times
+                        Args: ArgList
+                          Args:
+                            - Arg
+                                Value: BasicLit INT 2
+                  - AssignStmt
+                      Target: total
+                      Value: CallExpr
+                        Fun: SelectorExpr
+                          X: total
+                          Sel: times
+                        Args: ArgList
+                          Args:
+                            - Arg
+                                Value: BasicLit DECIMAL 0.9
+                  - ExprStmt
+                      X: CallExpr
+                        Fun: withdrawn
+                        Args: ArgList
+                          Args:
+                            - Arg
+                                Name: amount
+                                Value: sum
+                  - IfStmt
+                      Cond: BinaryExpr
+                        X: SelectorExpr
+                          X: after
+                          Sel: balance
+                        Op: <
+                        Y: UnaryExpr
+                          Op: -
+                          X: overdraft
+                      Body: Block
+                        List:
+                          - ExprStmt
+                              X: CallExpr
+                                Fun: insufficientFunds
+                                Args: ArgList
+                                  Args:
+                                    - Arg
+                                        Name: available
+                                        Value: BinaryExpr
+                                          X: balance
+                                          Op: +
+                                          Y: overdraft
+                          - ReturnStmt
+                  - ExprStmt
+                      X: CallExpr
+                        Fun: SelectorExpr
+                          X: BracketExpr
+                            Elems:
+                              - target
+                          Sel: deposit
+                        Args: ArgList
+                          Args:
+                            - Arg
+                                Name: amount
+                                Value: sum
+                            - Arg
+                                Name: source
+                                Value: id
+                  - ExprStmt
+                      X: CallExpr
+                        Fun: SelectorExpr
+                          X: BracketExpr
+                            Elems:
+                              - driver
+                          Safe: true
+                          Sel: releaseOrder
+                        Args: ArgList
+                          Args:
+                            - Arg
+                                Name: orderId
+                                Value: id
+                  - ExprStmt
+                      X: CallExpr
+                        Fun: driverOnTheWay
+                        Args: ArgList
+                          Args:
+                            - Arg
+                                Name: orderId
+                                Value: id
+                      To: customer
+                  - ExprStmt
+                      X: CallExpr
+                        Fun: OrderMart
+                        Args: ArgList
+                          Args:
+                            - Arg
+                                Name: id
+                                Value: CallExpr
+                                  Fun: SelectorExpr
+                                    X: OrderMart
+                                    Sel: Id
+                                  Args: ArgList
+                                    Args:
+                                      - Arg
+                                          Value: id
+                            - Arg
+                                Name: status
+                                Value: assigned
+                  - ExprStmt
+                      X: CallExpr
+                        Fun: SelectorExpr
+                          X: Matching
+                          Sel: findDriver
+                        Args: ArgList
+                          Args:
+                            - Arg
+                                Name: orderId
+                                Value: id
+                            - Arg
+                                Name: exclude
+                                Value: declinedBy
+                  - LetStmt
+                      Name: timer
+                      Value: CallExpr
+                        Fun: schedule
+                        Args: ArgList
+                          Args:
+                            - Arg
+                                Name: at
+                                Value: BinaryExpr
+                                  X: now
+                                  Op: +
+                                  Y: BasicLit DURATION 20s
+                            - Arg
+                                Name: run
+                                Value: CallExpr
+                                  Fun: expireOffer
+                                  Args: ArgList
+                                    Args:
+                                      - Arg
+                                          Name: driverId
+                                          Value: d
+                  - DeleteStmt
+                      X: offerTimer
+                  - DeleteStmt
+                      X: BracketExpr
+                        Elems:
+                          - martId
+                  - ForStmt
+                      Var: x
+                      X: items
+                      Body: Block
+                        List:
+                          - IfStmt
+                              Cond: BinaryExpr
+                                X: x
+                                Op: ==
+                                Y: BasicLit INT 3
+                              Body: Block
+                                List:
+                                  - BranchStmt
+                                      Tok: break
+                          - BranchStmt
+                              Tok: continue
+                  - WhileStmt
+                      Cond: BinaryExpr
+                        X: n
+                        Op: >
+                        Y: BasicLit INT 0
+                      Body: Block
+                        List:
+                          - AssignStmt
+                              Target: n
+                              Value: BinaryExpr
+                                X: n
+                                Op: -
+                                Y: BasicLit INT 1
+                  - LetStmt
+                      Name: label
+                      Value: InterpString
+                        Parts:
+                          - InterpPart
+                              Text: "Order "
+                          - InterpPart
+                              X: id
+                          - InterpPart
+                              Text: " — "
+                          - InterpPart
+                              X: BinaryExpr
+                                X: SelectorExpr
+                                  X: price
+                                  Sel: amount
+                                Op: ??
+                                Y: BasicLit INT 0
+                          - InterpPart
+                              Text: " € {x}"
+                  - LetStmt
+                      Name: m
+                      Value: MapLit
+                        Entries:
+                          - MapEntry
+                              Key: BasicLit STRING "a"
+                              Value: BasicLit INT 1
+                          - MapEntry
+                              Key: BasicLit STRING "b"
+                              Value: BasicLit INT 2
+                  - LetStmt
+                      Name: e
+                      Value: MapLit
+                  - LetStmt
+                      Name: l
+                      Value: BracketExpr
+                        Elems:
+                          - a
+                          - b
+                  - LetStmt
+                      Name: d
+                      Value: BasicLit DATE date"2026-10-02" = "2026-10-02"
+                  - LetStmt
+                      Name: ts
+                      Value: BasicLit TIMESTAMP timestamp"2026-10-02T12:00:00Z" = "2026-10-02T12:00:00Z"
+                  - IfStmt
+                      Cond: BinaryExpr
+                        X: BinaryExpr
+                          X: InExpr
+                            X: status
+                            Not: true
+                            Y: BracketExpr
+                              Elems:
+                                - searching
+                                - offered
+                          Op: and
+                          Y: IsNoneExpr
+                            X: o
+                            Not: true
+                        Op: or
+                        Y: IsNoneExpr
+                          X: x
+                      Body: Block
+                        List:
+                          - ReturnStmt
+          - QueryDecl
+              Access: AccessList
+                Names:
+                  - Client
+              Name: MyAccounts
+              Params: ParamList
+                List:
+                  - Param
+                      Name: pageReq
+                      Type: NamedType PageRequest
+              Result: GenericType
+                Name: page
+                Args:
+                  - NamedType AccountRow
+              Body: Block
+                List:
+                  - ReturnStmt
+                      Result: SearchExpr
+                        Type: Account
+                        Where: BinaryExpr
+                          X: BinaryExpr
+                            X: owner
+                            Op: ==
+                            Y: me
+                          Op: and
+                          Y: BinaryExpr
+                            X: balance
+                            Op: >
+                            Y: BasicLit INT 0
+                        Sort:
+                          - SortKey
+                              Path: Path balance
+                              Desc: true
+                          - SortKey
+                              Path: Path id
+                        Page: pageReq
+                        Select: CallExpr
+                          Fun: AccountRow
+                          Args: ArgList
+                            Args:
+                              - Arg
+                                  Name: accountId
+                                  Value: id
+                              - Arg
+                                  Name: balance
+                                  Value: balance
+          - QueryDecl
+              Name: top
+              Params: ParamList
+              Result: GenericType
+                Name: list
+                Args:
+                  - NamedType AccountRow
+              Body: Block
+                List:
+                  - LetStmt
+                      Name: rows
+                      Value: SearchExpr
+                        Type: Account
+                        Where: BinaryExpr
+                          X: owner
+                          Op: ==
+                          Y: me
+                        Limit: BasicLit INT 10
+                        Select: CallExpr
+                          Fun: AccountRow
+                          Args: ArgList
+                            Args:
+                              - Arg
+                                  Name: accountId
+                                  Value: id
+                              - Arg
+                                  Name: balance
+                                  Value: balance
+                  - ReturnStmt
+                      Result: rows

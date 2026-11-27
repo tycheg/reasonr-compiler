@@ -1,0 +1,13 @@
+role admin
+
+aggregate Order
+  id uuid
+
+screen Home "Home"
+  Link Home
+
+app(admin) Inline "Inline"  # want "E1404"
+  Menu
+    Home
+
+primitive Badge  # want "E1404"

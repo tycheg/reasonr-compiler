@@ -1,0 +1,20 @@
+# taxi/contexts/Ordering/payments.fake.rr
+
+fake Payments
+  limit decimal
+
+  ## Payments up to limitAmount pass, larger ones are declined
+  command Setup(limitAmount decimal)
+    configured(limitAmount: limitAmount)
+
+  event configured(limitAmount decimal)
+    limit = limitAmount
+
+  request charge(paymentId Order.Id, amount Money)
+    if amount.amount > limit
+      [paymentId].PaymentDeclined(reason: "limit exceeded")
+      return
+    schedule(at: now + 5s, run: capture(paymentId: paymentId))
+
+  command capture(paymentId Order.Id)
+    [paymentId].PaymentCaptured(transactionId: "tx-" + string(paymentId))

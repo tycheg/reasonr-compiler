@@ -1,0 +1,8 @@
+# taxi/contexts/Ordering/auth.acl.rr
+# A Keycloak user (module Auth) is a taxi customer with the same
+# identifier.
+
+acl Auth
+  ## An Auth user acts as a customer: passes self and Customer access,
+  ## me is their customer
+  actor Auth.User as Customer

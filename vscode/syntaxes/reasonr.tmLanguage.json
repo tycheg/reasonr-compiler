@@ -1,0 +1,473 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "ReasonR",
+  "scopeName": "source.reasonr",
+  "fileTypes": [
+    "rr"
+  ],
+  "patterns": [
+    {
+      "include": "#comments"
+    },
+    {
+      "include": "#declarations"
+    },
+    {
+      "include": "#members"
+    },
+    {
+      "include": "#expression"
+    }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.line.documentation.reasonr",
+          "match": "##.*$"
+        },
+        {
+          "name": "comment.line.number-sign.reasonr",
+          "match": "#.*$"
+        }
+      ]
+    },
+    "declarations": {
+      "patterns": [
+        {
+          "comment": "entity Order, actor Customer, value Money, enum Status, projection OrderMart, fake Matching",
+          "match": "^(entity|actor|value|enum|projection|fake)\\s+([\\p{L}_][\\p{L}\\p{N}_]*)",
+          "captures": {
+            "1": {
+              "name": "storage.type.reasonr"
+            },
+            "2": {
+              "name": "entity.name.type.reasonr"
+            }
+          }
+        },
+        {
+          "comment": "feature tips \"2026-11-07\": a system feature flag with the date it was introduced; feature tips, Auth.newLogin: a test's flags",
+          "match": "^\\s*(feature)\\s+([\\p{L}_][\\p{L}\\p{N}_.]*(?:\\s*,\\s*[\\p{L}_][\\p{L}\\p{N}_.]*)*)",
+          "captures": {
+            "1": {
+              "name": "storage.type.reasonr"
+            },
+            "2": {
+              "name": "variable.other.constant.feature.reasonr"
+            }
+          }
+        },
+        {
+          "comment": "external(matching) Matching, app(Staff, admin) Admin",
+          "match": "^(external|app)(?:\\(([^)]*)\\))?\\s+([\\p{L}_][\\p{L}\\p{N}_]*)",
+          "captures": {
+            "1": {
+              "name": "storage.type.reasonr"
+            },
+            "2": {
+              "patterns": [
+                {
+                  "include": "#access"
+                }
+              ]
+            },
+            "3": {
+              "name": "entity.name.type.reasonr"
+            }
+          }
+        },
+        {
+          "comment": "screen MyOrder(orderId Order.Id)",
+          "match": "^(screen)\\s+([\\p{L}_][\\p{L}\\p{N}_]*)",
+          "captures": {
+            "1": {
+              "name": "storage.type.reasonr"
+            },
+            "2": {
+              "name": "entity.name.type.screen.reasonr"
+            }
+          }
+        },
+        {
+          "comment": "primitive Table<Row>(size int = 20)",
+          "match": "^(primitive)\\s+([\\p{L}_][\\p{L}\\p{N}_]*)",
+          "captures": {
+            "1": {
+              "name": "storage.type.reasonr"
+            },
+            "2": {
+              "name": "entity.name.type.primitive.reasonr"
+            }
+          }
+        },
+        {
+          "comment": "texts de",
+          "match": "^(texts)\\s+([\\p{L}_][\\p{L}\\p{N}_]*)",
+          "captures": {
+            "1": {
+              "name": "storage.type.reasonr"
+            },
+            "2": {
+              "name": "constant.language.lang.reasonr"
+            }
+          }
+        },
+        {
+          "match": "^(role)\\s+([\\p{L}_][\\p{L}\\p{N}_]*)",
+          "captures": {
+            "1": {
+              "name": "storage.type.reasonr"
+            },
+            "2": {
+              "name": "entity.name.type.role.reasonr"
+            }
+          }
+        },
+        {
+          "match": "^(migration)\\s+([\\p{L}_][\\p{L}\\p{N}_]*)",
+          "captures": {
+            "1": {
+              "name": "storage.type.reasonr"
+            },
+            "2": {
+              "name": "entity.name.type.reasonr"
+            }
+          }
+        },
+        {
+          "match": "^(extend)(?:\\s+(screen))?\\s+([\\p{L}_][\\p{L}\\p{N}_]*)",
+          "captures": {
+            "1": {
+              "name": "keyword.other.extend.reasonr"
+            },
+            "2": {
+              "name": "keyword.other.extend.reasonr"
+            },
+            "3": {
+              "name": "entity.name.type.reasonr"
+            }
+          }
+        },
+        {
+          "comment": "default Customer.Id EntityPicker(...)",
+          "match": "^\\s*(default)\\b",
+          "captures": {
+            "1": {
+              "name": "keyword.other.reasonr"
+            }
+          }
+        },
+        {
+          "match": "^(test|exclude\\s+test)\\b",
+          "name": "keyword.other.test.reasonr"
+        }
+      ]
+    },
+    "members": {
+      "patterns": [
+        {
+          "comment": "command(Customer) Cancel(...), query(admin) List(...)",
+          "match": "^\\s+(command|query)(?:\\(([^)]*)\\))?\\s+(\\p{Lu}[\\p{L}\\p{N}_]*)",
+          "captures": {
+            "1": {
+              "name": "storage.type.function.reasonr"
+            },
+            "2": {
+              "patterns": [
+                {
+                  "include": "#access"
+                }
+              ]
+            },
+            "3": {
+              "name": "entity.name.function.command.public.reasonr"
+            }
+          }
+        },
+        {
+          "match": "^\\s+(command|query)(?:\\(([^)]*)\\))?\\s+([\\p{L}_][\\p{L}\\p{N}_]*)",
+          "captures": {
+            "1": {
+              "name": "storage.type.function.reasonr"
+            },
+            "2": {
+              "patterns": [
+                {
+                  "include": "#access"
+                }
+              ]
+            },
+            "3": {
+              "name": "entity.name.function.command.reasonr"
+            }
+          }
+        },
+        {
+          "match": "^\\s+(event)\\s+([\\p{L}_][\\p{L}\\p{N}_]*)",
+          "captures": {
+            "1": {
+              "name": "storage.type.function.reasonr"
+            },
+            "2": {
+              "name": "entity.name.function.event.reasonr"
+            }
+          }
+        },
+        {
+          "match": "^\\s+(error)\\s+([\\p{L}_][\\p{L}\\p{N}_]*)",
+          "captures": {
+            "1": {
+              "name": "storage.type.function.reasonr"
+            },
+            "2": {
+              "name": "entity.name.type.error.reasonr"
+            }
+          }
+        },
+        {
+          "match": "^\\s+(notification|rule|request)\\s+([\\p{L}_][\\p{L}\\p{N}_]*)",
+          "captures": {
+            "1": {
+              "name": "storage.type.function.reasonr"
+            },
+            "2": {
+              "name": "entity.name.function.reasonr"
+            }
+          }
+        },
+        {
+          "match": "^\\s+(index)\\s+([\\p{L}_][\\p{L}\\p{N}_]*)",
+          "captures": {
+            "1": {
+              "name": "storage.type.reasonr"
+            },
+            "2": {
+              "name": "entity.name.function.index.reasonr"
+            }
+          }
+        },
+        {
+          "match": "^\\s+(on)\\s+([\\p{L}_][\\p{L}\\p{N}_]*)",
+          "captures": {
+            "1": {
+              "name": "keyword.control.on.reasonr"
+            },
+            "2": {
+              "name": "entity.name.function.event.reasonr"
+            }
+          }
+        },
+        {
+          "match": "^\\s+(id)\\s+(?=[\\p{L}])",
+          "captures": {
+            "1": {
+              "name": "storage.type.id.reasonr"
+            }
+          }
+        },
+        {
+          "comment": "language de, platforms web, mobile",
+          "match": "^\\s+(language|platforms)\\b",
+          "captures": {
+            "1": {
+              "name": "keyword.other.reasonr"
+            }
+          }
+        },
+        {
+          "comment": "part Filters binds params",
+          "match": "^\\s+(part)\\s+([\\p{L}_][\\p{L}\\p{N}_]*)",
+          "captures": {
+            "1": {
+              "name": "storage.type.reasonr"
+            },
+            "2": {
+              "name": "entity.name.tag.part.reasonr"
+            }
+          }
+        },
+        {
+          "comment": "in Actions (extend screen)",
+          "match": "^\\s+(in)\\s+([\\p{L}_][\\p{L}\\p{N}_]*)",
+          "captures": {
+            "1": {
+              "name": "keyword.control.reasonr"
+            },
+            "2": {
+              "name": "entity.name.tag.part.reasonr"
+            }
+          }
+        },
+        {
+          "comment": "A layout line: a primitive or a part at the start of the line (Card Order.Details, Actions)",
+          "match": "^\\s+(\\p{Lu}[\\p{L}\\p{N}_]*)(?=\\s|$)",
+          "captures": {
+            "1": {
+              "name": "entity.name.tag.primitive.reasonr"
+            }
+          }
+        },
+        {
+          "comment": "A field: name Type",
+          "match": "^(\\s+)(?!(?:let|if|else|for|while|return|delete|forget|break|continue|where|sort|page|limit|select|given|when|then|time|check|in|language|platforms|default|binds|part|children)\\b)([\\p{Ll}_][\\p{L}\\p{N}_]*)(?=\\s+[\\p{L}_][\\p{L}\\p{N}_.<>, ?]*(?:\\s*=.*|\\s+personal.*|\\s+was\\s+.*)?$)",
+          "captures": {
+            "2": {
+              "name": "variable.other.property.reasonr"
+            }
+          }
+        }
+      ]
+    },
+    "access": {
+      "patterns": [
+        {
+          "match": "\\bself\\b",
+          "name": "variable.language.self.reasonr"
+        },
+        {
+          "match": "\\b\\p{Lu}[\\p{L}\\p{N}_]*\\b",
+          "name": "entity.name.type.reasonr"
+        },
+        {
+          "match": "\\b[\\p{L}_][\\p{L}\\p{N}_]*\\b",
+          "name": "variable.other.reasonr"
+        }
+      ]
+    },
+    "expression": {
+      "patterns": [
+        {
+          "include": "#comments"
+        },
+        {
+          "include": "#strings"
+        },
+        {
+          "include": "#literals"
+        },
+        {
+          "name": "keyword.control.reasonr",
+          "match": "\\b(if|else|for|in|while|break|continue|return|delete|forget|let)\\b"
+        },
+        {
+          "name": "keyword.operator.word.reasonr",
+          "match": "\\b(and|or|not|is)\\b"
+        },
+        {
+          "name": "keyword.other.reasonr",
+          "match": "\\b(new|where|sort|page|limit|select|desc|all|personal|was|unique|check|timeout|action|to|as|via|given|when|then|matches|time|passes|because|sequence|binds|children|params|inputs|screens|field|input|auto|back|default)\\b"
+        },
+        {
+          "name": "variable.language.reasonr",
+          "match": "\\b(id|self|me|caller|now|today|after|hasErrors)\\b"
+        },
+        {
+          "name": "support.function.builtin.reasonr",
+          "match": "\\b(schedule|round|abs|floor|ceil|min|max)(?=\\s*\\()"
+        },
+        {
+          "name": "support.type.primitive.reasonr",
+          "match": "\\b(int|bigint|float|decimal|string|bool|uuid|date|time|timestamp|duration|bytes|list|set|map|page|PageRequest|Timer)\\b"
+        },
+        {
+          "comment": "Type.Id",
+          "match": "\\b(\\p{Lu}[\\p{L}\\p{N}_]*)(\\.)(Id)\\b",
+          "captures": {
+            "1": {
+              "name": "entity.name.type.reasonr"
+            },
+            "3": {
+              "name": "entity.name.type.id.reasonr"
+            }
+          }
+        },
+        {
+          "name": "entity.name.type.reasonr",
+          "match": "\\b\\p{Lu}[\\p{L}\\p{N}_]*\\b"
+        },
+        {
+          "comment": "An argument name: name: value",
+          "match": "\\b([\\p{Ll}_][\\p{L}\\p{N}_]*)(:)(?!:)",
+          "captures": {
+            "1": {
+              "name": "variable.parameter.reasonr"
+            },
+            "2": {
+              "name": "punctuation.separator.key-value.reasonr"
+            }
+          }
+        },
+        {
+          "comment": "A call: name(...)",
+          "match": "\\b([\\p{Ll}_][\\p{L}\\p{N}_]*)(?=\\()",
+          "name": "entity.name.function.call.reasonr"
+        },
+        {
+          "name": "keyword.operator.reasonr",
+          "match": "\\?\\?|\\?\\.|==|!=|<=|>=|[-+*/%<>=?]"
+        },
+        {
+          "name": "punctuation.separator.reasonr",
+          "match": "[,.:]"
+        }
+      ]
+    },
+    "literals": {
+      "patterns": [
+        {
+          "name": "constant.language.reasonr",
+          "match": "\\b(true|false|none)\\b"
+        },
+        {
+          "name": "string.quoted.double.date.reasonr",
+          "match": "\\b(date|timestamp|time)\"[^\"]*\""
+        },
+        {
+          "name": "constant.numeric.duration.reasonr",
+          "match": "\\b[0-9][0-9_]*(ms|s|m|h|d)\\b"
+        },
+        {
+          "name": "constant.numeric.decimal.reasonr",
+          "match": "\\b[0-9][0-9_]*\\.[0-9][0-9_]*\\b"
+        },
+        {
+          "name": "constant.numeric.integer.reasonr",
+          "match": "\\b[0-9][0-9_]*\\b"
+        }
+      ]
+    },
+    "strings": {
+      "name": "string.quoted.double.reasonr",
+      "begin": "\"",
+      "end": "\"|$",
+      "patterns": [
+        {
+          "name": "constant.character.escape.reasonr",
+          "match": "\\\\[\\\\\"nrt{}]"
+        },
+        {
+          "name": "meta.interpolation.reasonr",
+          "begin": "\\{",
+          "end": "\\}",
+          "beginCaptures": {
+            "0": {
+              "name": "punctuation.section.interpolation.begin.reasonr"
+            }
+          },
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.section.interpolation.end.reasonr"
+            }
+          },
+          "contentName": "source.reasonr.embedded",
+          "patterns": [
+            {
+              "include": "#expression"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

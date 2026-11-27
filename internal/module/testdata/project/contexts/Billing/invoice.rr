@@ -1,0 +1,2 @@
+aggregate Invoice
+  id uuid

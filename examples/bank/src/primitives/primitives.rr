@@ -1,0 +1,5 @@
+# bank/primitives/primitives.rr
+
+## Account number: input of an identifier the client knows but cannot search for
+primitive AccountNumber<K id>
+  binds input K

@@ -1,0 +1,272 @@
+=== taxi Order
+entity Ordering.Order
+Fields:
+  status Ordering.OrderStatus
+  customer Ordering.Customer.Id?
+  route Ordering.Route
+  carClass Ordering.CarClass
+  price Ordering.Money
+  driverName string?
+  driverPlate string?
+  placedAt timestamp
+  tip Ordering.Money?
+Indexes:
+  byCustomer(customer, placedAt desc)
+  byStatus(status, placedAt desc)
+Members:
+  rule perKmRate(requestedClass Ordering.CarClass)
+  command place(customerId Ordering.Customer.Id, orderRoute Ordering.Route, requestedClass Ordering.CarClass)
+  command PaymentCaptured(transactionId string)
+  command PaymentDeclined(reason string)
+  command LeaveTip(amount Ordering.Money)
+  command Edit(orderRoute Ordering.Route, requestedClass Ordering.CarClass)
+  command Cancel(reason string)
+  command writeMart()
+  command markOffered()
+  command resumeSearch()
+  command confirmDriver(assignedName string, assignedPlate string)
+  command failSearch()
+  command finishRide()
+  event placed(customerId Ordering.Customer.Id, orderRoute Ordering.Route, requestedClass Ordering.CarClass, orderPrice Ordering.Money, at timestamp)
+  event offerPending()
+  event searchResumed()
+  event driverConfirmed(assignedName string, assignedPlate string)
+  event searchExhausted()
+  event rideFinished()
+  event paymentReceived(transactionId string)
+  event paymentFailed(reason string)
+  event tipped(amount Ordering.Money)
+  event edited(orderRoute Ordering.Route, requestedClass Ordering.CarClass, orderPrice Ordering.Money)
+  event orderCancelled(reason string, at timestamp)
+  notification orderPlaced(orderId Ordering.Order.Id, price Ordering.Money)
+  notification driverOnTheWay(orderId Ordering.Order.Id)
+  notification noDriversAvailable(orderId Ordering.Order.Id)
+  notification receipt(orderId Ordering.Order.Id, amount Ordering.Money)
+  notification paymentProblem(orderId Ordering.Order.Id, reason string)
+  error orderAlreadyExists()
+  error cannotCancel(currentStatus Ordering.OrderStatus)
+  error cannotEdit(currentStatus Ordering.OrderStatus)
+  error orderNotFound()
+  error tipsDisabled()
+  error cannotTip(currentStatus Ordering.OrderStatus)
+  query MyOrders(pageReq PageRequest)
+  query Card(orderId Ordering.Order.Id)
+  query List(wanted Ordering.OrderStatus, pageReq PageRequest)
+  query Details(orderId Ordering.Order.Id)
+
+=== taxi Order.Cancel
+command Ordering.Order.Cancel(reason string) — public
+  Cancelling an order by the customer, support or an administrator;
+  Dispatch releases the offer and the driver on the orderCancelled event
+Access: the actor in field customer, role support, role admin
+Checks:
+  if status not in [searching, offered, assigned] → errors: cannotCancel(currentStatus: status), exit
+Actions in order:
+  event orderCancelled: status
+  command writeMart
+  command Ordering.Customer.orderFinished on customer (unless none)
+UI places: Admin.AdminOrders:Order.Cancel, Admin.AdminOrder:Order.Cancel, Taxi.MyOrder:Order.Cancel
+
+=== taxi Trip.DriverFound
+command Dispatch.Trip.DriverFound(driverId Dispatch.Driver.Id) — public
+  The matching service answers: a driver is found.
+  The offer goes to the driver as the last step: if the driver is busy,
+  they return the order at once (driverDeclined), and matching the next driver starts.
+Access: role matching
+Checks:
+  if not [id] or stage != searching → exit without changes
+Actions in order:
+  deletes timer searchTimer
+  schedules a timer for expireOffer
+  command Dispatch.Trip.Offer.open on new Offer.Id
+  event offerSent: candidate, offerTimer, searchTimer, stage
+  command Dispatch.Driver.offerTrip on driverId
+
+=== taxi Trip.findDriver
+command Dispatch.Trip.findDriver() — private
+  Drivers already offered the trip are not matched again
+Access: only other commands and timers
+Actions in order:
+  schedules a timer for searchTimedOut
+  external request Dispatch.Matching.findDriver
+  event searchStarted: searchTimer
+Called from:
+  from command Dispatch.Trip.open
+  from command Dispatch.Trip.searchTimedOut
+  from command Dispatch.Trip.searchAgain
+
+=== taxi Order.placed
+event Ordering.Order.placed(customerId Ordering.Customer.Id, orderRoute Ordering.Route, requestedClass Ordering.CarClass, orderPrice Ordering.Money, at timestamp)
+Changes fields: customer, route, carClass, price, placedAt, status
+Raised by commands: Ordering.Order.place
+Reactions: Dispatch: Ordering.Order.on placed
+
+=== taxi Order.Card
+query Ordering.Order.Card(orderId Ordering.Order.Id) Ordering.OrderCard — public
+  Order card
+Access: actor Ordering.Customer
+Checks:
+  if o is none or o.customer != me → errors: orderNotFound(), exit
+Under feature flags:
+  if Ordering.tips is on (since 2026-11-07): nothing
+UI places: Taxi.MyOrder:Order.Card
+
+=== taxi Order.perKmRate
+rule Ordering.Order.perKmRate(requestedClass Ordering.CarClass) decimal
+  Rate per kilometer. An extension may override it.
+Checks:
+  if requestedClass == comfort → result 45
+Used in: Ordering.Order.place, Ordering.Order.Edit
+
+=== taxi Order.cannotCancel
+error Ordering.Order.cannotCancel(currentStatus Ordering.OrderStatus)
+Used in: Ordering.Order.Cancel
+
+=== taxi (acme) Order.placed
+event Ordering.Order.placed(customerId Ordering.Customer.Id, orderRoute Ordering.Route, requestedClass Ordering.CarClass, orderPrice Ordering.Money, at timestamp)
+Changes fields: customer, route, carClass, price, placedAt, status
+Raised by commands: Ordering.Order.place
+Reactions: Ordering.Order.on placed, Dispatch: Ordering.Order.on placed
+
+=== taxi Admin
+app Admin "Admin"
+Enter: Ordering.Staff, admin, support
+Language en, platforms web
+Screens:
+  Ordering.AdminOrders "Orders"
+  Dispatch.NewDriver "New driver"
+  Ordering.AdminProfile "Profile"
+  Ordering.AdminNewOrder "New order"
+  Ordering.AdminOrder(orderId Ordering.Order.Id) "Order"
+Places:
+  Admin.AdminOrders:Order.List — query Ordering.Order.List
+  Admin.AdminOrders:Order.Cancel — command Ordering.Order.Cancel
+  Admin.NewDriver:Driver.Register — command Dispatch.Driver.Register
+  Admin.AdminProfile:Staff.Profile — query Ordering.Staff.Profile
+  Admin.AdminProfile:Staff.ChangeEmail — command Ordering.Staff.ChangeEmail
+  Admin.AdminNewOrder:Customer.OrderTaxi — command Ordering.Customer.OrderTaxi
+  Admin.AdminOrder:Order.Details — query Ordering.Order.Details
+  Admin.AdminOrder:Order.Edit — command Ordering.Order.Edit
+  Admin.AdminOrder:Order.Cancel — command Ordering.Order.Cancel
+Not in the interface:
+  command Dispatch.Trip.DriverFound
+  command Dispatch.Trip.NoDriverFound
+  command Ordering.Order.PaymentCaptured
+  command Ordering.Order.PaymentDeclined
+  command Ordering.Staff.Hire
+
+=== taxi Admin.AdminOrder
+screen Ordering.AdminOrder(orderId Ordering.Order.Id) "Order"
+Apps: Admin
+Layout:
+  Card Ordering.Order.Details — place Admin.Ordering.AdminOrder:Order.Details
+    orderId ← screen parameter orderId
+    status Tag (default for enum)
+    price Fields (default for value)
+      automatically: children
+    orderRoute Fields (default for value)
+      automatically: children
+    requestedClass Tag (default for enum)
+    placedAt DateTime (default for timestamp)
+    driverName Text (default for string)
+    Actions
+      Edit Ordering.Order.Edit "Edit" if status == searching — place Admin.Ordering.AdminOrder:Order.Edit
+        target ← data Order.Details.orderId
+        orderRoute ← input, initial value from data Order.Details.orderRoute
+        requestedClass ← input, initial value from data Order.Details.requestedClass
+        automatically: children
+      Confirm Ordering.Order.Cancel "Cancel" if status in [searching, offered, assigned] — place Admin.Ordering.AdminOrder:Order.Cancel
+        target ← data Order.Details.orderId
+        reason ← input
+        automatically: children
+
+=== taxi AdminOrders
+screen Ordering.AdminOrders "Orders"
+Apps: Admin
+Layout:
+  Toolbar
+    Link Ordering.AdminNewOrder
+  Table Ordering.Order.List — place Admin.Ordering.AdminOrders:Order.List
+    wanted ← input, the parameter default
+    pageReq ← the primitive (paging)
+    automatically: Filters
+    Columns
+      placedAt DateTime (default for timestamp)
+      status Tag (default for enum)
+      price Fields (default for value)
+        automatically: children
+    RowActions
+      Confirm Ordering.Order.Cancel if status in [searching, offered, assigned] — place Admin.Ordering.AdminOrders:Order.Cancel
+        target ← row Order.List.orderId
+        reason ← input
+        automatically: children
+    on open Ordering.AdminOrder
+      orderId ← event orderId
+
+=== taxi Taxi.MyOrders
+screen Ordering.MyOrders "My orders"
+Apps: Taxi
+Layout:
+  List Ordering.Order.MyOrders — place Taxi.Ordering.MyOrders:Order.MyOrders
+    pageReq ← the primitive (paging)
+    status Tag (default for enum)
+    price Fields (default for value)
+      automatically: children
+    placedAt DateTime (default for timestamp)
+    on open Ordering.MyOrder
+      orderId ← event orderId
+
+=== taxi (acme) MyOrder
+screen Ordering.MyOrder(orderId Ordering.Order.Id) "Order"
+Apps: Taxi
+Layout:
+  Card Ordering.Order.Card — place Taxi.Ordering.MyOrder:Order.Card
+    orderId ← screen parameter orderId
+    automatically: children
+    Actions
+      Confirm Ordering.Order.Cancel if status in [searching, offered, assigned] — place Taxi.Ordering.MyOrder:Order.Cancel
+        target ← screen parameter orderId
+        reason ← input
+        automatically: children
+      Edit Ordering.Order.LeaveTip "Tip" if tips and status == paid — place Taxi.Ordering.MyOrder:Order.LeaveTip
+        target ← screen parameter orderId
+        amount ← input
+        automatically: children
+      Edit Ordering.Order.SetCostCenter — place Taxi.Ordering.MyOrder:Order.SetCostCenter
+        target ← screen parameter orderId
+        code ← input
+        automatically: children
+
+=== taxi EntityPicker
+primitive EntityPicker<R, K id>(search(text string) list<R>, key field<R, K> = auto, label field<R> = auto)
+  Choosing entities with autocompletion
+Binds: input K | set<K>
+
+=== bank Account.Transfer
+command Accounts.Account.Transfer(target Accounts.Account.Id, sum decimal, comment string) — public
+  Transfer to another account
+Access: the actor in field owner
+Checks:
+  if sum <= 0 → errors: invalidSum(sum: sum)
+  if target == id → errors: sameAccount()
+  if not [target] → errors: accountNotFound(accountId: target)
+  if frozen → errors: accountFrozen(accountId: id)
+  if comment.length > 140 → errors: commentTooLong(max: 140)
+  if hasErrors → exit
+  if after.balance < -overdraft → errors: insufficientFunds(available: balance + overdraft), exit
+Actions in order:
+  event withdrawn: balance
+  command Accounts.Account.deposit on target
+  external request Accounts.Antifraud.score
+  notification transferDone
+UI places: Bank.AccountCard:Account.Transfer
+
+=== bank Client.Join
+command Accounts.Client.Join(clientName string) — public
+Access: self
+Checks:
+  if [id] → errors: alreadyJoined(), exit
+Actions in order:
+  event joined: fullName
+UI places: Bank.Profile:Client.Join
+

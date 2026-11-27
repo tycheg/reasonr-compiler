@@ -1,0 +1,9 @@
+# taxi/apps/Taxi/app.rr
+
+app(Customer) Taxi "Taxi"
+  language en
+  platforms web, mobile
+  Menu
+    NewOrder
+    MyOrders
+    Profile

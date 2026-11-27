@@ -1,0 +1,7 @@
+# taxi/apps/Dispatch/app.rr
+
+app(dispatcher) Dispatch "Dispatch"
+  language en
+  Menu
+    Board
+    FreeDrivers

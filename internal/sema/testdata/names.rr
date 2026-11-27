@@ -1,0 +1,58 @@
+role admin
+role admin    # want "E0101"
+role Support  # want "E0106"
+
+aggregate Order
+  id uuid
+  status string
+  status int  # want "E0102"
+  Total int   # want "E0106"
+
+  index status(status)  # want "E0102"
+
+  command Place()
+    placed()
+
+  command Place()  # want "E0102"
+    placed()
+
+  event placed()
+  event Done()         # want "E0106"
+  error Failed         # want "E0106"
+  notification Sent()  # want "E0106"
+
+  rule Rate() int  # want "E0106"
+    return 1
+
+value Order  # want "E0101"
+  x int
+
+value money  # want "E0106"
+  amount decimal
+
+  amount() decimal  # want "E0102"
+    return 1
+
+enum Status
+  active
+  Closed  # want "E0106"
+  active  # want "E0102"
+
+external Pay
+  request charge()
+  request charge()  # want "E0102"
+  request Refund()  # want "E0106"
+
+migration cleanup
+  return
+
+migration cleanup  # want "E0101"
+  return
+
+test "one"
+  when
+    time offset +1s
+
+test "one"  # want "E0101"
+  when
+    time offset +1s

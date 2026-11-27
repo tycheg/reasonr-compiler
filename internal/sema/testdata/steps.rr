@@ -1,0 +1,58 @@
+role admin
+
+actor Customer
+  id uuid
+
+  command(self) SignUp(phone string)
+    return
+
+  command note()
+    return
+
+  query(Customer) Profile() Card
+    return Card(phone: "x")
+
+  error failed(code int)
+  notification sent(text string)
+
+value Card
+  phone string
+
+external Pay
+  request charge(amount int)
+
+let c1 = new Customer.Id
+let n = 1
+
+test "Steps"
+  given
+    [c1].SignUp(phone: "1") as c1
+    [c1].note() as c1         # want "E0801"
+    Customer.Profile() as c1  # want "E0801"
+    time offset +60s
+  when
+    [c1].SignUp(phone: "2") as admin
+  then
+    error failed(code: 1)
+    error forbidden
+    error unknownError  # want "E0804"
+    notification sent(text: "x") to c1
+    notification sent to n  # want "E0209"
+    request Pay.charge(amount: 1)
+    request Pay.refund()  # want "E0804"
+    Customer.Profile() as c1 matches (phone: "x")
+    Customer.Profile() as c1 matches (name: "x")  # want "E0804"
+    matches (phone: "x")                          # want "E0804"
+
+test "Two actions"
+  when  # want "E0802"
+    [c1].SignUp(phone: "2") as c1
+    [c1].SignUp(phone: "3") as c1
+  then
+    error failed
+
+test "Foreign as"
+  when
+    Customer.Profile() as n  # want "E0803"
+  then
+    matches (phone: "x")

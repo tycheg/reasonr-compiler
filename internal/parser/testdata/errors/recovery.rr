@@ -1,0 +1,18 @@
+## Several errors in one file: each is reported once, parsing goes on.
+aggregate A
+  id uuid
+  status Status = = 1        # want "E0012"
+  command b(x int, )
+    if x >                   # want "E0012"
+      ok(                    # want "E0012"
+    let y = 2
+  command c(x int
+    ok()                     # want "E0012"
+  command d()
+    ok()
+
+value V
+  amount decimal
+  check amount >= 0 0        # want "E0012"
+
+role admin

@@ -1,0 +1,7 @@
+exclude test "Second test" because "acme has a different scenario"
+
+test "Cost center"
+  when
+    [o].noted() as admin
+  then
+    error failed

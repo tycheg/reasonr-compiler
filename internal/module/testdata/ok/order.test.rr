@@ -1,0 +1,11 @@
+test "An order is placed"
+  when
+    [o].place() as admin
+  then
+    error failed
+
+test "Second test"
+  when
+    [o].place() as admin
+  then
+    error failed

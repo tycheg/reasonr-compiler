@@ -1,0 +1,10 @@
+acl Auth
+  actor Auth.User as Courier
+  actor Auth.Admin as Clerk  # want "E1417"
+
+acl Delivery  # want "E1414"
+  on Delivery.Order.shippedNow
+    [id].Ship()
+
+acl Nope  # want "E1414"
+  actor Nope.User as Courier

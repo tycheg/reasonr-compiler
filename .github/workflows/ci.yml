@@ -1,0 +1,66 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: stable
+          cache-dependency-path: "**/go.sum"
+      - name: gofmt
+        run: make fmt-check
+      - name: vet
+        run: make vet
+      - name: staticcheck
+        run: |
+          go install honnef.co/go/tools/cmd/staticcheck@2026.2.1
+          PATH="$(go env GOPATH)/bin:$PATH" make lint
+      - name: test
+        run: make test-race
+      - name: allocations and benchmarks
+        run: |
+          go test ./internal/runtime/vm -run TestAllocs -count=1
+          go test ./internal/runtime/vm -run '^$' -bench . -benchtime 200x -benchmem
+      - name: fuzz (short)
+        run: make fuzz FUZZTIME=20s
+
+  examples:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: stable
+          cache-dependency-path: "**/go.sum"
+      - name: reasonrd of the standard distribution
+        run: |
+          go install github.com/tycheg/reasonr-dist/cmd/reasonrd@latest
+          echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
+      - name: the example models on the engine
+        run: make examples
+
+  vscode:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: vscode
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: vscode/package-lock.json
+      - run: npm ci
+      - name: compile
+        run: npm run compile
+      - name: grammar
+        run: npm test

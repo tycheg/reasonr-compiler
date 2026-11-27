@@ -1,0 +1,14 @@
+aggregate Item
+  id uuid
+  count int
+  total bigint
+  nums list<int>
+  pairs map<int, int>
+  limit int?
+
+  command Make(x int, y bigint)
+    made(x: x, y: y)
+
+  event made(x int, y bigint)
+    count = x
+    total = y

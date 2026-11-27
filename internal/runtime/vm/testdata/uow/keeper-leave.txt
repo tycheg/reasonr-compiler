@@ -1,0 +1,4 @@
+entity Keeper 00000000-0000-0000-0000-000000000001 existed=true version=1
+  #0 event Keeper.left()
+  state Keeper(name: Keeper)
+forget Keeper 00000000-0000-0000-0000-000000000001

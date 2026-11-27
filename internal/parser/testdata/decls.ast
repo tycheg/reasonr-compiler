@@ -1,0 +1,274 @@
+File
+  Name: "testdata/decls.rr"
+  Decls:
+    - RoleDecl
+        Doc: "Roles"
+        Name: admin
+    - EnumDecl
+        Doc: "Order status"
+        Name: OrderStatus
+        Values:
+          - EnumValue
+              Doc: "looking for a driver"
+              Name: searching
+          - EnumValue
+              Name: offered
+    - ValueDecl
+        Name: Money
+        Members:
+          - FieldDecl
+              Name: amount
+              Type: NamedType decimal
+          - FieldDecl
+              Name: currency
+              Type: NamedType Currency
+              Default: rub
+          - CheckDecl
+              Cond: BinaryExpr
+                X: amount
+                Op: >=
+                Y: BasicLit INT 0
+          - MethodDecl
+              Name: times
+              Params: ParamList
+                List:
+                  - Param
+                      Name: k
+                      Type: NamedType decimal
+              Result: NamedType Money
+              Body: Block
+                List:
+                  - ReturnStmt
+                      Result: CallExpr
+                        Fun: Money
+                        Args: ArgList
+                          Args:
+                            - Arg
+                                Name: amount
+                                Value: CallExpr
+                                  Fun: round
+                                  Args: ArgList
+                                    Args:
+                                      - Arg
+                                          Value: BinaryExpr
+                                            X: amount
+                                            Op: *
+                                            Y: k
+                                      - Arg
+                                          Value: BasicLit INT 2
+                            - Arg
+                                Name: currency
+                                Value: currency
+    - ValueDecl
+        Name: ShiftKey
+        Members:
+          - FieldDecl
+              Name: driverId
+              Type: NamedType Driver.Id
+          - FieldDecl
+              Name: day
+              Type: NamedType date
+    - EntityDecl
+        IsActor: true
+        Name: Customer
+        Members:
+          - IDDecl
+              Type: NamedType uuid
+          - FieldDecl
+              Name: phone
+              Type: OptionalType
+                Elem: NamedType string
+              Personal: Personal
+          - FieldDecl
+              Name: route
+              Type: OptionalType
+                Elem: NamedType Route
+              Personal: Personal
+                Subject: Path customer
+          - FieldDecl
+              Name: fullName
+              Type: OptionalType
+                Elem: NamedType string
+              Was: name
+          - FieldDecl
+              Name: tags
+              Type: GenericType
+                Name: map
+                Args:
+                  - NamedType string
+                  - GenericType
+                      Name: list
+                      Args:
+                        - NamedType int
+          - IndexDecl
+              Name: byPhone
+              Keys:
+                - SortKey
+                    Path: Path phone
+              Unique: true
+              Error: phoneTaken
+          - IndexDecl
+              Name: byStatus
+              Keys:
+                - SortKey
+                    Path: Path status
+                - SortKey
+                    Path: Path car.carClass
+                    Desc: true
+          - CommandDecl
+              Access: AccessList
+                Names:
+                  - self
+                  - support
+              Name: Forget
+              Params: ParamList
+              Body: Block
+                List:
+                  - ForgetStmt
+                      X: id
+          - EventDecl
+              Name: signedUp
+              Params: ParamList
+                List:
+                  - Param
+                      Name: phoneNumber
+                      Type: OptionalType
+                        Elem: NamedType string
+                      Personal: Personal
+                  - Param
+                      Name: promo
+                      Type: NamedType string
+                      Default: BasicLit STRING ""
+              Body: Block
+                List:
+                  - AssignStmt
+                      Target: phone
+                      Value: phoneNumber
+          - EventDecl
+              Name: forgotten
+              Params: ParamList
+          - NotificationDecl
+              Name: orderPlaced
+              Params: ParamList
+                List:
+                  - Param
+                      Name: orderId
+                      Type: NamedType Order.Id
+                  - Param
+                      Name: price
+                      Type: NamedType Money
+          - ErrorDecl
+              Name: alreadyRegistered
+          - ErrorDecl
+              Name: cannotCancel
+              Params: ParamList
+                List:
+                  - Param
+                      Name: currentStatus
+                      Type: NamedType OrderStatus
+          - QueryDecl
+              Access: AccessList
+                Names:
+                  - Customer
+              Name: Profile
+              Params: ParamList
+              Result: NamedType CustomerProfile
+              Body: Block
+                List:
+                  - ReturnStmt
+                      Result: CallExpr
+                        Fun: CustomerProfile
+                        Args: ArgList
+                          Args:
+                            - Arg
+                                Name: phone
+                                Value: BasicLit none none
+          - RuleDecl
+              Name: perKmRate
+              Params: ParamList
+                List:
+                  - Param
+                      Name: requestedClass
+                      Type: NamedType CarClass
+              Result: NamedType decimal
+              Body: Block
+                List:
+                  - ReturnStmt
+                      Result: BasicLit INT 30
+    - ProjectionDecl
+        Name: OrderMart
+        Members:
+          - IDDecl
+              Type: NamedType Order.Id
+          - FieldDecl
+              Name: status
+              Type: NamedType OrderStatus
+    - ExternalDecl
+        Access: AccessList
+          Names:
+            - matching
+        Name: Matching
+        Members:
+          - RequestDecl
+              Name: findDriver
+              Params: ParamList
+                List:
+                  - Param
+                      Name: orderId
+                      Type: NamedType Order.Id
+                  - Param
+                      Name: exclude
+                      Type: GenericType
+                        Name: set
+                        Args:
+                          - NamedType Driver.Id
+              Timeout: BasicLit DURATION 30s
+          - RequestDecl
+              Name: ping
+              Params: ParamList
+    - PrimitiveDecl
+        Name: Grid
+        TypeParams: TypeParamList
+          List:
+            - TypeParam
+                Name: Row
+        Items:
+          - BindsItem
+              Type: GenericType
+                Name: page
+                Args:
+                  - NamedType Row
+    - MigrationDecl
+        Name: fillOrderMart
+        Body: Block
+          List:
+            - ForStmt
+                Var: orderId
+                X: AllExpr
+                  Type: Order
+                Body: Block
+                  List:
+                    - ExprStmt
+                        X: CallExpr
+                          Fun: SelectorExpr
+                            X: BracketExpr
+                              Elems:
+                                - orderId
+                            Sel: rebuildMart
+                          Args: ArgList
+    - LetDecl
+        Let: LetStmt
+          Name: car1
+          Value: CallExpr
+            Fun: Car
+            Args: ArgList
+              Args:
+                - Arg
+                    Name: plate
+                    Value: BasicLit STRING "A001AA77"
+                - Arg
+                    Name: model
+                    Value: BasicLit STRING "Kia Rio"
+                - Arg
+                    Name: carClass
+                    Value: economy

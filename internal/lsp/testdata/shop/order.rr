@@ -1,0 +1,53 @@
+role admin
+
+enum OrderStatus
+  ## A new order
+  placed
+  paid
+  cancelled
+
+value OrderRow
+  orderId Order.Id
+  status OrderStatus
+
+actor Customer
+  id uuid
+  phone string? personal
+
+  command(self) SignUp(phoneNumber string personal)
+    signedUp(phoneNumber: phoneNumber)
+
+  event signedUp(phoneNumber string? personal)
+    phone = phoneNumber
+
+## A customer order
+aggregate Order
+  id uuid
+  customer Customer.Id?
+  status OrderStatus
+
+  index byCustomer(customer)
+
+  ## Cancel the order
+  command(customer) Cancel(reason string)
+    if status == OrderStatus.cancelled
+      alreadyCancelled()
+      return
+    let note = reason.trim()
+    cancelled(why: note)
+
+  command(admin) Archive()
+    archived()
+
+  event cancelled(why string)
+    status = OrderStatus.cancelled
+
+  event archived()
+
+  error alreadyCancelled
+
+  query(Customer) MyOrders(pageReq PageRequest) page<OrderRow>
+    return [Order]
+      where customer == me
+      page pageReq
+      select OrderRow(orderId: id, status: status)

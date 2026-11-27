@@ -1,0 +1,3 @@
+aggregate Item
+  id uuid
+  count int

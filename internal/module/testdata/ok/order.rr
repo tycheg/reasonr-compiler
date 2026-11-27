@@ -1,0 +1,20 @@
+aggregate Order
+  id uuid
+  status string
+
+  ## Tariff
+  rule rate(c string) decimal
+    return 1
+
+  command Place()
+    placed()
+
+  event placed()
+    status = "placed"
+
+projection OrderMart
+  id Order.Id
+  status string
+
+screen OrderPage(orderId Order.Id)
+  Button [orderId].Place

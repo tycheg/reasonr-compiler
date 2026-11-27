@@ -1,0 +1,9 @@
+role boss
+
+actor User
+  id uuid
+
+  event signedIn()
+
+actor Admin
+  id string

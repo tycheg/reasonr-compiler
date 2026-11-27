@@ -1,0 +1,40 @@
+# The automatic UI of app Admin (reasonr ui eject Admin)
+
+app(Staff, admin, support) Admin "Admin"
+  language en
+  default Customer.Id EntityPicker(search: Customer.FindByPhone(phoneNumber: text))
+  Menu
+    AdminCustomer
+    AdminOrder
+    AdminStaff
+    AdminDriverRegister
+    AdminCustomerOrderTaxi
+    AdminCustomerForget
+
+screen AdminCustomer
+  List Customer.FindByPhone
+
+screen AdminOrder
+  Table Order.List
+    on open AdminOrderCard
+
+screen AdminOrderCard(orderId Order.Id)
+  Card Order.Details
+    Actions
+      Edit Order.Edit
+      Edit Order.Cancel
+
+screen AdminStaff
+  Card Staff.Profile
+    Actions
+      Edit Staff.Hire
+      Edit Staff.ChangeEmail
+
+screen AdminDriverRegister
+  Form [new Driver.Id].Register
+
+screen AdminCustomerOrderTaxi
+  Form Customer.OrderTaxi(orderId: new)
+
+screen AdminCustomerForget
+  Form Customer.Forget

@@ -1,0 +1,6 @@
+let a = b ! c     # want "E0001"
+let a = b && c    # want "E0001"
+let a = b || c    # want "E0001"
+let a = {b}       # want "E0001" "E0001"
+let a = b ; c     # want "E0001"
+let a = "{x # y}" # want "E0001"

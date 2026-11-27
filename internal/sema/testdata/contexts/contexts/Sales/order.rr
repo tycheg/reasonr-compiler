@@ -1,0 +1,42 @@
+role admin
+
+enum Speed
+  normal
+  express
+
+aggregate Order
+  id uuid
+  status string
+
+  command(admin) Place(total Money, speed Speed)
+    placed(total: total, speed: speed)
+
+  command recalc()
+    noted()
+
+  event placed(total Money, speed Speed)
+    status = "placed"
+
+  event noted()
+
+  query(admin) Status(orderId Order.Id) string
+    let o = [orderId]
+    if o is none
+      return ""
+    return o.status
+
+value Money
+  amount decimal
+
+projection OrderMart
+  id Order.Id
+  status string
+
+## The role is shared by the project: boss is declared in Auth
+aggregate Refund
+  id uuid
+
+  command(boss) Approve()
+    approved()
+
+  event approved()

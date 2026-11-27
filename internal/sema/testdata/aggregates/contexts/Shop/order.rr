@@ -1,0 +1,32 @@
+role admin
+
+aggregate Order
+  id uuid
+  status string
+
+  ## A new stop: its number is the next in the order
+  command(admin) AddStop(label string)
+    [new Stop.Id].add(text: label)
+
+  ## The driver reached the stop
+  command(admin) ArriveAt(stop Stop.Id)
+    if [stop] is none
+      noStop()
+      return
+    [stop].arrive()
+
+  command(admin) ArriveAll()
+    for s in [Stop]
+      if not s.arrived
+        [s.id].arrive()
+
+  query(admin) Stops(orderId Order.Id) StopCount
+    let n = 0
+    for s in [Stop]  # want "E1422"
+      n = n + 1
+    return StopCount(stops: n)
+
+  error noStop
+
+value StopCount
+  stops int

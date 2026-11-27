@@ -1,0 +1,12 @@
+# The automatic UI of app Dispatch (reasonr ui eject Dispatch)
+
+app(dispatcher) Dispatch "Dispatch"
+  Menu
+    DispatchDriver
+    DispatchOrderMart
+
+screen DispatchDriver
+  Table Driver.FreeDrivers
+
+screen DispatchOrderMart
+  Table OrderMart.Board

@@ -1,0 +1,7 @@
+entity Box 00000000-0000-0000-0000-000000000002 existed=false version=0
+  #0 event Box.created(keeper: 00000000-0000-0000-0000-000000000001, boxKind: small)
+  #2 event Box.timerSet(newTimer: ee000000-0000-0000-0000-000000000001)
+  state Box(kind: small, items: [], tags: [new], counts: [start: 1], owner: 00000000-0000-0000-0000-000000000001, timer: ee000000-0000-0000-0000-000000000001, origin: Point(x: 0, y: 0), note: none, size: 0)
+#1 projection upsert BoxView 00000000-0000-0000-0000-000000000002 {kind: small, size: 0}
+timer ee000000-0000-0000-0000-000000000001 at 2026-10-04T12:01:00Z: [00000000-0000-0000-0000-000000000002].Box.expire()
+request Store.save(boxId: 00000000-0000-0000-0000-000000000002) key 662984d4-8cb0-8e4e-81cb-042ad8ab2502

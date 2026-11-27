@@ -1,0 +1,5 @@
+aggregate A
+  command b()
+    ok()
+      extra()           # want "E0015"
+    ok()

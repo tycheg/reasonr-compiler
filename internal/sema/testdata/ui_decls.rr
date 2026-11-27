@@ -1,0 +1,88 @@
+role admin
+
+value Row
+  title string
+
+actor Customer
+  id uuid
+  name string?
+
+  command(self) Rename(newName string)
+    renamed(newName: newName)
+
+  event renamed(newName string)
+    name = newName
+
+  error cannotRename(currentName string)
+
+  notification renamedTo(newName string)
+
+  query(Customer) Me() Row
+    return Row(title: "")
+
+primitive Badge<T>  # want "E0701"
+  binds field string
+
+primitive Pair<T, T>  # want "E0701"
+  binds field T
+
+primitive Grid<Row>  # want "E0701"
+  binds int  # want "E0701"
+  binds page<Row>  # want "E0701"
+  part Cells binds int  # want "E0701"
+  part Filters binds inputs  # want "E0701"
+  part cells  # want "E0106"
+  event Open  # want "E0106"
+  event open
+  event open  # want "E0701"
+
+primitive Chooser(size int = "x", label field<Row> = auto, mode int = auto)  # want "E0202" "E0701"
+  binds input string
+
+primitive Picker(data int, onPick int)  # want "E0701" "E0701"
+  binds field string
+
+primitive Table  # want "E0101"
+
+screen Menu  # want "E0101"
+  Toolbar
+
+default string Tag  # want "E0712"
+default string Nope  # want "E0712"
+default string Form  # want "E0712"
+default string Text
+default string Text  # want "E0712"
+default Customer.Id Text
+
+app(Customer) Shop "Shop"
+  language en
+  default enum Tag
+  Menu
+    Home
+
+screen Home "Home"  # want "W1303"
+  Card Customer.Me "Me"  # want "W1303"
+    Actions
+      Edit Customer.Rename "Rename"
+
+texts en
+  Customer.Rename "Rename"  # want "W1303"
+  Customer.Rename "Once more"  # want "E0713"
+  Customer.Renme "x"  # want "E0713"
+  Customer.Rename.newName "Name"  # want "W1303"
+  Customer.Rename.oldName "x"  # want "E0713"
+  Nobody "x"  # want "E0713"
+  Home:Customer.Me "Profile"  # want "E0713"
+  Home:Customer.Rename#2 "x"  # want "E0713"
+  Nowhere:Customer.Me "x"  # want "E0713"
+  Customer.cannotRename "Not allowed: {currentName}"
+  Customer.cannotRename.currentName "Name"  # want "W1303"
+  Customer.renamedTo "New name {newName}"
+  Row.title "Title {title}"  # want "E0714" "W1303"
+  Customer.renamedTo "x"  # want "E0713"
+
+texts de
+  Shop "Laden"
+  Home:Customer.Rename "Rename"
+  Customer.cannotRename "Cannot: {currentName.x}"  # want "E0714"
+  Customer.renamedTo "Renamed to {name}"  # want "E0714"

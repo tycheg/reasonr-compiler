@@ -1,0 +1,11 @@
+test "Visits are counted"
+  let c = new Customer.Id
+  given
+    [c].SignUp(customerName: faker.firstName()) as c
+    for i in range(2)
+      [c].Visit() as c
+    time offset +1h
+  when
+    [c].Visit() as c
+  then
+    Customer.Visits(customerId: c) as admin matches (visits: 3)  # want "E0804"

@@ -1,0 +1,14 @@
+aggregate Item
+  id uuid
+  count bigint
+  total int  # want "E1101"
+  nums list<bigint>
+  pairs map<int, bigint>
+  limit bigint?
+
+  command Make(x bigint, y int)
+    made(x: x, y: y)
+
+  event made(x bigint, y int)  # want "E1102"
+    count = x
+    total = y

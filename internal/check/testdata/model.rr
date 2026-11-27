@@ -1,0 +1,19 @@
+role admin
+
+aggregate Account
+  id uuid
+  owner string
+  name string
+
+  index byName(owner, name) unique nameTaken
+  index byOwner(owner) unique missing  # want "E0511"
+  index byOwner2(owner) unique wrongParams
+
+  error nameTaken(owner string, name string)
+  error wrongParams(other int)  # want "E0512"
+
+  command(admin) open()  # want "E0605" "W1001"
+    return
+
+  command Open()  # want "W1010"
+    return

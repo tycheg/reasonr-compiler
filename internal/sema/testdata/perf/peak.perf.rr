@@ -1,0 +1,18 @@
+test "Peak visits"
+  given
+    for i in range(3)
+      let c = new Customer.Id
+      [c].Visit() as c
+  when
+    let c = new Customer.Id
+    [c].Visit() as c
+    [c].Visit() as c
+    Customer.Visits() as c
+  then
+    stats.p95 < 100ms
+    stats.of(Customer.Visit).p99 < 300ms and stats.errors == 0
+    stats.p95 * 10 <= baseline.p95 * 11
+    stats.rate > 10.0
+    stats.of(Customer.Nope).p99 < 1s  # want "E0221"
+    stats.p95  # want "E0202"
+    stats.latency < 1s  # want "E0221"

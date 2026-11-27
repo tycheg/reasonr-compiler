@@ -1,0 +1,39 @@
+== (base)
+  Entity Invoice
+    ID id
+  Role admin
+  Entity Order
+    ID id
+    Field status
+    Command Place
+    Event placed
+    Error orderNotFound
+    Query Card
+  Value OrderCard
+  Screen Orders
+  Screen OrderPage
+  Test "An order is placed"
+  Texts
+  App Admin
+  Primitive OrderNumber
+== acme
+  Entity Invoice
+    ID id
+  Role admin
+  Entity Order
+    ID id
+    Field status
+    Command Place
+    Event placed
+    Error orderNotFound
+    Query Card
+  + Field note
+  + Command Note
+  + Event noted
+  Value OrderCard
+  Screen Orders
+  Screen OrderPage
+  Test "An order is placed"
+  Texts
+  App Admin
+  Primitive OrderNumber

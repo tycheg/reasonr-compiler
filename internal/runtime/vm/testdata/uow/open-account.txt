@@ -1,0 +1,4 @@
+entity Accounts.Account 00000000-0000-0000-0000-000000000007 existed=false version=0
+  #0 event Accounts.Account.accountCreated(ownerId: 00000000-0000-0000-0000-000000000001)
+  state Account(owner: 00000000-0000-0000-0000-000000000001, balance: 0, overdraft: 0, frozen: false)
+notify Accounts.Account.accountOpened(accountId: 00000000-0000-0000-0000-000000000007) to initiator

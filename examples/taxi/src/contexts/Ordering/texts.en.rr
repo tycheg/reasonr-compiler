@@ -1,0 +1,23 @@
+# taxi/contexts/Ordering/texts.en.rr
+# Model texts in the apps' base language
+
+texts en
+  Order.Cancel "Cancel order"
+  Order.cannotCancel "Cannot cancel an order with status {currentStatus}"
+  Order.cannotEdit "Cannot change an order with status {currentStatus}"
+  Order.driverOnTheWay "The driver is on the way"
+  Order.orderPlaced "Order placed, price {price}"
+  Order.LeaveTip "Leave a tip"
+  Order.tipsDisabled "Tips are not available yet"
+  Order.cannotTip "Tips come after the ride is paid, now {currentStatus}"
+  OrderStatus.searching "Looking for a driver"
+  OrderStatus.offered "Offered to a driver"
+  OrderStatus.assigned "The driver is on the way"
+  OrderStatus.completed "Ride completed"
+  OrderStatus.paid "Paid"
+  OrderStatus.unpaid "Not paid"
+  OrderStatus.cancelled "Cancelled"
+  OrderStatus.noDrivers "No drivers"
+  OrderRow.placedAt "Placed"
+  Customer.OrderTaxi.requestedClass "Class"
+  Customer.OrderTaxi.orderRoute "Route"

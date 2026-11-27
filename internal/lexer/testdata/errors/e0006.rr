@@ -1,0 +1,2 @@
+let a = date"2026-13-02"              # want "E0006"
+let b = timestamp"2026-10-02 12:00"   # want "E0006"

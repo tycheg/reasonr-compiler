@@ -1,0 +1,35 @@
+# taxi/contexts/Ordering/staff.rr
+
+## A staff member
+actor Staff
+  id uuid
+  name string
+  email string? personal
+
+  ## Hire a staff member
+  command(admin) Hire(staffName string)
+    if [id]
+      alreadyHired()
+      return
+    hired(staffName: staffName)
+
+  ## Change the email
+  command(self) ChangeEmail(newEmail string personal)
+    emailChanged(newEmail: newEmail)
+
+  event hired(staffName string)
+    name = staffName
+
+  event emailChanged(newEmail string? personal)
+    email = newEmail
+
+  error alreadyHired
+  error notStaff
+
+  ## My profile
+  query(Staff) Profile() StaffProfile
+    let s = [me]
+    if s is none
+      notStaff()
+      return
+    return StaffProfile(name: s.name, email: s.email)

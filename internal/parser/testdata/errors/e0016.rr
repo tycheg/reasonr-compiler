@@ -1,0 +1,6 @@
+aggregate A               # want "E0016"
+enum Empty             # want "E0016"
+aggregate B
+  command b()          # want "E0016"
+  query q() int
+    return 1

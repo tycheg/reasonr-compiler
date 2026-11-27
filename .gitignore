@@ -1,0 +1,7 @@
+/bin/
+*.test
+*.out
+testdata/fuzz/**/*.tmp
+/cmd/reasonr/reasonr
+node_modules/
+/.scale/

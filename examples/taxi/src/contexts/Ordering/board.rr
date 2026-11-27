@@ -1,0 +1,21 @@
+# taxi/contexts/Ordering/board.rr
+
+## The dispatcher board: orders together with driver data
+projection OrderMart
+  id Order.Id                      # own type OrderMart.Id based on Order.Id
+  status OrderStatus
+  driverName string?
+  plate string?
+  placedAt timestamp
+
+  index byStatus(status, placedAt)
+
+  query(dispatcher) Board(wanted OrderStatus, pageReq PageRequest) page<BoardRow>
+    return [OrderMart]
+      where status == wanted
+      sort placedAt
+      page pageReq
+      select BoardRow(orderId: Order.Id(id), status: status, driverName: driverName, plate: plate)
+
+external(payments) Payments
+  request charge(paymentId Order.Id, amount Money)

@@ -1,0 +1,43 @@
+extend Order
+  status int  # want "E1003"
+
+  rule rate(c int) decimal  # want "E1004"
+    return 2
+
+  rule other() int  # want "E1005"
+    return 1
+
+  on unknown  # want "E1006"
+    placed()
+
+  on placed
+    placed()
+
+  id uuid  # want "E1003"
+  extra int
+
+extend Missing  # want "E1002"
+  x int
+
+extend Money  # want "E1002"
+  y int
+
+extend Mart  # want "E1010"
+  z int
+
+extend Nope  # want "E1002"
+  x int
+
+extend screen Nowhere  # want "E1002"
+  in Actions
+    Toolbar
+
+extend screen OrderPage
+  in Actions  # want "E1002"
+    Toolbar
+
+extend screen Twice
+  in Actions  # want "E1011"
+    Toolbar
+
+exclude test "No such test" because "x"  # want "E1007"

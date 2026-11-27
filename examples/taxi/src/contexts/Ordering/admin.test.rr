@@ -1,0 +1,69 @@
+# taxi/contexts/Ordering/admin.test.rr
+
+let adminRide = Route(from: GeoPoint(lat: 55.75, lon: 37.62), to: GeoPoint(lat: 55.8, lon: 37.6), distanceKm: 10)
+
+test "Staff change the route and class of an order being matched"
+  let c1 = new Customer.Id
+  let o1 = new Order.Id
+  given
+    [c1].SignUp(phoneNumber: "+79990000010") as c1
+    [c1].OrderTaxi(orderId: o1, orderRoute: adminRide, requestedClass: economy) as c1
+  when
+    [o1].Edit(orderRoute: adminRide, requestedClass: comfort) as support
+  then
+    Order.Details(orderId: o1) as support matches (status: searching, requestedClass: comfort)
+
+test "An order with an assigned driver does not change"
+  let c1 = new Customer.Id
+  let d1 = new Driver.Id
+  let o1 = new Order.Id
+  given
+    [c1].SignUp(phoneNumber: "+79990000011") as c1
+    [d1].Register(driverName: "John", driverCar: Car(plate: "B002BB77", model: "Kia Rio", carClass: economy)) as admin
+    [d1].GoOnline() as d1
+    [c1].OrderTaxi(orderId: o1, orderRoute: adminRide, requestedClass: economy) as c1
+    [Trip.Id(o1)].DriverFound(driverId: d1) as matching
+    [d1].Accept() as d1
+  when
+    [o1].Edit(orderRoute: adminRide, requestedClass: comfort) as admin
+  then
+    error cannotEdit(currentStatus: assigned)
+
+test "Staff place an order for a customer"
+  let c1 = new Customer.Id
+  let o1 = new Order.Id
+  given
+    [c1].SignUp(phoneNumber: "+79990000012") as c1
+  when
+    [c1].OrderTaxi(orderId: o1, orderRoute: adminRide, requestedClass: economy) as admin
+  then
+    Order.Details(orderId: o1) as admin matches (status: searching, requestedClass: economy)
+
+test "An administrator cancels an order"
+  let c1 = new Customer.Id
+  let o1 = new Order.Id
+  given
+    [c1].SignUp(phoneNumber: "+79990000013") as c1
+    [c1].OrderTaxi(orderId: o1, orderRoute: adminRide, requestedClass: economy) as c1
+  when
+    [o1].Cancel(reason: "at the customer's request") as admin
+  then
+    Order.Details(orderId: o1) as admin matches (status: cancelled)
+
+test "A customer cannot look up other customers by phone"
+  let c1 = new Customer.Id
+  given
+    [c1].SignUp(phoneNumber: "+79990000014") as c1
+  when
+    Customer.FindByPhone(phoneNumber: "+79990000014") as c1
+  then
+    error forbidden
+
+test "A staff member changes their email"
+  let s1 = new Staff.Id
+  given
+    [s1].Hire(staffName: "Anna") as admin
+  when
+    [s1].ChangeEmail(newEmail: "anna@taxi.example") as s1
+  then
+    Staff.Profile() as s1 matches (name: "Anna", email: "anna@taxi.example")

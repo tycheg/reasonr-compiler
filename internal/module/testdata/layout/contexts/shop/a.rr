@@ -1,0 +1,3 @@
+# want "E1402"
+aggregate A
+  id uuid

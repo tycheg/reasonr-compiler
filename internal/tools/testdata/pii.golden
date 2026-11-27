@@ -1,0 +1,181 @@
+Subject Ordering.Customer
+  fields: Ordering.Customer.phone
+  parameters: Ordering.Customer.SignUp(phoneNumber), Ordering.Customer.Join(phoneNumber), Ordering.Customer.signedUp(phoneNumber), Ordering.Customer.joined(phoneNumber), Ordering.Customer.FindByPhone(phoneNumber)
+  flows:
+    Ordering.Customer.SignUp: phoneNumber → event Ordering.Customer.signedUp(phoneNumber)
+    Ordering.Customer.Join: phoneNumber → event Ordering.Customer.joined(phoneNumber)
+    Ordering.Customer.signedUp: phoneNumber → field Ordering.Customer.phone
+    Ordering.Customer.joined: phoneNumber → field Ordering.Customer.phone
+    Ordering.Customer.Profile: CustomerProfile(phone: c.phone, blocked: c.blocked) → result of Ordering.Customer.Profile
+    Ordering.Customer.FindByPhone: [Customer]
+      where phone == phoneNumber
+      limit 10
+      select CustomerRow(customerId: id, phone: phone) → result of Ordering.Customer.FindByPhone
+  forgotten in: Ordering.Customer.Forget
+
+Subject Ordering.Staff
+  fields: Ordering.Staff.email
+  parameters: Ordering.Staff.ChangeEmail(newEmail), Ordering.Staff.emailChanged(newEmail)
+  flows:
+    Ordering.Staff.ChangeEmail: newEmail → event Ordering.Staff.emailChanged(newEmail)
+    Ordering.Staff.emailChanged: newEmail → field Ordering.Staff.email
+    Ordering.Staff.Profile: StaffProfile(name: s.name, email: s.email) → result of Ordering.Staff.Profile
+{
+  "subjects": [
+    {
+      "type": "Ordering.Customer",
+      "fields": [
+        "Ordering.Customer.phone"
+      ],
+      "params": [
+        "Ordering.Customer.SignUp(phoneNumber)",
+        "Ordering.Customer.Join(phoneNumber)",
+        "Ordering.Customer.signedUp(phoneNumber)",
+        "Ordering.Customer.joined(phoneNumber)",
+        "Ordering.Customer.FindByPhone(phoneNumber)"
+      ],
+      "flows": [
+        {
+          "in": "Ordering.Customer.SignUp",
+          "value": "phoneNumber",
+          "kind": "event",
+          "target": "Ordering.Customer.signedUp",
+          "name": "phoneNumber"
+        },
+        {
+          "in": "Ordering.Customer.Join",
+          "value": "phoneNumber",
+          "kind": "event",
+          "target": "Ordering.Customer.joined",
+          "name": "phoneNumber"
+        },
+        {
+          "in": "Ordering.Customer.signedUp",
+          "value": "phoneNumber",
+          "kind": "field",
+          "target": "Ordering.Customer",
+          "name": "phone"
+        },
+        {
+          "in": "Ordering.Customer.joined",
+          "value": "phoneNumber",
+          "kind": "field",
+          "target": "Ordering.Customer",
+          "name": "phone"
+        },
+        {
+          "in": "Ordering.Customer.Profile",
+          "value": "CustomerProfile(phone: c.phone, blocked: c.blocked)",
+          "kind": "result",
+          "target": "Ordering.Customer.Profile"
+        },
+        {
+          "in": "Ordering.Customer.FindByPhone",
+          "value": "[Customer]\n      where phone == phoneNumber\n      limit 10\n      select CustomerRow(customerId: id, phone: phone)",
+          "kind": "result",
+          "target": "Ordering.Customer.FindByPhone"
+        }
+      ],
+      "forgets": [
+        "Ordering.Customer.Forget"
+      ]
+    },
+    {
+      "type": "Ordering.Staff",
+      "fields": [
+        "Ordering.Staff.email"
+      ],
+      "params": [
+        "Ordering.Staff.ChangeEmail(newEmail)",
+        "Ordering.Staff.emailChanged(newEmail)"
+      ],
+      "flows": [
+        {
+          "in": "Ordering.Staff.ChangeEmail",
+          "value": "newEmail",
+          "kind": "event",
+          "target": "Ordering.Staff.emailChanged",
+          "name": "newEmail"
+        },
+        {
+          "in": "Ordering.Staff.emailChanged",
+          "value": "newEmail",
+          "kind": "field",
+          "target": "Ordering.Staff",
+          "name": "email"
+        },
+        {
+          "in": "Ordering.Staff.Profile",
+          "value": "StaffProfile(name: s.name, email: s.email)",
+          "kind": "result",
+          "target": "Ordering.Staff.Profile"
+        }
+      ]
+    }
+  ]
+}
+Subject Accounts.Client
+  fields: Accounts.Client.fullName
+  parameters: Accounts.Client.Join(clientName), Accounts.Client.Rename(clientName), Accounts.Client.joined(clientName), Accounts.Client.renamed(clientName)
+  flows:
+    Accounts.Client.Join: clientName → event Accounts.Client.joined(clientName)
+    Accounts.Client.Rename: clientName → event Accounts.Client.renamed(clientName)
+    Accounts.Client.joined: clientName → field Accounts.Client.fullName
+    Accounts.Client.renamed: clientName → field Accounts.Client.fullName
+    Accounts.Client.Profile: ClientProfile(fullName: c.fullName) → result of Accounts.Client.Profile
+  forgotten in: Accounts.Client.Forget
+{
+  "subjects": [
+    {
+      "type": "Accounts.Client",
+      "fields": [
+        "Accounts.Client.fullName"
+      ],
+      "params": [
+        "Accounts.Client.Join(clientName)",
+        "Accounts.Client.Rename(clientName)",
+        "Accounts.Client.joined(clientName)",
+        "Accounts.Client.renamed(clientName)"
+      ],
+      "flows": [
+        {
+          "in": "Accounts.Client.Join",
+          "value": "clientName",
+          "kind": "event",
+          "target": "Accounts.Client.joined",
+          "name": "clientName"
+        },
+        {
+          "in": "Accounts.Client.Rename",
+          "value": "clientName",
+          "kind": "event",
+          "target": "Accounts.Client.renamed",
+          "name": "clientName"
+        },
+        {
+          "in": "Accounts.Client.joined",
+          "value": "clientName",
+          "kind": "field",
+          "target": "Accounts.Client",
+          "name": "fullName"
+        },
+        {
+          "in": "Accounts.Client.renamed",
+          "value": "clientName",
+          "kind": "field",
+          "target": "Accounts.Client",
+          "name": "fullName"
+        },
+        {
+          "in": "Accounts.Client.Profile",
+          "value": "ClientProfile(fullName: c.fullName)",
+          "kind": "result",
+          "target": "Accounts.Client.Profile"
+        }
+      ],
+      "forgets": [
+        "Accounts.Client.Forget"
+      ]
+    }
+  ]
+}

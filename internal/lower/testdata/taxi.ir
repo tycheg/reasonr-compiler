@@ -1,0 +1,2867 @@
+func command Dispatch.Driver.Register(driverName string, driverCar Dispatch.Car) access=[role admin]
+  slots: r0 driverName string, r1 driverCar Dispatch.Car, r2 id Dispatch.Driver.Id, r3 bool
+  b0:
+    r2 = id
+    r3 = ref.exists Dispatch.Driver r2
+    br r3, b1, b2
+  b1:
+    error Dispatch.Driver.alreadyRegistered()
+    ret
+  b2:
+    event Dispatch.Driver.driverRegistered(driverName: r0, driverCar: r1)
+    ret
+
+func command Dispatch.Driver.GoOnline() access=[self]
+  slots: r0 id Dispatch.Driver.Id, r1 bool, r2 Dispatch.DriverStatus
+  b0:
+    r0 = id
+    r1 = ref.exists Dispatch.Driver r0
+    br r1, b2, b1
+  b1:
+    error Dispatch.Driver.notRegistered()
+    jmp b2
+  b2:
+    r2 = field status
+    r1 = ne.enum r2, Dispatch.DriverStatus.offline
+    br r1, b3, b4
+  b3:
+    error Dispatch.Driver.alreadyOnline()
+    jmp b4
+  b4:
+    r1 = haserrors
+    br r1, b5, b6
+  b5:
+    ret
+  b6:
+    event Dispatch.Driver.wentOnline()
+    ret
+
+func command Dispatch.Driver.GoOffline() access=[self]
+  slots: r0 Dispatch.DriverStatus, r1 bool, r2 Dispatch.DriverStatus
+  b0:
+    r0 = field status
+    r1 = ne.enum r0, Dispatch.DriverStatus.free
+    br r1, b1, b2
+  b1:
+    r2 = field status
+    error Dispatch.Driver.cannotGoOffline(currentStatus: r2)
+    ret
+  b2:
+    event Dispatch.Driver.wentOffline()
+    ret
+
+func command Dispatch.Driver.offerTrip(tripId Dispatch.Trip.Id, pickup Dispatch.GeoPoint, fare Dispatch.Money)
+  slots: r0 tripId Dispatch.Trip.Id, r1 pickup Dispatch.GeoPoint, r2 fare Dispatch.Money, r3 id Dispatch.Driver.Id, r4 Dispatch.DriverStatus, r5 bool
+  b0:
+    r3 = id
+    r4 = field status
+    r5 = ne.enum r4, Dispatch.DriverStatus.free
+    br r5, b1, b2
+  b1:
+    event Dispatch.Driver.offerRejectedBusy(tripId: r0)
+    cmd [r0] Dispatch.Trip.driverDeclined(driverId: r3)
+    ret
+  b2:
+    event Dispatch.Driver.tripOffered(tripId: r0)
+    notify Dispatch.Driver.newOffer(tripId: r0, pickup: r1, fare: r2) to r3
+    ret
+
+func command Dispatch.Driver.Accept() access=[self]
+  slots: r0 id Dispatch.Driver.Id, r1 Dispatch.DriverStatus, r2 bool, r3 Dispatch.Trip.Id?, r4 bool, r5 Dispatch.Trip.Id, r6 string, r7 Dispatch.Car, r8 string
+  b0:
+    r0 = id
+    r1 = field status
+    r2 = ne.enum r1, Dispatch.DriverStatus.offered
+    br r2, b2, b1
+  b1:
+    r3 = field currentTrip
+    r4 = opt.isnone r3
+    br r4, b2, b3
+  b2:
+    error Dispatch.Driver.noActiveOffer()
+    ret
+  b3:
+    event Dispatch.Driver.offerAccepted()
+    r5 = field currentTrip
+    r6 = field name
+    r7 = field car
+    r8 = val.get r7, plate
+    cmd [r5] Dispatch.Trip.assignDriver(driverId: r0, assignedName: r6, assignedPlate: r8)
+    ret
+
+func command Dispatch.Driver.Decline() access=[self]
+  slots: r0 id Dispatch.Driver.Id, r1 Dispatch.DriverStatus, r2 bool, r3 Dispatch.Trip.Id?, r4 bool, r5 Dispatch.Trip.Id
+  b0:
+    r0 = id
+    r1 = field status
+    r2 = ne.enum r1, Dispatch.DriverStatus.offered
+    br r2, b2, b1
+  b1:
+    r3 = field currentTrip
+    r4 = opt.isnone r3
+    br r4, b2, b3
+  b2:
+    error Dispatch.Driver.noActiveOffer()
+    ret
+  b3:
+    event Dispatch.Driver.offerDeclined()
+    r5 = field currentTrip
+    cmd [r5] Dispatch.Trip.driverDeclined(driverId: r0)
+    ret
+
+func command Dispatch.Driver.withdrawOffer(tripId Dispatch.Trip.Id)
+  slots: r0 tripId Dispatch.Trip.Id, r1 id Dispatch.Driver.Id, r2 Dispatch.DriverStatus, r3 bool, r4 Dispatch.Trip.Id?, r5 bool
+  b0:
+    r1 = id
+    r2 = field status
+    r3 = ne.enum r2, Dispatch.DriverStatus.offered
+    br r3, b2, b1
+  b1:
+    r4 = field currentTrip
+    r5 = ne.id r4, r0
+    br r5, b2, b3
+  b2:
+    ret
+  b3:
+    event Dispatch.Driver.offerWithdrawn()
+    notify Dispatch.Driver.offerCancelled(tripId: r0) to r1
+    ret
+
+func command Dispatch.Driver.FinishRide() access=[self]
+  slots: r0 id Dispatch.Driver.Id, r1 Dispatch.DriverStatus, r2 bool, r3 Dispatch.Trip.Id?, r4 bool, r5 Dispatch.Trip.Id
+  b0:
+    r0 = id
+    r1 = field status
+    r2 = ne.enum r1, Dispatch.DriverStatus.busy
+    br r2, b2, b1
+  b1:
+    r3 = field currentTrip
+    r4 = opt.isnone r3
+    br r4, b2, b3
+  b2:
+    error Dispatch.Driver.noActiveRide()
+    ret
+  b3:
+    event Dispatch.Driver.rideFinished()
+    r5 = field currentTrip
+    cmd [r5] Dispatch.Trip.finishRide(driverId: r0)
+    ret
+
+func command Dispatch.Driver.releaseTrip(tripId Dispatch.Trip.Id)
+  slots: r0 tripId Dispatch.Trip.Id, r1 Dispatch.Trip.Id?, r2 bool
+  b0:
+    r1 = field currentTrip
+    r2 = ne.id r1, r0
+    br r2, b1, b2
+  b1:
+    ret
+  b2:
+    event Dispatch.Driver.rideFinished()
+    ret
+
+func apply Dispatch.Driver.driverRegistered(driverName string, driverCar Dispatch.Car)
+  slots: r0 driverName string, r1 driverCar Dispatch.Car
+  b0:
+    set name, r0
+    set car, r1
+    ret
+
+func apply Dispatch.Driver.wentOnline()
+  b0:
+    set status, Dispatch.DriverStatus.free
+    ret
+
+func apply Dispatch.Driver.wentOffline()
+  b0:
+    set status, Dispatch.DriverStatus.offline
+    ret
+
+func apply Dispatch.Driver.tripOffered(tripId Dispatch.Trip.Id)
+  slots: r0 tripId Dispatch.Trip.Id
+  b0:
+    set status, Dispatch.DriverStatus.offered
+    set currentTrip, r0
+    ret
+
+func apply Dispatch.Driver.offerAccepted()
+  b0:
+    set status, Dispatch.DriverStatus.busy
+    ret
+
+func apply Dispatch.Driver.offerDeclined()
+  b0:
+    set status, Dispatch.DriverStatus.free
+    set currentTrip, none
+    ret
+
+func apply Dispatch.Driver.offerWithdrawn()
+  b0:
+    set status, Dispatch.DriverStatus.free
+    set currentTrip, none
+    ret
+
+func apply Dispatch.Driver.rideFinished()
+  b0:
+    set status, Dispatch.DriverStatus.free
+    set currentTrip, none
+    ret
+
+func query Dispatch.Driver.MyState() Dispatch.DriverState access=[actor Dispatch.Driver]
+  slots: r0 me Dispatch.Driver.Id, r1 d Dispatch.Driver?, r2 bool, r3 Dispatch.DriverStatus, r4 Dispatch.Trip.Id?, r5 Dispatch.DriverState
+  b0:
+    r0 = me
+    r1 = rec.load Dispatch.Driver r0
+    r2 = opt.isnone r1
+    br r2, b1, b2
+  b1:
+    error Dispatch.Driver.notRegistered()
+    ret
+  b2:
+    r3 = rec.get r1, status
+    r4 = rec.get r1, currentTrip
+    r5 = val.new Dispatch.DriverState(status: r3, currentTrip: r4)
+    ret.val r5
+
+func query Dispatch.Driver.FreeDrivers(wantedClass Dispatch.CarClass, pageReq PageRequest) page<Dispatch.DriverInfo> access=[role dispatcher]
+  slots: r0 wantedClass Dispatch.CarClass, r1 pageReq PageRequest, r2 page<Dispatch.Driver>, r3 list<Dispatch.Driver>, r4 list<Dispatch.DriverInfo>, r5 int, r6 int, r7 bool, r8 Dispatch.Driver, r9 Dispatch.Driver.Id, r10 string, r11 Dispatch.Car, r12 string, r13 Dispatch.DriverInfo, r14 page<Dispatch.DriverInfo>
+  b0:
+    r2 = find Dispatch.Driver by byStatus where status == Dispatch.DriverStatus.free and car.carClass == r0 page r1
+    r3 = intrinsic page.items(r2)
+    r4 = coll.list
+    r5 = coll.len r3
+    r6 = move 0
+    jmp b1
+  b1:
+    loop.guard
+    r7 = lt.i64 r6, r5
+    br r7, b2, b3
+  b2:
+    r8 = coll.get r3, r6
+    r9 = rec.get r8, id
+    r10 = rec.get r8, name
+    r11 = rec.get r8, car
+    r12 = val.get r11, plate
+    r13 = val.new Dispatch.DriverInfo(driverId: r9, name: r10, plate: r12)
+    r4 = coll.append r4, r13
+    r6 = add.i64 r6, 1
+    jmp b1
+  b3:
+    r14 = page.with r2, r4
+    ret.val r14
+
+func query Dispatch.Driver.info(driverId Dispatch.Driver.Id) Dispatch.DriverInfo
+  slots: r0 driverId Dispatch.Driver.Id, r1 d Dispatch.Driver?, r2 bool, r3 string, r4 Dispatch.Car, r5 string, r6 Dispatch.DriverInfo
+  b0:
+    r1 = rec.load Dispatch.Driver r0
+    r2 = opt.isnone r1
+    br r2, b1, b2
+  b1:
+    error Dispatch.Driver.driverNotFound()
+    ret
+  b2:
+    r3 = rec.get r1, name
+    r4 = rec.get r1, car
+    r5 = val.get r4, plate
+    r6 = val.new Dispatch.DriverInfo(driverId: r0, name: r3, plate: r5)
+    ret.val r6
+
+func command Dispatch.Matching.Setup(freeDrivers list<Dispatch.Driver.Id>)
+  slots: r0 freeDrivers list<Dispatch.Driver.Id>
+  b0:
+    event Dispatch.Matching.configured(freeDrivers: r0)
+    ret
+
+func command Dispatch.Matching.GoSilent()
+  b0:
+    event Dispatch.Matching.silenced()
+    ret
+
+func apply Dispatch.Matching.configured(freeDrivers list<Dispatch.Driver.Id>)
+  slots: r0 freeDrivers list<Dispatch.Driver.Id>
+  b0:
+    set drivers, r0
+    ret
+
+func apply Dispatch.Matching.silenced()
+  b0:
+    set silent, true
+    ret
+
+func command Dispatch.Matching.findDriver(tripId Dispatch.Trip.Id, pickup Dispatch.GeoPoint, requestedClass Dispatch.CarClass, exclude set<Dispatch.Driver.Id>, timeout Timer.Id)
+  slots: r0 tripId Dispatch.Trip.Id, r1 pickup Dispatch.GeoPoint, r2 requestedClass Dispatch.CarClass, r3 exclude set<Dispatch.Driver.Id>, r4 timeout Timer.Id, r5 bool, r6 list<Dispatch.Driver.Id>, r7 int, r8 int, r9 d Dispatch.Driver.Id, r10 bool, r11 bool
+  b0:
+    r5 = field silent
+    br r5, b1, b2
+  b1:
+    ret
+  b2:
+    r6 = field drivers
+    r7 = coll.len r6
+    r8 = move 0
+    jmp b3
+  b3:
+    loop.guard
+    r5 = lt.i64 r8, r7
+    br r5, b4, b7
+  b4:
+    r9 = coll.get r6, r8
+    r10 = in.set r9, r3
+    r11 = not r10
+    br r11, b5, b6
+  b5:
+    callout [r0] Dispatch.Trip.DriverFound(driverId: r9)
+    ret
+  b6:
+    r8 = add.i64 r8, 1
+    jmp b3
+  b7:
+    callout [r0] Dispatch.Trip.NoDriverFound()
+    ret
+
+func command Dispatch.Trip.Offer.open(offeredTo Dispatch.Driver.Id)
+  slots: r0 offeredTo Dispatch.Driver.Id
+  b0:
+    event Dispatch.Trip.Offer.opened(offeredTo: r0)
+    ret
+
+func command Dispatch.Trip.Offer.close(result Dispatch.OfferOutcome)
+  slots: r0 result Dispatch.OfferOutcome, r1 Dispatch.OfferOutcome, r2 bool
+  b0:
+    r1 = field outcome
+    r2 = ne.enum r1, Dispatch.OfferOutcome.pending
+    br r2, b1, b2
+  b1:
+    ret
+  b2:
+    event Dispatch.Trip.Offer.closed(result: r0)
+    ret
+
+func apply Dispatch.Trip.Offer.opened(offeredTo Dispatch.Driver.Id)
+  slots: r0 offeredTo Dispatch.Driver.Id
+  b0:
+    set driver, r0
+    ret
+
+func apply Dispatch.Trip.Offer.closed(result Dispatch.OfferOutcome)
+  slots: r0 result Dispatch.OfferOutcome
+  b0:
+    set outcome, r0
+    ret
+
+func command Dispatch.Trip.open(pickupPoint Dispatch.GeoPoint, requestedClass Dispatch.CarClass, price Dispatch.Money)
+  slots: r0 pickupPoint Dispatch.GeoPoint, r1 requestedClass Dispatch.CarClass, r2 price Dispatch.Money, r3 id Dispatch.Trip.Id
+  b0:
+    r3 = id
+    event Dispatch.Trip.searchOpened(pickupPoint: r0, requestedClass: r1, tripFare: r2)
+    cmd [r3] Dispatch.Trip.findDriver()
+    ret
+
+func command Dispatch.Trip.update(pickupPoint Dispatch.GeoPoint, requestedClass Dispatch.CarClass, price Dispatch.Money)
+  slots: r0 pickupPoint Dispatch.GeoPoint, r1 requestedClass Dispatch.CarClass, r2 price Dispatch.Money
+  b0:
+    event Dispatch.Trip.searchUpdated(pickupPoint: r0, requestedClass: r1, tripFare: r2)
+    ret
+
+func command Dispatch.Trip.close()
+  slots: r0 id Dispatch.Trip.Id, r1 Timer.Id?, r2 Dispatch.Driver.Id?
+  b0:
+    r0 = id
+    r1 = field searchTimer
+    timer.delete r1
+    r1 = field offerTimer
+    timer.delete r1
+    cmd [r0] Dispatch.Trip.closeOffer(result: Dispatch.OfferOutcome.withdrawn)
+    r2 = field candidate
+    cmd? [r2] Dispatch.Driver.withdrawOffer(tripId: r0)
+    r2 = field driver
+    cmd? [r2] Dispatch.Driver.releaseTrip(tripId: r0)
+    r2 = field driver
+    notify Dispatch.Trip.rideCancelled(tripId: r0) to r2
+    event Dispatch.Trip.dispatchClosed()
+    ret
+
+func command Dispatch.Trip.tip(amount Dispatch.Money)
+  slots: r0 amount Dispatch.Money, r1 id Dispatch.Trip.Id, r2 Dispatch.Driver.Id?
+  b0:
+    r1 = id
+    r2 = field driver
+    notify Dispatch.Trip.tipReceived(tripId: r1, amount: r0) to r2
+    ret
+
+func command Dispatch.Trip.findDriver()
+  slots: r0 id Dispatch.Trip.Id, r1 now timestamp, r2 offered set<Dispatch.Driver.Id>, r3 list<Dispatch.Trip.Offer>, r4 int, r5 int, r6 bool, r7 o Dispatch.Trip.Offer, r8 Dispatch.Driver.Id?, r9 bool, r10 Dispatch.Driver.Id, r11 timestamp, r12 timer Timer.Id, r13 Dispatch.GeoPoint, r14 Dispatch.CarClass
+  b0:
+    r0 = id
+    r1 = now
+    r2 = coll.set
+    r3 = inner.all Dispatch.Trip.Offer
+    r4 = coll.len r3
+    r5 = move 0
+    jmp b1
+  b1:
+    loop.guard
+    r6 = lt.i64 r5, r4
+    br r6, b2, b5
+  b2:
+    r7 = coll.get r3, r5
+    r8 = rec.get r7, driver
+    r9 = opt.isnone r8
+    br r9, b4, b3
+  b3:
+    r10 = rec.get r7, driver
+    r2 = intrinsic set.with(r2, r10)
+    jmp b4
+  b4:
+    r5 = add.i64 r5, 1
+    jmp b1
+  b5:
+    r11 = add.ts r1, 1m
+    r12 = schedule r11, Dispatch.Trip.searchTimedOut()
+    r13 = field pickup
+    r14 = field carClass
+    request Dispatch.Matching.findDriver(tripId: r0, pickup: r13, requestedClass: r14, exclude: r2, timeout: r12)
+    event Dispatch.Trip.searchStarted(timer: r12)
+    ret
+
+func command Dispatch.Trip.DriverFound(driverId Dispatch.Driver.Id) access=[role matching]
+  slots: r0 driverId Dispatch.Driver.Id, r1 id Dispatch.Trip.Id, r2 now timestamp, r3 bool, r4 Dispatch.TripStage, r5 bool, r6 Timer.Id?, r7 timestamp, r8 timer Timer.Id, r9 Dispatch.Trip.Offer.Id, r10 Dispatch.GeoPoint, r11 Dispatch.Money
+  b0:
+    r1 = id
+    r2 = now
+    r3 = ref.exists Dispatch.Trip r1
+    br r3, b1, b3
+  b1:
+    r4 = field stage
+    r5 = ne.enum r4, Dispatch.TripStage.searching
+    br r5, b3, b2
+  b2:
+    r6 = field searchTimer
+    timer.delete r6
+    r7 = add.ts r2, 20s
+    r8 = schedule r7, Dispatch.Trip.expireOffer(driverId: r0)
+    r9 = newid Dispatch.Trip.Offer
+    cmd [r9] Dispatch.Trip.Offer.open(offeredTo: r0)
+    event Dispatch.Trip.offerSent(driverId: r0, timer: r8)
+    r10 = field pickup
+    r11 = field fare
+    cmd [r0] Dispatch.Driver.offerTrip(tripId: r1, pickup: r10, fare: r11)
+    react
+    ret
+  b3:
+    react
+    ret
+
+func command Dispatch.Trip.NoDriverFound() access=[role matching]
+  slots: r0 id Dispatch.Trip.Id, r1 bool, r2 Dispatch.TripStage, r3 bool, r4 Timer.Id?
+  b0:
+    r0 = id
+    r1 = ref.exists Dispatch.Trip r0
+    br r1, b1, b3
+  b1:
+    r2 = field stage
+    r3 = ne.enum r2, Dispatch.TripStage.searching
+    br r3, b3, b2
+  b2:
+    r4 = field searchTimer
+    timer.delete r4
+    cmd [r0] Dispatch.Trip.giveUp()
+    ret
+  b3:
+    ret
+
+func command Dispatch.Trip.searchTimedOut()
+  slots: r0 id Dispatch.Trip.Id, r1 Dispatch.TripStage, r2 bool, r3 int
+  b0:
+    r0 = id
+    r1 = field stage
+    r2 = ne.enum r1, Dispatch.TripStage.searching
+    br r2, b1, b2
+  b1:
+    ret
+  b2:
+    r3 = field searchRetries
+    r2 = ge.i64 r3, 3
+    br r2, b3, b4
+  b3:
+    cmd [r0] Dispatch.Trip.giveUp()
+    ret
+  b4:
+    event Dispatch.Trip.searchRetried()
+    cmd [r0] Dispatch.Trip.findDriver()
+    ret
+
+func command Dispatch.Trip.giveUp()
+  slots: r0 now timestamp
+  b0:
+    r0 = now
+    event Dispatch.Trip.searchFailed(at: r0)
+    react
+    ret
+
+func command Dispatch.Trip.searchAgain(skipped Dispatch.Driver.Id)
+  slots: r0 skipped Dispatch.Driver.Id, r1 id Dispatch.Trip.Id
+  b0:
+    r1 = id
+    event Dispatch.Trip.driverSkipped(driverId: r0)
+    cmd [r1] Dispatch.Trip.findDriver()
+    react
+    ret
+
+func command Dispatch.Trip.expireOffer(driverId Dispatch.Driver.Id)
+  slots: r0 driverId Dispatch.Driver.Id, r1 id Dispatch.Trip.Id, r2 Dispatch.TripStage, r3 bool, r4 Dispatch.Driver.Id?, r5 bool
+  b0:
+    r1 = id
+    r2 = field stage
+    r3 = ne.enum r2, Dispatch.TripStage.offered
+    br r3, b2, b1
+  b1:
+    r4 = field candidate
+    r5 = ne.id r4, r0
+    br r5, b2, b3
+  b2:
+    ret
+  b3:
+    cmd [r1] Dispatch.Trip.closeOffer(result: Dispatch.OfferOutcome.expired)
+    cmd [r0] Dispatch.Driver.withdrawOffer(tripId: r1)
+    cmd [r1] Dispatch.Trip.searchAgain(skipped: r0)
+    ret
+
+func command Dispatch.Trip.driverDeclined(driverId Dispatch.Driver.Id)
+  slots: r0 driverId Dispatch.Driver.Id, r1 id Dispatch.Trip.Id, r2 Dispatch.TripStage, r3 bool, r4 Dispatch.Driver.Id?, r5 bool, r6 Timer.Id?
+  b0:
+    r1 = id
+    r2 = field stage
+    r3 = ne.enum r2, Dispatch.TripStage.offered
+    br r3, b2, b1
+  b1:
+    r4 = field candidate
+    r5 = ne.id r4, r0
+    br r5, b2, b3
+  b2:
+    ret
+  b3:
+    r6 = field offerTimer
+    timer.delete r6
+    cmd [r1] Dispatch.Trip.closeOffer(result: Dispatch.OfferOutcome.declined)
+    cmd [r1] Dispatch.Trip.searchAgain(skipped: r0)
+    ret
+
+func command Dispatch.Trip.closeOffer(result Dispatch.OfferOutcome)
+  slots: r0 result Dispatch.OfferOutcome, r1 list<Dispatch.Trip.Offer>, r2 int, r3 int, r4 bool, r5 o Dispatch.Trip.Offer, r6 Dispatch.OfferOutcome, r7 bool, r8 Dispatch.Trip.Offer.Id
+  b0:
+    r1 = inner.all Dispatch.Trip.Offer
+    r2 = coll.len r1
+    r3 = move 0
+    jmp b1
+  b1:
+    loop.guard
+    r4 = lt.i64 r3, r2
+    br r4, b2, b5
+  b2:
+    r5 = coll.get r1, r3
+    r6 = rec.get r5, outcome
+    r7 = eq.enum r6, Dispatch.OfferOutcome.pending
+    br r7, b3, b4
+  b3:
+    r8 = rec.get r5, id
+    cmd [r8] Dispatch.Trip.Offer.close(result: r0)
+    jmp b4
+  b4:
+    r3 = add.i64 r3, 1
+    jmp b1
+  b5:
+    ret
+
+func command Dispatch.Trip.assignDriver(driverId Dispatch.Driver.Id, assignedName string, assignedPlate string)
+  slots: r0 driverId Dispatch.Driver.Id, r1 assignedName string, r2 assignedPlate string, r3 id Dispatch.Trip.Id, r4 Dispatch.TripStage, r5 bool, r6 Dispatch.Driver.Id?, r7 bool, r8 Timer.Id?
+  b0:
+    r3 = id
+    r4 = field stage
+    r5 = ne.enum r4, Dispatch.TripStage.offered
+    br r5, b2, b1
+  b1:
+    r6 = field candidate
+    r7 = ne.id r6, r0
+    br r7, b2, b3
+  b2:
+    error Dispatch.Trip.offerNoLongerValid()
+    react
+    ret
+  b3:
+    r8 = field offerTimer
+    timer.delete r8
+    cmd [r3] Dispatch.Trip.closeOffer(result: Dispatch.OfferOutcome.accepted)
+    event Dispatch.Trip.driverAssigned(driverId: r0, assignedName: r1, assignedPlate: r2)
+    react
+    ret
+
+func command Dispatch.Trip.finishRide(driverId Dispatch.Driver.Id)
+  slots: r0 driverId Dispatch.Driver.Id, r1 now timestamp, r2 Dispatch.TripStage, r3 bool, r4 Dispatch.Driver.Id?, r5 bool
+  b0:
+    r1 = now
+    r2 = field stage
+    r3 = ne.enum r2, Dispatch.TripStage.assigned
+    br r3, b2, b1
+  b1:
+    r4 = field driver
+    r5 = ne.id r4, r0
+    br r5, b2, b3
+  b2:
+    error Dispatch.Trip.rideNotActive()
+    react
+    ret
+  b3:
+    event Dispatch.Trip.rideCompleted(at: r1)
+    react
+    ret
+
+func apply Dispatch.Trip.searchOpened(pickupPoint Dispatch.GeoPoint, requestedClass Dispatch.CarClass, tripFare Dispatch.Money)
+  slots: r0 pickupPoint Dispatch.GeoPoint, r1 requestedClass Dispatch.CarClass, r2 tripFare Dispatch.Money
+  b0:
+    set pickup, r0
+    set carClass, r1
+    set fare, r2
+    set stage, Dispatch.TripStage.searching
+    ret
+
+func apply Dispatch.Trip.searchUpdated(pickupPoint Dispatch.GeoPoint, requestedClass Dispatch.CarClass, tripFare Dispatch.Money)
+  slots: r0 pickupPoint Dispatch.GeoPoint, r1 requestedClass Dispatch.CarClass, r2 tripFare Dispatch.Money
+  b0:
+    set pickup, r0
+    set carClass, r1
+    set fare, r2
+    ret
+
+func apply Dispatch.Trip.searchStarted(timer Timer.Id)
+  slots: r0 timer Timer.Id
+  b0:
+    set searchTimer, r0
+    ret
+
+func apply Dispatch.Trip.searchRetried()
+  slots: r0 int, r1 int
+  b0:
+    r0 = field searchRetries
+    r1 = add.i64 r0, 1
+    set searchRetries, r1
+    ret
+
+func apply Dispatch.Trip.offerSent(driverId Dispatch.Driver.Id, timer Timer.Id)
+  slots: r0 driverId Dispatch.Driver.Id, r1 timer Timer.Id
+  b0:
+    set candidate, r0
+    set offerTimer, r1
+    set searchTimer, none
+    set stage, Dispatch.TripStage.offered
+    ret
+
+func apply Dispatch.Trip.driverSkipped(driverId Dispatch.Driver.Id)
+  slots: r0 driverId Dispatch.Driver.Id
+  b0:
+    set candidate, none
+    set offerTimer, none
+    set stage, Dispatch.TripStage.searching
+    ret
+
+func apply Dispatch.Trip.driverAssigned(driverId Dispatch.Driver.Id, assignedName string, assignedPlate string)
+  slots: r0 driverId Dispatch.Driver.Id, r1 assignedName string, r2 assignedPlate string
+  b0:
+    set driver, r0
+    set candidate, none
+    set offerTimer, none
+    set stage, Dispatch.TripStage.assigned
+    ret
+
+func apply Dispatch.Trip.rideCompleted(at timestamp)
+  slots: r0 at timestamp
+  b0:
+    set stage, Dispatch.TripStage.completed
+    ret
+
+func apply Dispatch.Trip.searchFailed(at timestamp)
+  slots: r0 at timestamp
+  b0:
+    set stage, Dispatch.TripStage.noDrivers
+    set searchTimer, none
+    ret
+
+func apply Dispatch.Trip.dispatchClosed()
+  b0:
+    set stage, Dispatch.TripStage.cancelled
+    set searchTimer, none
+    set offerTimer, none
+    ret
+
+func query Ordering.OrderMart.Board(wanted Ordering.OrderStatus, pageReq PageRequest) page<Ordering.BoardRow> access=[role dispatcher]
+  slots: r0 wanted Ordering.OrderStatus, r1 pageReq PageRequest, r2 page<Ordering.OrderMart>, r3 list<Ordering.OrderMart>, r4 list<Ordering.BoardRow>, r5 int, r6 int, r7 bool, r8 Ordering.OrderMart, r9 Ordering.OrderMart.Id, r10 Ordering.Order.Id, r11 Ordering.OrderStatus, r12 string?, r13 string?, r14 Ordering.BoardRow, r15 page<Ordering.BoardRow>
+  b0:
+    r2 = find Ordering.OrderMart by byStatus where status == r0 sort placedAt page r1
+    r3 = intrinsic page.items(r2)
+    r4 = coll.list
+    r5 = coll.len r3
+    r6 = move 0
+    jmp b1
+  b1:
+    loop.guard
+    r7 = lt.i64 r6, r5
+    br r7, b2, b3
+  b2:
+    r8 = coll.get r3, r6
+    r9 = rec.get r8, id
+    r10 = id.conv Ordering.Order r9
+    r11 = rec.get r8, status
+    r12 = rec.get r8, driverName
+    r13 = rec.get r8, plate
+    r14 = val.new Ordering.BoardRow(orderId: r10, status: r11, driverName: r12, plate: r13)
+    r4 = coll.append r4, r14
+    r6 = add.i64 r6, 1
+    jmp b1
+  b3:
+    r15 = page.with r2, r4
+    ret.val r15
+
+func command Ordering.Payments.Setup(limitAmount decimal)
+  slots: r0 limitAmount decimal
+  b0:
+    event Ordering.Payments.configured(limitAmount: r0)
+    ret
+
+func apply Ordering.Payments.configured(limitAmount decimal)
+  slots: r0 limitAmount decimal
+  b0:
+    set limit, r0
+    ret
+
+func command Ordering.Payments.charge(paymentId Ordering.Order.Id, amount Ordering.Money)
+  slots: r0 paymentId Ordering.Order.Id, r1 amount Ordering.Money, r2 id Ordering.Payments.Id, r3 now timestamp, r4 decimal, r5 decimal, r6 bool, r7 timestamp, r8 Timer.Id
+  b0:
+    r2 = id
+    r3 = now
+    r4 = val.get r1, amount
+    r5 = field limit
+    r6 = gt.dec r4, r5
+    br r6, b1, b2
+  b1:
+    callout [r0] Ordering.Order.PaymentDeclined(reason: "limit exceeded")
+    ret
+  b2:
+    r7 = add.ts r3, 5s
+    r8 = schedule r7, Ordering.Payments.capture(paymentId: r0)
+    ret
+
+func command Ordering.Payments.capture(paymentId Ordering.Order.Id)
+  slots: r0 paymentId Ordering.Order.Id, r1 string, r2 string
+  b0:
+    r1 = intrinsic string(r0)
+    r2 = add.str "tx-", r1
+    callout [r0] Ordering.Order.PaymentCaptured(transactionId: r2)
+    ret
+
+func command Ordering.Customer.SignUp(phoneNumber string) access=[self]
+  slots: r0 phoneNumber string, r1 id Ordering.Customer.Id, r2 bool
+  b0:
+    r1 = id
+    r2 = ref.exists Ordering.Customer r1
+    br r2, b1, b2
+  b1:
+    error Ordering.Customer.alreadyRegistered()
+    ret
+  b2:
+    event Ordering.Customer.signedUp(phoneNumber: r0)
+    ret
+
+func command Ordering.Customer.Join(phoneNumber string) access=[self]
+  slots: r0 phoneNumber string, r1 id Ordering.Customer.Id, r2 bool
+  b0:
+    r1 = id
+    r2 = ref.exists Ordering.Customer r1
+    br r2, b1, b2
+  b1:
+    error Ordering.Customer.alreadyRegistered()
+    ret
+  b2:
+    event Ordering.Customer.joined(phoneNumber: r0)
+    ret
+
+func command Ordering.Customer.SetHome(address string) access=[self]
+  slots: r0 address string
+  b0:
+    event Ordering.Customer.homeSet(address: r0)
+    ret
+
+func command Ordering.Customer.OrderTaxi(orderId Ordering.Order.Id, orderRoute Ordering.Route, requestedClass Ordering.CarClass) access=[self, role admin, role support]
+  slots: r0 orderId Ordering.Order.Id, r1 orderRoute Ordering.Route, r2 requestedClass Ordering.CarClass, r3 id Ordering.Customer.Id, r4 bool, r5 Ordering.Order.Id?, r6 Ordering.Order.Id
+  b0:
+    r3 = id
+    r4 = ref.exists Ordering.Customer r3
+    br r4, b2, b1
+  b1:
+    error Ordering.Customer.notRegistered()
+    jmp b2
+  b2:
+    r4 = field blocked
+    br r4, b3, b4
+  b3:
+    error Ordering.Customer.customerBlocked()
+    jmp b4
+  b4:
+    r5 = field activeOrder
+    r4 = opt.isnone r5
+    br r4, b6, b5
+  b5:
+    r6 = field activeOrder
+    error Ordering.Customer.alreadyHasOrder(orderId: r6)
+    jmp b6
+  b6:
+    r4 = haserrors
+    br r4, b7, b8
+  b7:
+    ret
+  b8:
+    event Ordering.Customer.orderStarted(orderId: r0)
+    cmd [r0] Ordering.Order.place(customerId: r3, orderRoute: r1, requestedClass: r2)
+    ret
+
+func command Ordering.Customer.Forget() access=[self, role support]
+  slots: r0 id Ordering.Customer.Id, r1 Ordering.Order.Id?, r2 bool
+  b0:
+    r0 = id
+    r1 = field activeOrder
+    r2 = opt.isnone r1
+    br r2, b1, b2
+  b1:
+    forget Ordering.Customer r0
+    event Ordering.Customer.forgotten()
+    ret
+  b2:
+    error Ordering.Customer.hasActiveOrder()
+    ret
+
+func command Ordering.Customer.orderFinished(orderId Ordering.Order.Id)
+  slots: r0 orderId Ordering.Order.Id, r1 Ordering.Order.Id?, r2 bool
+  b0:
+    r1 = field activeOrder
+    r2 = eq.id r1, r0
+    br r2, b1, b2
+  b1:
+    event Ordering.Customer.orderClosed()
+    jmp b2
+  b2:
+    ret
+
+func command Ordering.Customer.orderUnpaid(orderId Ordering.Order.Id)
+  slots: r0 orderId Ordering.Order.Id
+  b0:
+    event Ordering.Customer.blockedForDebt(orderId: r0)
+    ret
+
+func apply Ordering.Customer.signedUp(phoneNumber string?)
+  slots: r0 phoneNumber string?
+  b0:
+    set phone, r0
+    ret
+
+func apply Ordering.Customer.joined(phoneNumber string?)
+  slots: r0 phoneNumber string?
+  b0:
+    set phone, r0
+    ret
+
+func apply Ordering.Customer.homeSet(address string)
+  slots: r0 address string
+  b0:
+    set homeAddress, r0
+    ret
+
+func apply Ordering.Customer.orderStarted(orderId Ordering.Order.Id)
+  slots: r0 orderId Ordering.Order.Id
+  b0:
+    set activeOrder, r0
+    ret
+
+func apply Ordering.Customer.orderClosed()
+  b0:
+    set activeOrder, none
+    ret
+
+func apply Ordering.Customer.blockedForDebt(orderId Ordering.Order.Id)
+  slots: r0 orderId Ordering.Order.Id
+  b0:
+    set blocked, true
+    set activeOrder, none
+    ret
+
+func query Ordering.Customer.Profile() Ordering.CustomerProfile access=[actor Ordering.Customer]
+  slots: r0 me Ordering.Customer.Id, r1 c Ordering.Customer?, r2 bool, r3 string?, r4 Ordering.CustomerProfile
+  b0:
+    r0 = me
+    r1 = rec.load Ordering.Customer r0
+    r2 = opt.isnone r1
+    br r2, b1, b2
+  b1:
+    error Ordering.Customer.notRegistered()
+    ret
+  b2:
+    r3 = rec.get r1, phone
+    r2 = rec.get r1, blocked
+    r4 = val.new Ordering.CustomerProfile(phone: r3, blocked: r2)
+    ret.val r4
+
+func query Ordering.Customer.Home() Ordering.HomeAddress access=[actor Ordering.Customer]
+  slots: r0 me Ordering.Customer.Id, r1 c Ordering.Customer?, r2 bool, r3 Ordering.HomeAddress, r4 string?
+  b0:
+    r0 = me
+    r1 = rec.load Ordering.Customer r0
+    r2 = opt.isnone r1
+    br r2, b1, b2
+  b1:
+    r3 = val.new Ordering.HomeAddress(address: none)
+    ret.val r3
+  b2:
+    r4 = rec.get r1, homeAddress
+    r3 = val.new Ordering.HomeAddress(address: r4)
+    ret.val r3
+
+func query Ordering.Customer.FindByPhone(phoneNumber string) list<Ordering.CustomerRow> access=[role admin, role support]
+  slots: r0 phoneNumber string, r1 list<Ordering.Customer>, r2 list<Ordering.CustomerRow>, r3 int, r4 int, r5 bool, r6 Ordering.Customer, r7 Ordering.Customer.Id, r8 string?, r9 Ordering.CustomerRow
+  b0:
+    r1 = find Ordering.Customer by byPhone where phone == r0 limit 10
+    r2 = coll.list
+    r3 = coll.len r1
+    r4 = move 0
+    jmp b1
+  b1:
+    loop.guard
+    r5 = lt.i64 r4, r3
+    br r5, b2, b3
+  b2:
+    r6 = coll.get r1, r4
+    r7 = rec.get r6, id
+    r8 = rec.get r6, phone
+    r9 = val.new Ordering.CustomerRow(customerId: r7, phone: r8)
+    r2 = coll.append r2, r9
+    r4 = add.i64 r4, 1
+    jmp b1
+  b3:
+    ret.val r2
+
+func rule Ordering.Order.perKmRate(requestedClass Ordering.CarClass) decimal
+  slots: r0 requestedClass Ordering.CarClass, r1 bool
+  b0:
+    r1 = eq.enum r0, Ordering.CarClass.comfort
+    br r1, b1, b2
+  b1:
+    ret.val decimal(45)
+  b2:
+    ret.val decimal(30)
+
+func command Ordering.Order.place(customerId Ordering.Customer.Id, orderRoute Ordering.Route, requestedClass Ordering.CarClass)
+  slots: r0 customerId Ordering.Customer.Id, r1 orderRoute Ordering.Route, r2 requestedClass Ordering.CarClass, r3 id Ordering.Order.Id, r4 now timestamp, r5 bool, r6 perKm decimal, r7 float, r8 decimal, r9 decimal, r10 decimal, r11 orderPrice Ordering.Money
+  b0:
+    r3 = id
+    r4 = now
+    r5 = ref.exists Ordering.Order r3
+    br r5, b1, b2
+  b1:
+    error Ordering.Order.orderAlreadyExists()
+    react
+    ret
+  b2:
+    r6 = rule.call Ordering.Order.perKmRate(requestedClass: r2)
+    r7 = val.get r1, distanceKm
+    r8 = intrinsic decimal(r7)
+    r9 = mul.dec r6, r8
+    r10 = add.dec decimal(100), r9
+    r11 = val.new Ordering.Money(amount: r10, currency: Ordering.Currency.rub)
+    event Ordering.Order.placed(customerId: r0, orderRoute: r1, requestedClass: r2, orderPrice: r11, at: r4)
+    cmd [r3] Ordering.Order.writeMart()
+    notify Ordering.Order.orderPlaced(orderId: r3, price: r11)
+    react
+    ret
+
+func command Ordering.Order.PaymentCaptured(transactionId string) access=[role payments]
+  slots: r0 transactionId string, r1 id Ordering.Order.Id, r2 Ordering.OrderStatus, r3 bool, r4 Ordering.Customer.Id?, r5 Ordering.Money
+  b0:
+    r1 = id
+    r2 = field status
+    r3 = ne.enum r2, Ordering.OrderStatus.completed
+    br r3, b1, b2
+  b1:
+    ret
+  b2:
+    event Ordering.Order.paymentReceived(transactionId: r0)
+    cmd [r1] Ordering.Order.writeMart()
+    r4 = field customer
+    cmd? [r4] Ordering.Customer.orderFinished(orderId: r1)
+    r4 = field customer
+    r5 = field price
+    notify Ordering.Order.receipt(orderId: r1, amount: r5) to r4
+    ret
+
+func command Ordering.Order.PaymentDeclined(reason string) access=[role payments]
+  slots: r0 reason string, r1 id Ordering.Order.Id, r2 Ordering.OrderStatus, r3 bool, r4 Ordering.Customer.Id?
+  b0:
+    r1 = id
+    r2 = field status
+    r3 = ne.enum r2, Ordering.OrderStatus.completed
+    br r3, b1, b2
+  b1:
+    ret
+  b2:
+    event Ordering.Order.paymentFailed(reason: r0)
+    cmd [r1] Ordering.Order.writeMart()
+    r4 = field customer
+    cmd? [r4] Ordering.Customer.orderUnpaid(orderId: r1)
+    r4 = field customer
+    notify Ordering.Order.paymentProblem(orderId: r1, reason: r0) to r4
+    ret
+
+func command Ordering.Order.LeaveTip(amount Ordering.Money) access=[field customer]
+  slots: r0 amount Ordering.Money, r1 bool, r2 Ordering.OrderStatus, r3 bool, r4 Ordering.OrderStatus
+  b0:
+    r1 = feature Ordering.tips
+    br r1, b1, b4
+  b1:
+    r2 = field status
+    r3 = ne.enum r2, Ordering.OrderStatus.paid
+    br r3, b2, b3
+  b2:
+    r4 = field status
+    error Ordering.Order.cannotTip(currentStatus: r4)
+    react
+    ret
+  b3:
+    event Ordering.Order.tipped(amount: r0)
+    jmp b5
+  b4:
+    error Ordering.Order.tipsDisabled()
+    jmp b5
+  b5:
+    react
+    ret
+
+func command Ordering.Order.Edit(orderRoute Ordering.Route, requestedClass Ordering.CarClass) access=[role admin, role support]
+  slots: r0 orderRoute Ordering.Route, r1 requestedClass Ordering.CarClass, r2 id Ordering.Order.Id, r3 Ordering.OrderStatus, r4 bool, r5 Ordering.OrderStatus, r6 perKm decimal, r7 float, r8 decimal, r9 decimal, r10 decimal, r11 Ordering.Money
+  b0:
+    r2 = id
+    r3 = field status
+    r4 = ne.enum r3, Ordering.OrderStatus.searching
+    br r4, b1, b2
+  b1:
+    r5 = field status
+    error Ordering.Order.cannotEdit(currentStatus: r5)
+    react
+    ret
+  b2:
+    r6 = rule.call Ordering.Order.perKmRate(requestedClass: r1)
+    r7 = val.get r0, distanceKm
+    r8 = intrinsic decimal(r7)
+    r9 = mul.dec r6, r8
+    r10 = add.dec decimal(100), r9
+    r11 = val.new Ordering.Money(amount: r10, currency: Ordering.Currency.rub)
+    event Ordering.Order.edited(orderRoute: r0, requestedClass: r1, orderPrice: r11)
+    cmd [r2] Ordering.Order.writeMart()
+    react
+    ret
+
+func command Ordering.Order.Cancel(reason string) access=[field customer, role support, role admin]
+  slots: r0 reason string, r1 id Ordering.Order.Id, r2 now timestamp, r3 Ordering.OrderStatus, r4 list<Ordering.OrderStatus>, r5 bool, r6 bool, r7 Ordering.OrderStatus, r8 Ordering.Customer.Id?
+  b0:
+    r1 = id
+    r2 = now
+    r3 = field status
+    r4 = coll.list Ordering.OrderStatus.searching, Ordering.OrderStatus.offered, Ordering.OrderStatus.assigned
+    r5 = in.list r3, r4
+    r6 = not r5
+    br r6, b1, b2
+  b1:
+    r7 = field status
+    error Ordering.Order.cannotCancel(currentStatus: r7)
+    react
+    ret
+  b2:
+    event Ordering.Order.orderCancelled(reason: r0, at: r2)
+    cmd [r1] Ordering.Order.writeMart()
+    r8 = field customer
+    cmd? [r8] Ordering.Customer.orderFinished(orderId: r1)
+    react
+    ret
+
+func command Ordering.Order.writeMart()
+  slots: r0 id Ordering.Order.Id, r1 Ordering.OrderMart.Id, r2 Ordering.OrderStatus, r3 string?, r4 string?, r5 timestamp
+  b0:
+    r0 = id
+    r1 = id.conv Ordering.OrderMart r0
+    r2 = field status
+    r3 = field driverName
+    r4 = field driverPlate
+    r5 = field placedAt
+    proj.upsert Ordering.OrderMart(id: r1, status: r2, driverName: r3, plate: r4, placedAt: r5)
+    ret
+
+func command Ordering.Order.markOffered()
+  slots: r0 id Ordering.Order.Id
+  b0:
+    r0 = id
+    event Ordering.Order.offerPending()
+    cmd [r0] Ordering.Order.writeMart()
+    ret
+
+func command Ordering.Order.resumeSearch()
+  slots: r0 id Ordering.Order.Id
+  b0:
+    r0 = id
+    event Ordering.Order.searchResumed()
+    cmd [r0] Ordering.Order.writeMart()
+    ret
+
+func command Ordering.Order.confirmDriver(assignedName string, assignedPlate string)
+  slots: r0 assignedName string, r1 assignedPlate string, r2 id Ordering.Order.Id, r3 Ordering.Customer.Id?
+  b0:
+    r2 = id
+    event Ordering.Order.driverConfirmed(assignedName: r0, assignedPlate: r1)
+    cmd [r2] Ordering.Order.writeMart()
+    r3 = field customer
+    notify Ordering.Order.driverOnTheWay(orderId: r2) to r3
+    ret
+
+func command Ordering.Order.failSearch()
+  slots: r0 id Ordering.Order.Id, r1 Ordering.Customer.Id?
+  b0:
+    r0 = id
+    event Ordering.Order.searchExhausted()
+    cmd [r0] Ordering.Order.writeMart()
+    r1 = field customer
+    cmd? [r1] Ordering.Customer.orderFinished(orderId: r0)
+    r1 = field customer
+    notify Ordering.Order.noDriversAvailable(orderId: r0) to r1
+    ret
+
+func command Ordering.Order.finishRide()
+  slots: r0 id Ordering.Order.Id, r1 Ordering.Money
+  b0:
+    r0 = id
+    event Ordering.Order.rideFinished()
+    cmd [r0] Ordering.Order.writeMart()
+    r1 = field price
+    request Ordering.Payments.charge(paymentId: r0, amount: r1)
+    ret
+
+func apply Ordering.Order.placed(customerId Ordering.Customer.Id, orderRoute Ordering.Route, requestedClass Ordering.CarClass, orderPrice Ordering.Money, at timestamp)
+  slots: r0 customerId Ordering.Customer.Id, r1 orderRoute Ordering.Route, r2 requestedClass Ordering.CarClass, r3 orderPrice Ordering.Money, r4 at timestamp
+  b0:
+    set customer, r0
+    set route, r1
+    set carClass, r2
+    set price, r3
+    set placedAt, r4
+    set status, Ordering.OrderStatus.searching
+    ret
+
+func apply Ordering.Order.offerPending()
+  b0:
+    set status, Ordering.OrderStatus.offered
+    ret
+
+func apply Ordering.Order.searchResumed()
+  b0:
+    set status, Ordering.OrderStatus.searching
+    ret
+
+func apply Ordering.Order.driverConfirmed(assignedName string, assignedPlate string)
+  slots: r0 assignedName string, r1 assignedPlate string
+  b0:
+    set driverName, r0
+    set driverPlate, r1
+    set status, Ordering.OrderStatus.assigned
+    ret
+
+func apply Ordering.Order.searchExhausted()
+  b0:
+    set status, Ordering.OrderStatus.noDrivers
+    ret
+
+func apply Ordering.Order.rideFinished()
+  b0:
+    set status, Ordering.OrderStatus.completed
+    ret
+
+func apply Ordering.Order.paymentReceived(transactionId string)
+  slots: r0 transactionId string
+  b0:
+    set status, Ordering.OrderStatus.paid
+    ret
+
+func apply Ordering.Order.paymentFailed(reason string)
+  slots: r0 reason string
+  b0:
+    set status, Ordering.OrderStatus.unpaid
+    ret
+
+func apply Ordering.Order.tipped(amount Ordering.Money)
+  slots: r0 amount Ordering.Money
+  b0:
+    set tip, r0
+    ret
+
+func apply Ordering.Order.edited(orderRoute Ordering.Route, requestedClass Ordering.CarClass, orderPrice Ordering.Money)
+  slots: r0 orderRoute Ordering.Route, r1 requestedClass Ordering.CarClass, r2 orderPrice Ordering.Money
+  b0:
+    set route, r0
+    set carClass, r1
+    set price, r2
+    ret
+
+func apply Ordering.Order.orderCancelled(reason string, at timestamp)
+  slots: r0 reason string, r1 at timestamp
+  b0:
+    set status, Ordering.OrderStatus.cancelled
+    ret
+
+func query Ordering.Order.MyOrders(pageReq PageRequest) page<Ordering.OrderRow> access=[actor Ordering.Customer]
+  slots: r0 pageReq PageRequest, r1 me Ordering.Customer.Id, r2 page<Ordering.Order>, r3 list<Ordering.Order>, r4 list<Ordering.OrderRow>, r5 int, r6 int, r7 bool, r8 Ordering.Order, r9 Ordering.Order.Id, r10 Ordering.OrderStatus, r11 Ordering.Money, r12 timestamp, r13 Ordering.OrderRow, r14 page<Ordering.OrderRow>
+  b0:
+    r1 = me
+    r2 = find Ordering.Order by byCustomer where customer == r1 sort placedAt desc page r0
+    r3 = intrinsic page.items(r2)
+    r4 = coll.list
+    r5 = coll.len r3
+    r6 = move 0
+    jmp b1
+  b1:
+    loop.guard
+    r7 = lt.i64 r6, r5
+    br r7, b2, b3
+  b2:
+    r8 = coll.get r3, r6
+    r9 = rec.get r8, id
+    r10 = rec.get r8, status
+    r11 = rec.get r8, price
+    r12 = rec.get r8, placedAt
+    r13 = val.new Ordering.OrderRow(orderId: r9, status: r10, price: r11, placedAt: r12)
+    r4 = coll.append r4, r13
+    r6 = add.i64 r6, 1
+    jmp b1
+  b3:
+    r14 = page.with r2, r4
+    ret.val r14
+
+func query Ordering.Order.Card(orderId Ordering.Order.Id) Ordering.OrderCard access=[actor Ordering.Customer]
+  slots: r0 orderId Ordering.Order.Id, r1 me Ordering.Customer.Id, r2 o Ordering.Order?, r3 bool, r4 Ordering.Customer.Id?, r5 bool, r6 driverInfo Ordering.AssignedDriver?, r7 string?, r8 string, r9 string?, r10 string, r11 tipAmount Ordering.Money?, r12 Ordering.OrderStatus, r13 Ordering.Money, r14 Ordering.OrderCard
+  b0:
+    r1 = me
+    r2 = rec.load Ordering.Order r0
+    r3 = opt.isnone r2
+    br r3, b2, b1
+  b1:
+    r4 = rec.get r2, customer
+    r5 = ne.id r4, r1
+    br r5, b2, b3
+  b2:
+    error Ordering.Order.orderNotFound()
+    ret
+  b3:
+    r6 = move none
+    r7 = rec.get r2, driverName
+    r5 = opt.isnone r7
+    br r5, b8, b4
+  b4:
+    r8 = rec.get r2, driverName
+    r9 = rec.get r2, driverPlate
+    r3 = opt.isnone r9
+    br r3, b5, b6
+  b5:
+    r10 = move ""
+    jmp b7
+  b6:
+    r10 = move r9
+    jmp b7
+  b7:
+    r6 = val.new Ordering.AssignedDriver(name: r8, plate: r10)
+    jmp b8
+  b8:
+    r11 = move none
+    r5 = feature Ordering.tips
+    br r5, b9, b10
+  b9:
+    r11 = rec.get r2, tip
+    jmp b10
+  b10:
+    r12 = rec.get r2, status
+    r13 = rec.get r2, price
+    r14 = val.new Ordering.OrderCard(status: r12, price: r13, driver: r6, tip: r11)
+    ret.val r14
+
+func query Ordering.Order.List(wanted Ordering.OrderStatus, pageReq PageRequest) page<Ordering.OrderRow> access=[role admin, role support]
+  slots: r0 wanted Ordering.OrderStatus, r1 pageReq PageRequest, r2 page<Ordering.Order>, r3 list<Ordering.Order>, r4 list<Ordering.OrderRow>, r5 int, r6 int, r7 bool, r8 Ordering.Order, r9 Ordering.Order.Id, r10 Ordering.OrderStatus, r11 Ordering.Money, r12 timestamp, r13 Ordering.OrderRow, r14 page<Ordering.OrderRow>
+  b0:
+    r2 = find Ordering.Order by byStatus where status == r0 sort placedAt desc page r1
+    r3 = intrinsic page.items(r2)
+    r4 = coll.list
+    r5 = coll.len r3
+    r6 = move 0
+    jmp b1
+  b1:
+    loop.guard
+    r7 = lt.i64 r6, r5
+    br r7, b2, b3
+  b2:
+    r8 = coll.get r3, r6
+    r9 = rec.get r8, id
+    r10 = rec.get r8, status
+    r11 = rec.get r8, price
+    r12 = rec.get r8, placedAt
+    r13 = val.new Ordering.OrderRow(orderId: r9, status: r10, price: r11, placedAt: r12)
+    r4 = coll.append r4, r13
+    r6 = add.i64 r6, 1
+    jmp b1
+  b3:
+    r14 = page.with r2, r4
+    ret.val r14
+
+func query Ordering.Order.Details(orderId Ordering.Order.Id) Ordering.OrderDetails access=[role admin, role support]
+  slots: r0 orderId Ordering.Order.Id, r1 o Ordering.Order?, r2 bool, r3 Ordering.OrderStatus, r4 Ordering.Route, r5 Ordering.CarClass, r6 Ordering.Money, r7 timestamp, r8 string?, r9 Ordering.OrderDetails
+  b0:
+    r1 = rec.load Ordering.Order r0
+    r2 = opt.isnone r1
+    br r2, b1, b2
+  b1:
+    error Ordering.Order.orderNotFound()
+    ret
+  b2:
+    r3 = rec.get r1, status
+    r4 = rec.get r1, route
+    r5 = rec.get r1, carClass
+    r6 = rec.get r1, price
+    r7 = rec.get r1, placedAt
+    r8 = rec.get r1, driverName
+    r9 = val.new Ordering.OrderDetails(orderId: r0, status: r3, orderRoute: r4, requestedClass: r5, price: r6, placedAt: r7, driverName: r8)
+    ret.val r9
+
+func command Ordering.Staff.Hire(staffName string) access=[role admin]
+  slots: r0 staffName string, r1 id Ordering.Staff.Id, r2 bool
+  b0:
+    r1 = id
+    r2 = ref.exists Ordering.Staff r1
+    br r2, b1, b2
+  b1:
+    error Ordering.Staff.alreadyHired()
+    ret
+  b2:
+    event Ordering.Staff.hired(staffName: r0)
+    ret
+
+func command Ordering.Staff.ChangeEmail(newEmail string) access=[self]
+  slots: r0 newEmail string
+  b0:
+    event Ordering.Staff.emailChanged(newEmail: r0)
+    ret
+
+func apply Ordering.Staff.hired(staffName string)
+  slots: r0 staffName string
+  b0:
+    set name, r0
+    ret
+
+func apply Ordering.Staff.emailChanged(newEmail string?)
+  slots: r0 newEmail string?
+  b0:
+    set email, r0
+    ret
+
+func query Ordering.Staff.Profile() Ordering.StaffProfile access=[actor Ordering.Staff]
+  slots: r0 me Ordering.Staff.Id, r1 s Ordering.Staff?, r2 bool, r3 string, r4 string?, r5 Ordering.StaffProfile
+  b0:
+    r0 = me
+    r1 = rec.load Ordering.Staff r0
+    r2 = opt.isnone r1
+    br r2, b1, b2
+  b1:
+    error Ordering.Staff.notStaff()
+    ret
+  b2:
+    r3 = rec.get r1, name
+    r4 = rec.get r1, email
+    r5 = val.new Ordering.StaffProfile(name: r3, email: r4)
+    ret.val r5
+
+func check Ordering.Money.check bool
+  slots: r0 decimal, r1 bool
+  b0:
+    r0 = field amount
+    r1 = ge.dec r0, decimal(0)
+    br r1, b1, b2
+  b1:
+    ret.val true
+  b2:
+    ret.val false
+
+func check Ordering.GeoPoint.check bool
+  slots: r0 float, r1 bool, r2 float, r3 bool, r4 float, r5 bool, r6 float, r7 bool
+  b0:
+    r0 = field lat
+    r1 = ge.f64 r0, float(-90)
+    br r1, b1, b5
+  b1:
+    r2 = field lat
+    r3 = le.f64 r2, float(90)
+    br r3, b2, b5
+  b2:
+    r4 = field lon
+    r5 = ge.f64 r4, float(-180)
+    br r5, b3, b5
+  b3:
+    r6 = field lon
+    r7 = le.f64 r6, float(180)
+    br r7, b4, b5
+  b4:
+    ret.val true
+  b5:
+    ret.val false
+
+func command Auth.User.Sync(userName string) access=[self]
+  slots: r0 userName string
+  b0:
+    event Auth.User.synced(userName: r0)
+    ret
+
+func apply Auth.User.synced(userName string)
+  slots: r0 userName string
+  b0:
+    set name, r0
+    ret
+
+func query Auth.User.Me() Auth.Account access=[actor Auth.User]
+  slots: r0 me Auth.User.Id, r1 u Auth.User?, r2 bool, r3 string?, r4 Auth.Account
+  b0:
+    r0 = me
+    r1 = rec.load Auth.User r0
+    r2 = opt.isnone r1
+    br r2, b1, b2
+  b1:
+    error Auth.User.notSynced()
+    ret
+  b2:
+    r3 = rec.get r1, name
+    r4 = val.new Auth.Account(name: r3)
+    ret.val r4
+
+func acl Ordering.Order.on.placed@Dispatch(customerId Ordering.Customer.Id, orderRoute Ordering.Route, requestedClass Ordering.CarClass, orderPrice Ordering.Money, at timestamp)
+  slots: r0 customerId Ordering.Customer.Id, r1 orderRoute Ordering.Route, r2 requestedClass Ordering.CarClass, r3 orderPrice Ordering.Money, r4 at timestamp, r5 id Ordering.Order.Id, r6 Dispatch.Trip.Id, r7 Ordering.GeoPoint, r8 float, r9 Ordering.GeoPoint, r10 float, r11 Dispatch.GeoPoint, r12 bool, r13 Dispatch.CarClass, r14 decimal, r15 Ordering.Currency, r16 Dispatch.Currency, r17 Dispatch.Money
+  b0:
+    r5 = id
+    r6 = id.conv Dispatch.Trip r5
+    r7 = val.get r1, from
+    r8 = val.get r7, lat
+    r9 = val.get r1, from
+    r10 = val.get r9, lon
+    r11 = val.new Dispatch.GeoPoint(lat: r8, lon: r10)
+    r12 = eq.enum r2, Ordering.CarClass.economy
+    br r12, b1, b2
+  b1:
+    r13 = move Dispatch.CarClass.economy
+    jmp b3
+  b2:
+    r13 = move Dispatch.CarClass.comfort
+    jmp b3
+  b3:
+    r14 = val.get r3, amount
+    r15 = val.get r3, currency
+    r16 = move Dispatch.Currency.rub
+    jmp b4
+  b4:
+    r17 = val.new Dispatch.Money(amount: r14, currency: r16)
+    cmd [r6] Dispatch.Trip.open(pickupPoint: r11, requestedClass: r13, price: r17)
+    ret
+
+func acl Ordering.Order.on.edited@Dispatch(orderRoute Ordering.Route, requestedClass Ordering.CarClass, orderPrice Ordering.Money)
+  slots: r0 orderRoute Ordering.Route, r1 requestedClass Ordering.CarClass, r2 orderPrice Ordering.Money, r3 id Ordering.Order.Id, r4 Dispatch.Trip.Id, r5 Ordering.GeoPoint, r6 float, r7 Ordering.GeoPoint, r8 float, r9 Dispatch.GeoPoint, r10 bool, r11 Dispatch.CarClass, r12 decimal, r13 Ordering.Currency, r14 Dispatch.Currency, r15 Dispatch.Money
+  b0:
+    r3 = id
+    r4 = id.conv Dispatch.Trip r3
+    r5 = val.get r0, from
+    r6 = val.get r5, lat
+    r7 = val.get r0, from
+    r8 = val.get r7, lon
+    r9 = val.new Dispatch.GeoPoint(lat: r6, lon: r8)
+    r10 = eq.enum r1, Ordering.CarClass.economy
+    br r10, b1, b2
+  b1:
+    r11 = move Dispatch.CarClass.economy
+    jmp b3
+  b2:
+    r11 = move Dispatch.CarClass.comfort
+    jmp b3
+  b3:
+    r12 = val.get r2, amount
+    r13 = val.get r2, currency
+    r14 = move Dispatch.Currency.rub
+    jmp b4
+  b4:
+    r15 = val.new Dispatch.Money(amount: r12, currency: r14)
+    cmd [r4] Dispatch.Trip.update(pickupPoint: r9, requestedClass: r11, price: r15)
+    ret
+
+func acl Ordering.Order.on.orderCancelled@Dispatch(reason string, at timestamp)
+  slots: r0 reason string, r1 at timestamp, r2 id Ordering.Order.Id, r3 Dispatch.Trip.Id
+  b0:
+    r2 = id
+    r3 = id.conv Dispatch.Trip r2
+    cmd [r3] Dispatch.Trip.close()
+    ret
+
+func acl Ordering.Order.on.tipped@Dispatch(amount Ordering.Money)
+  slots: r0 amount Ordering.Money, r1 id Ordering.Order.Id, r2 Dispatch.Trip.Id, r3 decimal, r4 Ordering.Currency, r5 Dispatch.Currency, r6 Dispatch.Money
+  b0:
+    r1 = id
+    r2 = id.conv Dispatch.Trip r1
+    r3 = val.get r0, amount
+    r4 = val.get r0, currency
+    r5 = move Dispatch.Currency.rub
+    jmp b1
+  b1:
+    r6 = val.new Dispatch.Money(amount: r3, currency: r5)
+    cmd [r2] Dispatch.Trip.tip(amount: r6)
+    ret
+
+func acl Dispatch.Trip.on.offerSent@Ordering(driverId Dispatch.Driver.Id, timer Timer.Id)
+  slots: r0 driverId Dispatch.Driver.Id, r1 timer Timer.Id, r2 id Dispatch.Trip.Id, r3 Ordering.Order.Id
+  b0:
+    r2 = id
+    r3 = id.conv Ordering.Order r2
+    cmd [r3] Ordering.Order.markOffered()
+    ret
+
+func acl Dispatch.Trip.on.driverSkipped@Ordering(driverId Dispatch.Driver.Id)
+  slots: r0 driverId Dispatch.Driver.Id, r1 id Dispatch.Trip.Id, r2 Ordering.Order.Id
+  b0:
+    r1 = id
+    r2 = id.conv Ordering.Order r1
+    cmd [r2] Ordering.Order.resumeSearch()
+    ret
+
+func acl Dispatch.Trip.on.driverAssigned@Ordering(driverId Dispatch.Driver.Id, assignedName string, assignedPlate string)
+  slots: r0 driverId Dispatch.Driver.Id, r1 assignedName string, r2 assignedPlate string, r3 id Dispatch.Trip.Id, r4 Ordering.Order.Id
+  b0:
+    r3 = id
+    r4 = id.conv Ordering.Order r3
+    cmd [r4] Ordering.Order.confirmDriver(assignedName: r1, assignedPlate: r2)
+    ret
+
+func acl Dispatch.Trip.on.searchFailed@Ordering(at timestamp)
+  slots: r0 at timestamp, r1 id Dispatch.Trip.Id, r2 Ordering.Order.Id
+  b0:
+    r1 = id
+    r2 = id.conv Ordering.Order r1
+    cmd [r2] Ordering.Order.failSearch()
+    ret
+
+func acl Dispatch.Trip.on.rideCompleted@Ordering(at timestamp)
+  slots: r0 at timestamp, r1 id Dispatch.Trip.Id, r2 Ordering.Order.Id
+  b0:
+    r1 = id
+    r2 = id.conv Ordering.Order r1
+    cmd [r2] Ordering.Order.finishRide()
+    ret
+
+func test "A Keycloak user becomes a customer"
+  slots: r0 Ordering.GeoPoint, r1 Ordering.GeoPoint, r2 adminRide Ordering.Route, r3 moscow Ordering.GeoPoint, r4 car1 Dispatch.Car, r5 center Ordering.GeoPoint, r6 ride Ordering.Route, r7 peakPoint Ordering.GeoPoint, r8 peakRide Ordering.Route, r9 kia Dispatch.Car, r10 lada Dispatch.Car, r11 point Ordering.GeoPoint, r12 trip Ordering.Route, r13 car Dispatch.Car, r14 here Ordering.GeoPoint, r15 hop Ordering.Route, r16 u1 Auth.User.Id, r17 Ordering.Customer.Id, r18 Ordering.CustomerProfile
+  b0:
+    r0 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r1 = val.new Ordering.GeoPoint(lat: float(55.8), lon: float(37.6))
+    r2 = val.new Ordering.Route(from: r0, to: r1, distanceKm: float(10))
+    r3 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r4 = val.new Dispatch.Car(plate: "A001AA77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r5 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r6 = val.new Ordering.Route(from: r5, to: r5, distanceKm: float(3))
+    r7 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r8 = val.new Ordering.Route(from: r7, to: r7, distanceKm: float(5))
+    r9 = val.new Dispatch.Car(plate: "B002BB77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r10 = val.new Dispatch.Car(plate: "E003EE77", model: "Lada Vesta", carClass: Dispatch.CarClass.economy)
+    r11 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r12 = val.new Ordering.Route(from: r11, to: r11, distanceKm: float(3))
+    r13 = val.new Dispatch.Car(plate: "K004KK77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r14 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r15 = val.new Ordering.Route(from: r14, to: r14, distanceKm: float(2))
+    r16 = newid Auth.User
+    test.when
+    r17 = id.conv Ordering.Customer r16
+    test.cmd [r17] Ordering.Customer.Join(phoneNumber: "+79990000077") as r16
+    r18 = test.query Ordering.Customer.Profile() as r16
+    expect.matches r18 Ordering.CustomerProfile(phone: "+79990000077", blocked: false)
+    ret
+
+func test "The customer's home address from the account"
+  slots: r0 Ordering.GeoPoint, r1 Ordering.GeoPoint, r2 adminRide Ordering.Route, r3 moscow Ordering.GeoPoint, r4 car1 Dispatch.Car, r5 center Ordering.GeoPoint, r6 ride Ordering.Route, r7 peakPoint Ordering.GeoPoint, r8 peakRide Ordering.Route, r9 kia Dispatch.Car, r10 lada Dispatch.Car, r11 point Ordering.GeoPoint, r12 trip Ordering.Route, r13 car Dispatch.Car, r14 here Ordering.GeoPoint, r15 hop Ordering.Route, r16 u1 Auth.User.Id, r17 Ordering.Customer.Id, r18 Ordering.Customer.Id, r19 Ordering.HomeAddress
+  b0:
+    r0 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r1 = val.new Ordering.GeoPoint(lat: float(55.8), lon: float(37.6))
+    r2 = val.new Ordering.Route(from: r0, to: r1, distanceKm: float(10))
+    r3 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r4 = val.new Dispatch.Car(plate: "A001AA77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r5 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r6 = val.new Ordering.Route(from: r5, to: r5, distanceKm: float(3))
+    r7 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r8 = val.new Ordering.Route(from: r7, to: r7, distanceKm: float(5))
+    r9 = val.new Dispatch.Car(plate: "B002BB77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r10 = val.new Dispatch.Car(plate: "E003EE77", model: "Lada Vesta", carClass: Dispatch.CarClass.economy)
+    r11 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r12 = val.new Ordering.Route(from: r11, to: r11, distanceKm: float(3))
+    r13 = val.new Dispatch.Car(plate: "K004KK77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r14 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r15 = val.new Ordering.Route(from: r14, to: r14, distanceKm: float(2))
+    r16 = newid Auth.User
+    r17 = id.conv Ordering.Customer r16
+    test.cmd [r17] Ordering.Customer.Join(phoneNumber: "+79990000078") as r16
+    test.when
+    r18 = id.conv Ordering.Customer r16
+    test.cmd [r18] Ordering.Customer.SetHome(address: "1 Main Street") as r16
+    r19 = test.query Ordering.Customer.Home() as r16
+    expect.matches r19 Ordering.HomeAddress(address: "1 Main Street")
+    ret
+
+func test "A user updates their name in the account"
+  slots: r0 Ordering.GeoPoint, r1 Ordering.GeoPoint, r2 adminRide Ordering.Route, r3 moscow Ordering.GeoPoint, r4 car1 Dispatch.Car, r5 center Ordering.GeoPoint, r6 ride Ordering.Route, r7 peakPoint Ordering.GeoPoint, r8 peakRide Ordering.Route, r9 kia Dispatch.Car, r10 lada Dispatch.Car, r11 point Ordering.GeoPoint, r12 trip Ordering.Route, r13 car Dispatch.Car, r14 here Ordering.GeoPoint, r15 hop Ordering.Route, r16 u1 Auth.User.Id, r17 Auth.Account
+  b0:
+    r0 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r1 = val.new Ordering.GeoPoint(lat: float(55.8), lon: float(37.6))
+    r2 = val.new Ordering.Route(from: r0, to: r1, distanceKm: float(10))
+    r3 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r4 = val.new Dispatch.Car(plate: "A001AA77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r5 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r6 = val.new Ordering.Route(from: r5, to: r5, distanceKm: float(3))
+    r7 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r8 = val.new Ordering.Route(from: r7, to: r7, distanceKm: float(5))
+    r9 = val.new Dispatch.Car(plate: "B002BB77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r10 = val.new Dispatch.Car(plate: "E003EE77", model: "Lada Vesta", carClass: Dispatch.CarClass.economy)
+    r11 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r12 = val.new Ordering.Route(from: r11, to: r11, distanceKm: float(3))
+    r13 = val.new Dispatch.Car(plate: "K004KK77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r14 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r15 = val.new Ordering.Route(from: r14, to: r14, distanceKm: float(2))
+    r16 = newid Auth.User
+    test.when
+    test.cmd [r16] Auth.User.Sync(userName: "Anna") as r16
+    r17 = test.query Auth.User.Me() as r16
+    expect.matches r17 Auth.Account(name: "Anna")
+    ret
+
+func test "Staff change the route and class of an order being matched"
+  slots: r0 Ordering.GeoPoint, r1 Ordering.GeoPoint, r2 adminRide Ordering.Route, r3 moscow Ordering.GeoPoint, r4 car1 Dispatch.Car, r5 center Ordering.GeoPoint, r6 ride Ordering.Route, r7 peakPoint Ordering.GeoPoint, r8 peakRide Ordering.Route, r9 kia Dispatch.Car, r10 lada Dispatch.Car, r11 point Ordering.GeoPoint, r12 trip Ordering.Route, r13 car Dispatch.Car, r14 here Ordering.GeoPoint, r15 hop Ordering.Route, r16 c1 Ordering.Customer.Id, r17 o1 Ordering.Order.Id, r18 Ordering.OrderDetails
+  b0:
+    r0 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r1 = val.new Ordering.GeoPoint(lat: float(55.8), lon: float(37.6))
+    r2 = val.new Ordering.Route(from: r0, to: r1, distanceKm: float(10))
+    r3 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r4 = val.new Dispatch.Car(plate: "A001AA77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r5 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r6 = val.new Ordering.Route(from: r5, to: r5, distanceKm: float(3))
+    r7 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r8 = val.new Ordering.Route(from: r7, to: r7, distanceKm: float(5))
+    r9 = val.new Dispatch.Car(plate: "B002BB77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r10 = val.new Dispatch.Car(plate: "E003EE77", model: "Lada Vesta", carClass: Dispatch.CarClass.economy)
+    r11 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r12 = val.new Ordering.Route(from: r11, to: r11, distanceKm: float(3))
+    r13 = val.new Dispatch.Car(plate: "K004KK77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r14 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r15 = val.new Ordering.Route(from: r14, to: r14, distanceKm: float(2))
+    r16 = newid Ordering.Customer
+    r17 = newid Ordering.Order
+    test.cmd [r16] Ordering.Customer.SignUp(phoneNumber: "+79990000010") as r16
+    test.cmd [r16] Ordering.Customer.OrderTaxi(orderId: r17, orderRoute: r2, requestedClass: Ordering.CarClass.economy) as r16
+    test.when
+    test.cmd [r17] Ordering.Order.Edit(orderRoute: r2, requestedClass: Ordering.CarClass.comfort) as support
+    r18 = test.query Ordering.Order.Details(orderId: r17) as support
+    expect.matches r18 Ordering.OrderDetails(status: Ordering.OrderStatus.searching, requestedClass: Ordering.CarClass.comfort)
+    ret
+
+func test "An order with an assigned driver does not change"
+  slots: r0 Ordering.GeoPoint, r1 Ordering.GeoPoint, r2 adminRide Ordering.Route, r3 moscow Ordering.GeoPoint, r4 car1 Dispatch.Car, r5 center Ordering.GeoPoint, r6 ride Ordering.Route, r7 peakPoint Ordering.GeoPoint, r8 peakRide Ordering.Route, r9 kia Dispatch.Car, r10 lada Dispatch.Car, r11 point Ordering.GeoPoint, r12 trip Ordering.Route, r13 car Dispatch.Car, r14 here Ordering.GeoPoint, r15 hop Ordering.Route, r16 c1 Ordering.Customer.Id, r17 d1 Dispatch.Driver.Id, r18 o1 Ordering.Order.Id, r19 Dispatch.Car, r20 Dispatch.Trip.Id
+  b0:
+    r0 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r1 = val.new Ordering.GeoPoint(lat: float(55.8), lon: float(37.6))
+    r2 = val.new Ordering.Route(from: r0, to: r1, distanceKm: float(10))
+    r3 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r4 = val.new Dispatch.Car(plate: "A001AA77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r5 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r6 = val.new Ordering.Route(from: r5, to: r5, distanceKm: float(3))
+    r7 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r8 = val.new Ordering.Route(from: r7, to: r7, distanceKm: float(5))
+    r9 = val.new Dispatch.Car(plate: "B002BB77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r10 = val.new Dispatch.Car(plate: "E003EE77", model: "Lada Vesta", carClass: Dispatch.CarClass.economy)
+    r11 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r12 = val.new Ordering.Route(from: r11, to: r11, distanceKm: float(3))
+    r13 = val.new Dispatch.Car(plate: "K004KK77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r14 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r15 = val.new Ordering.Route(from: r14, to: r14, distanceKm: float(2))
+    r16 = newid Ordering.Customer
+    r17 = newid Dispatch.Driver
+    r18 = newid Ordering.Order
+    test.cmd [r16] Ordering.Customer.SignUp(phoneNumber: "+79990000011") as r16
+    r19 = val.new Dispatch.Car(plate: "B002BB77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    test.cmd [r17] Dispatch.Driver.Register(driverName: "John", driverCar: r19) as admin
+    test.cmd [r17] Dispatch.Driver.GoOnline() as r17
+    test.cmd [r16] Ordering.Customer.OrderTaxi(orderId: r18, orderRoute: r2, requestedClass: Ordering.CarClass.economy) as r16
+    r20 = id.conv Dispatch.Trip r18
+    test.cmd [r20] Dispatch.Trip.DriverFound(driverId: r17) as matching
+    test.cmd [r17] Dispatch.Driver.Accept() as r17
+    test.when
+    test.cmd [r18] Ordering.Order.Edit(orderRoute: r2, requestedClass: Ordering.CarClass.comfort) as admin
+    expect.error Ordering.Order.cannotEdit(currentStatus: Ordering.OrderStatus.assigned)
+    ret
+
+func test "Staff place an order for a customer"
+  slots: r0 Ordering.GeoPoint, r1 Ordering.GeoPoint, r2 adminRide Ordering.Route, r3 moscow Ordering.GeoPoint, r4 car1 Dispatch.Car, r5 center Ordering.GeoPoint, r6 ride Ordering.Route, r7 peakPoint Ordering.GeoPoint, r8 peakRide Ordering.Route, r9 kia Dispatch.Car, r10 lada Dispatch.Car, r11 point Ordering.GeoPoint, r12 trip Ordering.Route, r13 car Dispatch.Car, r14 here Ordering.GeoPoint, r15 hop Ordering.Route, r16 c1 Ordering.Customer.Id, r17 o1 Ordering.Order.Id, r18 Ordering.OrderDetails
+  b0:
+    r0 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r1 = val.new Ordering.GeoPoint(lat: float(55.8), lon: float(37.6))
+    r2 = val.new Ordering.Route(from: r0, to: r1, distanceKm: float(10))
+    r3 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r4 = val.new Dispatch.Car(plate: "A001AA77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r5 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r6 = val.new Ordering.Route(from: r5, to: r5, distanceKm: float(3))
+    r7 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r8 = val.new Ordering.Route(from: r7, to: r7, distanceKm: float(5))
+    r9 = val.new Dispatch.Car(plate: "B002BB77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r10 = val.new Dispatch.Car(plate: "E003EE77", model: "Lada Vesta", carClass: Dispatch.CarClass.economy)
+    r11 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r12 = val.new Ordering.Route(from: r11, to: r11, distanceKm: float(3))
+    r13 = val.new Dispatch.Car(plate: "K004KK77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r14 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r15 = val.new Ordering.Route(from: r14, to: r14, distanceKm: float(2))
+    r16 = newid Ordering.Customer
+    r17 = newid Ordering.Order
+    test.cmd [r16] Ordering.Customer.SignUp(phoneNumber: "+79990000012") as r16
+    test.when
+    test.cmd [r16] Ordering.Customer.OrderTaxi(orderId: r17, orderRoute: r2, requestedClass: Ordering.CarClass.economy) as admin
+    r18 = test.query Ordering.Order.Details(orderId: r17) as admin
+    expect.matches r18 Ordering.OrderDetails(status: Ordering.OrderStatus.searching, requestedClass: Ordering.CarClass.economy)
+    ret
+
+func test "An administrator cancels an order"
+  slots: r0 Ordering.GeoPoint, r1 Ordering.GeoPoint, r2 adminRide Ordering.Route, r3 moscow Ordering.GeoPoint, r4 car1 Dispatch.Car, r5 center Ordering.GeoPoint, r6 ride Ordering.Route, r7 peakPoint Ordering.GeoPoint, r8 peakRide Ordering.Route, r9 kia Dispatch.Car, r10 lada Dispatch.Car, r11 point Ordering.GeoPoint, r12 trip Ordering.Route, r13 car Dispatch.Car, r14 here Ordering.GeoPoint, r15 hop Ordering.Route, r16 c1 Ordering.Customer.Id, r17 o1 Ordering.Order.Id, r18 Ordering.OrderDetails
+  b0:
+    r0 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r1 = val.new Ordering.GeoPoint(lat: float(55.8), lon: float(37.6))
+    r2 = val.new Ordering.Route(from: r0, to: r1, distanceKm: float(10))
+    r3 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r4 = val.new Dispatch.Car(plate: "A001AA77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r5 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r6 = val.new Ordering.Route(from: r5, to: r5, distanceKm: float(3))
+    r7 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r8 = val.new Ordering.Route(from: r7, to: r7, distanceKm: float(5))
+    r9 = val.new Dispatch.Car(plate: "B002BB77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r10 = val.new Dispatch.Car(plate: "E003EE77", model: "Lada Vesta", carClass: Dispatch.CarClass.economy)
+    r11 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r12 = val.new Ordering.Route(from: r11, to: r11, distanceKm: float(3))
+    r13 = val.new Dispatch.Car(plate: "K004KK77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r14 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r15 = val.new Ordering.Route(from: r14, to: r14, distanceKm: float(2))
+    r16 = newid Ordering.Customer
+    r17 = newid Ordering.Order
+    test.cmd [r16] Ordering.Customer.SignUp(phoneNumber: "+79990000013") as r16
+    test.cmd [r16] Ordering.Customer.OrderTaxi(orderId: r17, orderRoute: r2, requestedClass: Ordering.CarClass.economy) as r16
+    test.when
+    test.cmd [r17] Ordering.Order.Cancel(reason: "at the customer's request") as admin
+    r18 = test.query Ordering.Order.Details(orderId: r17) as admin
+    expect.matches r18 Ordering.OrderDetails(status: Ordering.OrderStatus.cancelled)
+    ret
+
+func test "A customer cannot look up other customers by phone"
+  slots: r0 Ordering.GeoPoint, r1 Ordering.GeoPoint, r2 adminRide Ordering.Route, r3 moscow Ordering.GeoPoint, r4 car1 Dispatch.Car, r5 center Ordering.GeoPoint, r6 ride Ordering.Route, r7 peakPoint Ordering.GeoPoint, r8 peakRide Ordering.Route, r9 kia Dispatch.Car, r10 lada Dispatch.Car, r11 point Ordering.GeoPoint, r12 trip Ordering.Route, r13 car Dispatch.Car, r14 here Ordering.GeoPoint, r15 hop Ordering.Route, r16 c1 Ordering.Customer.Id, r17 list<Ordering.CustomerRow>
+  b0:
+    r0 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r1 = val.new Ordering.GeoPoint(lat: float(55.8), lon: float(37.6))
+    r2 = val.new Ordering.Route(from: r0, to: r1, distanceKm: float(10))
+    r3 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r4 = val.new Dispatch.Car(plate: "A001AA77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r5 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r6 = val.new Ordering.Route(from: r5, to: r5, distanceKm: float(3))
+    r7 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r8 = val.new Ordering.Route(from: r7, to: r7, distanceKm: float(5))
+    r9 = val.new Dispatch.Car(plate: "B002BB77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r10 = val.new Dispatch.Car(plate: "E003EE77", model: "Lada Vesta", carClass: Dispatch.CarClass.economy)
+    r11 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r12 = val.new Ordering.Route(from: r11, to: r11, distanceKm: float(3))
+    r13 = val.new Dispatch.Car(plate: "K004KK77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r14 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r15 = val.new Ordering.Route(from: r14, to: r14, distanceKm: float(2))
+    r16 = newid Ordering.Customer
+    test.cmd [r16] Ordering.Customer.SignUp(phoneNumber: "+79990000014") as r16
+    test.when
+    r17 = test.query Ordering.Customer.FindByPhone(phoneNumber: "+79990000014") as r16
+    expect.error forbidden()
+    ret
+
+func test "A staff member changes their email"
+  slots: r0 Ordering.GeoPoint, r1 Ordering.GeoPoint, r2 adminRide Ordering.Route, r3 moscow Ordering.GeoPoint, r4 car1 Dispatch.Car, r5 center Ordering.GeoPoint, r6 ride Ordering.Route, r7 peakPoint Ordering.GeoPoint, r8 peakRide Ordering.Route, r9 kia Dispatch.Car, r10 lada Dispatch.Car, r11 point Ordering.GeoPoint, r12 trip Ordering.Route, r13 car Dispatch.Car, r14 here Ordering.GeoPoint, r15 hop Ordering.Route, r16 s1 Ordering.Staff.Id, r17 Ordering.StaffProfile
+  b0:
+    r0 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r1 = val.new Ordering.GeoPoint(lat: float(55.8), lon: float(37.6))
+    r2 = val.new Ordering.Route(from: r0, to: r1, distanceKm: float(10))
+    r3 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r4 = val.new Dispatch.Car(plate: "A001AA77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r5 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r6 = val.new Ordering.Route(from: r5, to: r5, distanceKm: float(3))
+    r7 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r8 = val.new Ordering.Route(from: r7, to: r7, distanceKm: float(5))
+    r9 = val.new Dispatch.Car(plate: "B002BB77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r10 = val.new Dispatch.Car(plate: "E003EE77", model: "Lada Vesta", carClass: Dispatch.CarClass.economy)
+    r11 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r12 = val.new Ordering.Route(from: r11, to: r11, distanceKm: float(3))
+    r13 = val.new Dispatch.Car(plate: "K004KK77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r14 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r15 = val.new Ordering.Route(from: r14, to: r14, distanceKm: float(2))
+    r16 = newid Ordering.Staff
+    test.cmd [r16] Ordering.Staff.Hire(staffName: "Anna") as admin
+    test.when
+    test.cmd [r16] Ordering.Staff.ChangeEmail(newEmail: "anna@taxi.example") as r16
+    r17 = test.query Ordering.Staff.Profile() as r16
+    expect.matches r17 Ordering.StaffProfile(name: "Anna", email: "anna@taxi.example")
+    ret
+
+func test "A week of rides in Moscow"
+  slots: r0 Ordering.GeoPoint, r1 Ordering.GeoPoint, r2 adminRide Ordering.Route, r3 moscow Ordering.GeoPoint, r4 car1 Dispatch.Car, r5 center Ordering.GeoPoint, r6 ride Ordering.Route, r7 peakPoint Ordering.GeoPoint, r8 peakRide Ordering.Route, r9 kia Dispatch.Car, r10 lada Dispatch.Car, r11 point Ordering.GeoPoint, r12 trip Ordering.Route, r13 car Dispatch.Car, r14 here Ordering.GeoPoint, r15 hop Ordering.Route, r16 list<int>, r17 int, r18 int, r19 bool, r20 day int, r21 list<int>, r22 int, r23 int, r24 bool, r25 k int, r26 c Ordering.Customer.Id, r27 o Ordering.Order.Id, r28 string, r29 float, r30 Ordering.Route, r31 bool, r32 d Dispatch.Driver.Id, r33 string, r34 list<string>, r35 string, r36 Dispatch.Car, r37 Dispatch.Trip.Id, r38 bool
+  b0:
+    r0 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r1 = val.new Ordering.GeoPoint(lat: float(55.8), lon: float(37.6))
+    r2 = val.new Ordering.Route(from: r0, to: r1, distanceKm: float(10))
+    r3 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r4 = val.new Dispatch.Car(plate: "A001AA77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r5 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r6 = val.new Ordering.Route(from: r5, to: r5, distanceKm: float(3))
+    r7 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r8 = val.new Ordering.Route(from: r7, to: r7, distanceKm: float(5))
+    r9 = val.new Dispatch.Car(plate: "B002BB77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r10 = val.new Dispatch.Car(plate: "E003EE77", model: "Lada Vesta", carClass: Dispatch.CarClass.economy)
+    r11 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r12 = val.new Ordering.Route(from: r11, to: r11, distanceKm: float(3))
+    r13 = val.new Dispatch.Car(plate: "K004KK77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r14 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r15 = val.new Ordering.Route(from: r14, to: r14, distanceKm: float(2))
+    test.time -7d
+    r16 = intrinsic range(7)
+    r17 = coll.len r16
+    r18 = move 0
+    jmp b1
+  b1:
+    loop.guard
+    r19 = lt.i64 r18, r17
+    br r19, b2, b13
+  b2:
+    r20 = coll.get r16, r18
+    r21 = intrinsic range(12)
+    r22 = coll.len r21
+    r23 = move 0
+    jmp b3
+  b3:
+    loop.guard
+    r24 = lt.i64 r23, r22
+    br r24, b4, b11
+  b4:
+    r25 = coll.get r21, r23
+    r26 = newid Ordering.Customer
+    r27 = newid Ordering.Order
+    r28 = intrinsic faker.phone()
+    test.cmd [r26] Ordering.Customer.SignUp(phoneNumber: r28) as r26
+    r29 = intrinsic faker.float(float(1), float(30))
+    r30 = val.new Ordering.Route(from: r3, to: r3, distanceKm: r29)
+    test.cmd [r26] Ordering.Customer.OrderTaxi(orderId: r27, orderRoute: r30, requestedClass: Ordering.CarClass.economy) as r26
+    r31 = intrinsic faker.chance(decimal(0.75))
+    br r31, b5, b7
+  b5:
+    r32 = newid Dispatch.Driver
+    r28 = intrinsic faker.name()
+    r33 = intrinsic faker.pattern("?###??77")
+    r34 = coll.list "Kia Rio", "Lada Vesta", "Hyundai Solaris"
+    r35 = intrinsic faker.pick(r34)
+    r36 = val.new Dispatch.Car(plate: r33, model: r35, carClass: Dispatch.CarClass.economy)
+    test.cmd [r32] Dispatch.Driver.Register(driverName: r28, driverCar: r36) as admin
+    test.cmd [r32] Dispatch.Driver.GoOnline() as r32
+    r37 = id.conv Dispatch.Trip r27
+    test.cmd [r37] Dispatch.Trip.DriverFound(driverId: r32) as matching
+    test.cmd [r32] Dispatch.Driver.Accept() as r32
+    r38 = intrinsic faker.chance(decimal(0.8))
+    br r38, b6, b9
+  b6:
+    test.cmd [r32] Dispatch.Driver.FinishRide() as r32
+    r35 = intrinsic faker.pattern("tx-########")
+    test.cmd [r27] Ordering.Order.PaymentCaptured(transactionId: r35) as payments
+    jmp b9
+  b7:
+    r38 = intrinsic faker.chance(decimal(0.5))
+    br r38, b8, b9
+  b8:
+    r34 = coll.list "changed my mind", "the wait is too long", "plans changed"
+    r35 = intrinsic faker.pick(r34)
+    test.cmd [r27] Ordering.Order.Cancel(reason: r35) as r26
+    jmp b9
+  b9:
+    test.time 40m
+    jmp b10
+  b10:
+    r23 = add.i64 r23, 1
+    jmp b3
+  b11:
+    test.time 16h
+    jmp b12
+  b12:
+    r18 = add.i64 r18, 1
+    jmp b1
+  b13:
+    test.when
+    ret
+
+func test "The driver accepts the offer and the order is assigned"
+  slots: r0 Ordering.GeoPoint, r1 Ordering.GeoPoint, r2 adminRide Ordering.Route, r3 moscow Ordering.GeoPoint, r4 car1 Dispatch.Car, r5 center Ordering.GeoPoint, r6 ride Ordering.Route, r7 peakPoint Ordering.GeoPoint, r8 peakRide Ordering.Route, r9 kia Dispatch.Car, r10 lada Dispatch.Car, r11 point Ordering.GeoPoint, r12 trip Ordering.Route, r13 car Dispatch.Car, r14 here Ordering.GeoPoint, r15 hop Ordering.Route, r16 c1 Ordering.Customer.Id, r17 d1 Dispatch.Driver.Id, r18 o1 Ordering.Order.Id, r19 Dispatch.Trip.Id, r20 Ordering.OrderCard, r21 Dispatch.DriverState, r22 Dispatch.Trip.Id
+  b0:
+    r0 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r1 = val.new Ordering.GeoPoint(lat: float(55.8), lon: float(37.6))
+    r2 = val.new Ordering.Route(from: r0, to: r1, distanceKm: float(10))
+    r3 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r4 = val.new Dispatch.Car(plate: "A001AA77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r5 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r6 = val.new Ordering.Route(from: r5, to: r5, distanceKm: float(3))
+    r7 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r8 = val.new Ordering.Route(from: r7, to: r7, distanceKm: float(5))
+    r9 = val.new Dispatch.Car(plate: "B002BB77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r10 = val.new Dispatch.Car(plate: "E003EE77", model: "Lada Vesta", carClass: Dispatch.CarClass.economy)
+    r11 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r12 = val.new Ordering.Route(from: r11, to: r11, distanceKm: float(3))
+    r13 = val.new Dispatch.Car(plate: "K004KK77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r14 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r15 = val.new Ordering.Route(from: r14, to: r14, distanceKm: float(2))
+    r16 = newid Ordering.Customer
+    r17 = newid Dispatch.Driver
+    r18 = newid Ordering.Order
+    test.cmd [r16] Ordering.Customer.SignUp(phoneNumber: "+79990000000") as r16
+    test.cmd [r17] Dispatch.Driver.Register(driverName: "John", driverCar: r4) as admin
+    test.cmd [r17] Dispatch.Driver.GoOnline() as r17
+    test.cmd [r16] Ordering.Customer.OrderTaxi(orderId: r18, orderRoute: r6, requestedClass: Ordering.CarClass.economy) as r16
+    r19 = id.conv Dispatch.Trip r18
+    test.cmd [r19] Dispatch.Trip.DriverFound(driverId: r17) as matching
+    test.when
+    test.cmd [r17] Dispatch.Driver.Accept() as r17
+    expect.notify Ordering.Order.driverOnTheWay(orderId: r18) to r16
+    r20 = test.query Ordering.Order.Card(orderId: r18) as r16
+    expect.matches r20 Ordering.OrderCard(status: Ordering.OrderStatus.assigned)
+    r21 = test.query Dispatch.Driver.MyState() as r17
+    r22 = id.conv Dispatch.Trip r18
+    expect.matches r21 Dispatch.DriverState(status: Dispatch.DriverStatus.busy, currentTrip: r22)
+    ret
+
+func test "A busy driver: the order goes to the next driver"
+  slots: r0 Ordering.GeoPoint, r1 Ordering.GeoPoint, r2 adminRide Ordering.Route, r3 moscow Ordering.GeoPoint, r4 car1 Dispatch.Car, r5 center Ordering.GeoPoint, r6 ride Ordering.Route, r7 peakPoint Ordering.GeoPoint, r8 peakRide Ordering.Route, r9 kia Dispatch.Car, r10 lada Dispatch.Car, r11 point Ordering.GeoPoint, r12 trip Ordering.Route, r13 car Dispatch.Car, r14 here Ordering.GeoPoint, r15 hop Ordering.Route, r16 c1 Ordering.Customer.Id, r17 c2 Ordering.Customer.Id, r18 d1 Dispatch.Driver.Id, r19 o1 Ordering.Order.Id, r20 o2 Ordering.Order.Id, r21 Dispatch.Trip.Id, r22 Dispatch.Trip.Id, r23 Dispatch.Trip.Id, r24 set<Dispatch.Driver.Id>, r25 Ordering.OrderCard, r26 Dispatch.DriverState, r27 Dispatch.Trip.Id
+  b0:
+    r0 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r1 = val.new Ordering.GeoPoint(lat: float(55.8), lon: float(37.6))
+    r2 = val.new Ordering.Route(from: r0, to: r1, distanceKm: float(10))
+    r3 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r4 = val.new Dispatch.Car(plate: "A001AA77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r5 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r6 = val.new Ordering.Route(from: r5, to: r5, distanceKm: float(3))
+    r7 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r8 = val.new Ordering.Route(from: r7, to: r7, distanceKm: float(5))
+    r9 = val.new Dispatch.Car(plate: "B002BB77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r10 = val.new Dispatch.Car(plate: "E003EE77", model: "Lada Vesta", carClass: Dispatch.CarClass.economy)
+    r11 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r12 = val.new Ordering.Route(from: r11, to: r11, distanceKm: float(3))
+    r13 = val.new Dispatch.Car(plate: "K004KK77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r14 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r15 = val.new Ordering.Route(from: r14, to: r14, distanceKm: float(2))
+    r16 = newid Ordering.Customer
+    r17 = newid Ordering.Customer
+    r18 = newid Dispatch.Driver
+    r19 = newid Ordering.Order
+    r20 = newid Ordering.Order
+    test.cmd [r16] Ordering.Customer.SignUp(phoneNumber: "+79990000001") as r16
+    test.cmd [r17] Ordering.Customer.SignUp(phoneNumber: "+79990000002") as r17
+    test.cmd [r18] Dispatch.Driver.Register(driverName: "John", driverCar: r4) as admin
+    test.cmd [r18] Dispatch.Driver.GoOnline() as r18
+    test.cmd [r16] Ordering.Customer.OrderTaxi(orderId: r19, orderRoute: r6, requestedClass: Ordering.CarClass.economy) as r16
+    r21 = id.conv Dispatch.Trip r19
+    test.cmd [r21] Dispatch.Trip.DriverFound(driverId: r18) as matching
+    test.cmd [r18] Dispatch.Driver.Accept() as r18
+    test.cmd [r17] Ordering.Customer.OrderTaxi(orderId: r20, orderRoute: r6, requestedClass: Ordering.CarClass.economy) as r17
+    test.when
+    r22 = id.conv Dispatch.Trip r20
+    test.cmd [r22] Dispatch.Trip.DriverFound(driverId: r18) as matching
+    r23 = id.conv Dispatch.Trip r20
+    r24 = coll.set r18
+    expect.request Dispatch.Matching.findDriver(tripId: r23, exclude: r24)
+    r25 = test.query Ordering.Order.Card(orderId: r20) as r17
+    expect.matches r25 Ordering.OrderCard(status: Ordering.OrderStatus.searching)
+    r26 = test.query Dispatch.Driver.MyState() as r18
+    r27 = id.conv Dispatch.Trip r19
+    expect.matches r26 Dispatch.DriverState(status: Dispatch.DriverStatus.busy, currentTrip: r27)
+    ret
+
+func test "A search without an answer restarts"
+  slots: r0 Ordering.GeoPoint, r1 Ordering.GeoPoint, r2 adminRide Ordering.Route, r3 moscow Ordering.GeoPoint, r4 car1 Dispatch.Car, r5 center Ordering.GeoPoint, r6 ride Ordering.Route, r7 peakPoint Ordering.GeoPoint, r8 peakRide Ordering.Route, r9 kia Dispatch.Car, r10 lada Dispatch.Car, r11 point Ordering.GeoPoint, r12 trip Ordering.Route, r13 car Dispatch.Car, r14 here Ordering.GeoPoint, r15 hop Ordering.Route, r16 c1 Ordering.Customer.Id, r17 o1 Ordering.Order.Id, r18 Dispatch.Trip.Id, r19 Ordering.OrderCard
+  b0:
+    r0 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r1 = val.new Ordering.GeoPoint(lat: float(55.8), lon: float(37.6))
+    r2 = val.new Ordering.Route(from: r0, to: r1, distanceKm: float(10))
+    r3 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r4 = val.new Dispatch.Car(plate: "A001AA77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r5 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r6 = val.new Ordering.Route(from: r5, to: r5, distanceKm: float(3))
+    r7 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r8 = val.new Ordering.Route(from: r7, to: r7, distanceKm: float(5))
+    r9 = val.new Dispatch.Car(plate: "B002BB77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r10 = val.new Dispatch.Car(plate: "E003EE77", model: "Lada Vesta", carClass: Dispatch.CarClass.economy)
+    r11 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r12 = val.new Ordering.Route(from: r11, to: r11, distanceKm: float(3))
+    r13 = val.new Dispatch.Car(plate: "K004KK77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r14 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r15 = val.new Ordering.Route(from: r14, to: r14, distanceKm: float(2))
+    r16 = newid Ordering.Customer
+    r17 = newid Ordering.Order
+    test.cmd [r16] Ordering.Customer.SignUp(phoneNumber: "+79990000000") as r16
+    test.cmd [r16] Ordering.Customer.OrderTaxi(orderId: r17, orderRoute: r6, requestedClass: Ordering.CarClass.economy) as r16
+    test.when
+    test.time 1m
+    r18 = id.conv Dispatch.Trip r17
+    expect.request Dispatch.Matching.findDriver(tripId: r18)
+    r19 = test.query Ordering.Order.Card(orderId: r17) as r16
+    expect.matches r19 Ordering.OrderCard(status: Ordering.OrderStatus.searching)
+    ret
+
+func test "The car plate is unique"
+  slots: r0 Ordering.GeoPoint, r1 Ordering.GeoPoint, r2 adminRide Ordering.Route, r3 moscow Ordering.GeoPoint, r4 car1 Dispatch.Car, r5 center Ordering.GeoPoint, r6 ride Ordering.Route, r7 peakPoint Ordering.GeoPoint, r8 peakRide Ordering.Route, r9 kia Dispatch.Car, r10 lada Dispatch.Car, r11 point Ordering.GeoPoint, r12 trip Ordering.Route, r13 car Dispatch.Car, r14 here Ordering.GeoPoint, r15 hop Ordering.Route, r16 d1 Dispatch.Driver.Id, r17 d2 Dispatch.Driver.Id
+  b0:
+    r0 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r1 = val.new Ordering.GeoPoint(lat: float(55.8), lon: float(37.6))
+    r2 = val.new Ordering.Route(from: r0, to: r1, distanceKm: float(10))
+    r3 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r4 = val.new Dispatch.Car(plate: "A001AA77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r5 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r6 = val.new Ordering.Route(from: r5, to: r5, distanceKm: float(3))
+    r7 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r8 = val.new Ordering.Route(from: r7, to: r7, distanceKm: float(5))
+    r9 = val.new Dispatch.Car(plate: "B002BB77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r10 = val.new Dispatch.Car(plate: "E003EE77", model: "Lada Vesta", carClass: Dispatch.CarClass.economy)
+    r11 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r12 = val.new Ordering.Route(from: r11, to: r11, distanceKm: float(3))
+    r13 = val.new Dispatch.Car(plate: "K004KK77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r14 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r15 = val.new Ordering.Route(from: r14, to: r14, distanceKm: float(2))
+    r16 = newid Dispatch.Driver
+    r17 = newid Dispatch.Driver
+    test.cmd [r16] Dispatch.Driver.Register(driverName: "John", driverCar: r4) as admin
+    test.when
+    test.cmd [r17] Dispatch.Driver.Register(driverName: "Peter", driverCar: r4) as admin
+    expect.error Dispatch.Driver.plateTaken()
+    ret
+
+func test "After forgetting personal data the phone is unreadable"
+  slots: r0 Ordering.GeoPoint, r1 Ordering.GeoPoint, r2 adminRide Ordering.Route, r3 moscow Ordering.GeoPoint, r4 car1 Dispatch.Car, r5 center Ordering.GeoPoint, r6 ride Ordering.Route, r7 peakPoint Ordering.GeoPoint, r8 peakRide Ordering.Route, r9 kia Dispatch.Car, r10 lada Dispatch.Car, r11 point Ordering.GeoPoint, r12 trip Ordering.Route, r13 car Dispatch.Car, r14 here Ordering.GeoPoint, r15 hop Ordering.Route, r16 c1 Ordering.Customer.Id, r17 Ordering.CustomerProfile
+  b0:
+    r0 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r1 = val.new Ordering.GeoPoint(lat: float(55.8), lon: float(37.6))
+    r2 = val.new Ordering.Route(from: r0, to: r1, distanceKm: float(10))
+    r3 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r4 = val.new Dispatch.Car(plate: "A001AA77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r5 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r6 = val.new Ordering.Route(from: r5, to: r5, distanceKm: float(3))
+    r7 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r8 = val.new Ordering.Route(from: r7, to: r7, distanceKm: float(5))
+    r9 = val.new Dispatch.Car(plate: "B002BB77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r10 = val.new Dispatch.Car(plate: "E003EE77", model: "Lada Vesta", carClass: Dispatch.CarClass.economy)
+    r11 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r12 = val.new Ordering.Route(from: r11, to: r11, distanceKm: float(3))
+    r13 = val.new Dispatch.Car(plate: "K004KK77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r14 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r15 = val.new Ordering.Route(from: r14, to: r14, distanceKm: float(2))
+    r16 = newid Ordering.Customer
+    test.cmd [r16] Ordering.Customer.SignUp(phoneNumber: "+79990000000") as r16
+    test.when
+    test.cmd [r16] Ordering.Customer.Forget() as r16
+    r17 = test.query Ordering.Customer.Profile() as r16
+    expect.matches r17 Ordering.CustomerProfile(phone: none)
+    ret
+
+func test "Another customer may take a forgotten customer's number"
+  slots: r0 Ordering.GeoPoint, r1 Ordering.GeoPoint, r2 adminRide Ordering.Route, r3 moscow Ordering.GeoPoint, r4 car1 Dispatch.Car, r5 center Ordering.GeoPoint, r6 ride Ordering.Route, r7 peakPoint Ordering.GeoPoint, r8 peakRide Ordering.Route, r9 kia Dispatch.Car, r10 lada Dispatch.Car, r11 point Ordering.GeoPoint, r12 trip Ordering.Route, r13 car Dispatch.Car, r14 here Ordering.GeoPoint, r15 hop Ordering.Route, r16 c1 Ordering.Customer.Id, r17 c2 Ordering.Customer.Id, r18 Ordering.CustomerProfile, r19 Ordering.CustomerProfile
+  b0:
+    r0 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r1 = val.new Ordering.GeoPoint(lat: float(55.8), lon: float(37.6))
+    r2 = val.new Ordering.Route(from: r0, to: r1, distanceKm: float(10))
+    r3 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r4 = val.new Dispatch.Car(plate: "A001AA77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r5 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r6 = val.new Ordering.Route(from: r5, to: r5, distanceKm: float(3))
+    r7 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r8 = val.new Ordering.Route(from: r7, to: r7, distanceKm: float(5))
+    r9 = val.new Dispatch.Car(plate: "B002BB77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r10 = val.new Dispatch.Car(plate: "E003EE77", model: "Lada Vesta", carClass: Dispatch.CarClass.economy)
+    r11 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r12 = val.new Ordering.Route(from: r11, to: r11, distanceKm: float(3))
+    r13 = val.new Dispatch.Car(plate: "K004KK77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r14 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r15 = val.new Ordering.Route(from: r14, to: r14, distanceKm: float(2))
+    r16 = newid Ordering.Customer
+    r17 = newid Ordering.Customer
+    test.cmd [r16] Ordering.Customer.SignUp(phoneNumber: "+79990000000") as r16
+    test.cmd [r16] Ordering.Customer.Forget() as r16
+    test.when
+    test.cmd [r17] Ordering.Customer.SignUp(phoneNumber: "+79990000000") as r17
+    r18 = test.query Ordering.Customer.Profile() as r17
+    expect.matches r18 Ordering.CustomerProfile(phone: "+79990000000")
+    r19 = test.query Ordering.Customer.Profile() as r16
+    expect.matches r19 Ordering.CustomerProfile(phone: none)
+    ret
+
+func test "Forgetting with an active order erases nothing"
+  slots: r0 Ordering.GeoPoint, r1 Ordering.GeoPoint, r2 adminRide Ordering.Route, r3 moscow Ordering.GeoPoint, r4 car1 Dispatch.Car, r5 center Ordering.GeoPoint, r6 ride Ordering.Route, r7 peakPoint Ordering.GeoPoint, r8 peakRide Ordering.Route, r9 kia Dispatch.Car, r10 lada Dispatch.Car, r11 point Ordering.GeoPoint, r12 trip Ordering.Route, r13 car Dispatch.Car, r14 here Ordering.GeoPoint, r15 hop Ordering.Route, r16 c1 Ordering.Customer.Id, r17 o1 Ordering.Order.Id, r18 Ordering.CustomerProfile
+  b0:
+    r0 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r1 = val.new Ordering.GeoPoint(lat: float(55.8), lon: float(37.6))
+    r2 = val.new Ordering.Route(from: r0, to: r1, distanceKm: float(10))
+    r3 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r4 = val.new Dispatch.Car(plate: "A001AA77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r5 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r6 = val.new Ordering.Route(from: r5, to: r5, distanceKm: float(3))
+    r7 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r8 = val.new Ordering.Route(from: r7, to: r7, distanceKm: float(5))
+    r9 = val.new Dispatch.Car(plate: "B002BB77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r10 = val.new Dispatch.Car(plate: "E003EE77", model: "Lada Vesta", carClass: Dispatch.CarClass.economy)
+    r11 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r12 = val.new Ordering.Route(from: r11, to: r11, distanceKm: float(3))
+    r13 = val.new Dispatch.Car(plate: "K004KK77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r14 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r15 = val.new Ordering.Route(from: r14, to: r14, distanceKm: float(2))
+    r16 = newid Ordering.Customer
+    r17 = newid Ordering.Order
+    test.cmd [r16] Ordering.Customer.SignUp(phoneNumber: "+79990000000") as r16
+    test.cmd [r16] Ordering.Customer.OrderTaxi(orderId: r17, orderRoute: r6, requestedClass: Ordering.CarClass.economy) as r16
+    test.when
+    test.cmd [r16] Ordering.Customer.Forget() as r16
+    expect.error Ordering.Customer.hasActiveOrder()
+    r18 = test.query Ordering.Customer.Profile() as r16
+    expect.matches r18 Ordering.CustomerProfile(phone: "+79990000000")
+    ret
+
+func test "Another customer's order is not visible"
+  slots: r0 Ordering.GeoPoint, r1 Ordering.GeoPoint, r2 adminRide Ordering.Route, r3 moscow Ordering.GeoPoint, r4 car1 Dispatch.Car, r5 center Ordering.GeoPoint, r6 ride Ordering.Route, r7 peakPoint Ordering.GeoPoint, r8 peakRide Ordering.Route, r9 kia Dispatch.Car, r10 lada Dispatch.Car, r11 point Ordering.GeoPoint, r12 trip Ordering.Route, r13 car Dispatch.Car, r14 here Ordering.GeoPoint, r15 hop Ordering.Route, r16 c1 Ordering.Customer.Id, r17 c2 Ordering.Customer.Id, r18 o1 Ordering.Order.Id, r19 Ordering.OrderCard
+  b0:
+    r0 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r1 = val.new Ordering.GeoPoint(lat: float(55.8), lon: float(37.6))
+    r2 = val.new Ordering.Route(from: r0, to: r1, distanceKm: float(10))
+    r3 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r4 = val.new Dispatch.Car(plate: "A001AA77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r5 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r6 = val.new Ordering.Route(from: r5, to: r5, distanceKm: float(3))
+    r7 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r8 = val.new Ordering.Route(from: r7, to: r7, distanceKm: float(5))
+    r9 = val.new Dispatch.Car(plate: "B002BB77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r10 = val.new Dispatch.Car(plate: "E003EE77", model: "Lada Vesta", carClass: Dispatch.CarClass.economy)
+    r11 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r12 = val.new Ordering.Route(from: r11, to: r11, distanceKm: float(3))
+    r13 = val.new Dispatch.Car(plate: "K004KK77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r14 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r15 = val.new Ordering.Route(from: r14, to: r14, distanceKm: float(2))
+    r16 = newid Ordering.Customer
+    r17 = newid Ordering.Customer
+    r18 = newid Ordering.Order
+    test.cmd [r16] Ordering.Customer.SignUp(phoneNumber: "+79990000001") as r16
+    test.cmd [r17] Ordering.Customer.SignUp(phoneNumber: "+79990000002") as r17
+    test.cmd [r16] Ordering.Customer.OrderTaxi(orderId: r18, orderRoute: r6, requestedClass: Ordering.CarClass.economy) as r16
+    test.when
+    r19 = test.query Ordering.Order.Card(orderId: r18) as r17
+    expect.error Ordering.Order.orderNotFound()
+    ret
+
+func test "Peak hour"
+  slots: r0 Ordering.GeoPoint, r1 Ordering.GeoPoint, r2 adminRide Ordering.Route, r3 moscow Ordering.GeoPoint, r4 car1 Dispatch.Car, r5 center Ordering.GeoPoint, r6 ride Ordering.Route, r7 peakPoint Ordering.GeoPoint, r8 peakRide Ordering.Route, r9 kia Dispatch.Car, r10 lada Dispatch.Car, r11 point Ordering.GeoPoint, r12 trip Ordering.Route, r13 car Dispatch.Car, r14 here Ordering.GeoPoint, r15 hop Ordering.Route, r16 list<int>, r17 int, r18 int, r19 bool, r20 i int, r21 d Dispatch.Driver.Id, r22 string, r23 string, r24 Dispatch.Car, r25 c Ordering.Customer.Id, r26 o Ordering.Order.Id, r27 Ordering.OrderCard
+  b0:
+    r0 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r1 = val.new Ordering.GeoPoint(lat: float(55.8), lon: float(37.6))
+    r2 = val.new Ordering.Route(from: r0, to: r1, distanceKm: float(10))
+    r3 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r4 = val.new Dispatch.Car(plate: "A001AA77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r5 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r6 = val.new Ordering.Route(from: r5, to: r5, distanceKm: float(3))
+    r7 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r8 = val.new Ordering.Route(from: r7, to: r7, distanceKm: float(5))
+    r9 = val.new Dispatch.Car(plate: "B002BB77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r10 = val.new Dispatch.Car(plate: "E003EE77", model: "Lada Vesta", carClass: Dispatch.CarClass.economy)
+    r11 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r12 = val.new Ordering.Route(from: r11, to: r11, distanceKm: float(3))
+    r13 = val.new Dispatch.Car(plate: "K004KK77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r14 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r15 = val.new Ordering.Route(from: r14, to: r14, distanceKm: float(2))
+    r16 = intrinsic range(50)
+    r17 = coll.len r16
+    r18 = move 0
+    jmp b1
+  b1:
+    loop.guard
+    r19 = lt.i64 r18, r17
+    br r19, b2, b4
+  b2:
+    r20 = coll.get r16, r18
+    r21 = newid Dispatch.Driver
+    r22 = intrinsic faker.name()
+    r23 = intrinsic faker.pattern("?###??77")
+    r24 = val.new Dispatch.Car(plate: r23, model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    test.cmd [r21] Dispatch.Driver.Register(driverName: r22, driverCar: r24) as admin
+    test.cmd [r21] Dispatch.Driver.GoOnline() as r21
+    jmp b3
+  b3:
+    r18 = add.i64 r18, 1
+    jmp b1
+  b4:
+    test.when
+    r25 = newid Ordering.Customer
+    r26 = newid Ordering.Order
+    r23 = intrinsic faker.phone()
+    test.cmd [r25] Ordering.Customer.SignUp(phoneNumber: r23) as r25
+    test.cmd [r25] Ordering.Customer.OrderTaxi(orderId: r26, orderRoute: r8, requestedClass: Ordering.CarClass.economy) as r25
+    r27 = test.query Ordering.Order.Card(orderId: r26) as r25
+    ret
+
+func test "Peak hour\x00then0" bool
+  slots: r0 duration, r1 bool
+  b0:
+    r0 = intrinsic perf.stat("||p95")
+    r1 = lt.dur r0, 100ms
+    ret.val r1
+
+func test "Peak hour\x00then1" bool
+  slots: r0 duration, r1 bool
+  b0:
+    r0 = intrinsic perf.stat("|Ordering.Customer.OrderTaxi|p99")
+    r1 = lt.dur r0, 300ms
+    ret.val r1
+
+func test "Peak hour\x00then2" bool
+  slots: r0 int, r1 bool
+  b0:
+    r0 = intrinsic perf.stat("||errors")
+    r1 = eq.i64 r0, 0
+    ret.val r1
+
+func test "Peak hour\x00then3\x00baseline" bool
+  slots: r0 duration, r1 duration, r2 duration, r3 duration, r4 bool
+  b0:
+    r0 = intrinsic perf.stat("||p95")
+    r1 = mul.dur r0, 10
+    r2 = intrinsic perf.stat("baseline||p95")
+    r3 = mul.dur r2, 11
+    r4 = le.dur r1, r3
+    ret.val r4
+
+func test "A ride on fakes: matching, the ride, payment"
+  slots: r0 Ordering.GeoPoint, r1 Ordering.GeoPoint, r2 adminRide Ordering.Route, r3 moscow Ordering.GeoPoint, r4 car1 Dispatch.Car, r5 center Ordering.GeoPoint, r6 ride Ordering.Route, r7 peakPoint Ordering.GeoPoint, r8 peakRide Ordering.Route, r9 kia Dispatch.Car, r10 lada Dispatch.Car, r11 point Ordering.GeoPoint, r12 trip Ordering.Route, r13 car Dispatch.Car, r14 here Ordering.GeoPoint, r15 hop Ordering.Route, r16 c1 Ordering.Customer.Id, r17 d1 Dispatch.Driver.Id, r18 o1 Ordering.Order.Id, r19 list<Dispatch.Driver.Id>, r20 Ordering.OrderCard
+  b0:
+    r0 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r1 = val.new Ordering.GeoPoint(lat: float(55.8), lon: float(37.6))
+    r2 = val.new Ordering.Route(from: r0, to: r1, distanceKm: float(10))
+    r3 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r4 = val.new Dispatch.Car(plate: "A001AA77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r5 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r6 = val.new Ordering.Route(from: r5, to: r5, distanceKm: float(3))
+    r7 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r8 = val.new Ordering.Route(from: r7, to: r7, distanceKm: float(5))
+    r9 = val.new Dispatch.Car(plate: "B002BB77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r10 = val.new Dispatch.Car(plate: "E003EE77", model: "Lada Vesta", carClass: Dispatch.CarClass.economy)
+    r11 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r12 = val.new Ordering.Route(from: r11, to: r11, distanceKm: float(3))
+    r13 = val.new Dispatch.Car(plate: "K004KK77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r14 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r15 = val.new Ordering.Route(from: r14, to: r14, distanceKm: float(2))
+    r16 = newid Ordering.Customer
+    r17 = newid Dispatch.Driver
+    r18 = newid Ordering.Order
+    r19 = coll.list r17
+    test.cmd Dispatch.Matching.Setup(freeDrivers: r19)
+    test.cmd Ordering.Payments.Setup(limitAmount: decimal(1000))
+    test.cmd [r16] Ordering.Customer.SignUp(phoneNumber: "+79990000010") as r16
+    test.cmd [r17] Dispatch.Driver.Register(driverName: "John", driverCar: r9) as admin
+    test.cmd [r17] Dispatch.Driver.GoOnline() as r17
+    test.cmd [r16] Ordering.Customer.OrderTaxi(orderId: r18, orderRoute: r12, requestedClass: Ordering.CarClass.economy) as r16
+    test.cmd [r17] Dispatch.Driver.Accept() as r17
+    test.cmd [r17] Dispatch.Driver.FinishRide() as r17
+    test.when
+    test.time 5s
+    expect.notify Ordering.Order.receipt(orderId: r18) to r16
+    r20 = test.query Ordering.Order.Card(orderId: r18) as r16
+    expect.matches r20 Ordering.OrderCard(status: Ordering.OrderStatus.paid)
+    ret
+
+func test "A customer tips the driver"
+  slots: r0 Ordering.GeoPoint, r1 Ordering.GeoPoint, r2 adminRide Ordering.Route, r3 moscow Ordering.GeoPoint, r4 car1 Dispatch.Car, r5 center Ordering.GeoPoint, r6 ride Ordering.Route, r7 peakPoint Ordering.GeoPoint, r8 peakRide Ordering.Route, r9 kia Dispatch.Car, r10 lada Dispatch.Car, r11 point Ordering.GeoPoint, r12 trip Ordering.Route, r13 car Dispatch.Car, r14 here Ordering.GeoPoint, r15 hop Ordering.Route, r16 c1 Ordering.Customer.Id, r17 d1 Dispatch.Driver.Id, r18 o1 Ordering.Order.Id, r19 list<Dispatch.Driver.Id>, r20 Ordering.Money, r21 Dispatch.Trip.Id, r22 Ordering.OrderCard, r23 Ordering.Money
+  b0:
+    test.feature Ordering.tips
+    r0 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r1 = val.new Ordering.GeoPoint(lat: float(55.8), lon: float(37.6))
+    r2 = val.new Ordering.Route(from: r0, to: r1, distanceKm: float(10))
+    r3 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r4 = val.new Dispatch.Car(plate: "A001AA77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r5 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r6 = val.new Ordering.Route(from: r5, to: r5, distanceKm: float(3))
+    r7 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r8 = val.new Ordering.Route(from: r7, to: r7, distanceKm: float(5))
+    r9 = val.new Dispatch.Car(plate: "B002BB77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r10 = val.new Dispatch.Car(plate: "E003EE77", model: "Lada Vesta", carClass: Dispatch.CarClass.economy)
+    r11 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r12 = val.new Ordering.Route(from: r11, to: r11, distanceKm: float(3))
+    r13 = val.new Dispatch.Car(plate: "K004KK77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r14 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r15 = val.new Ordering.Route(from: r14, to: r14, distanceKm: float(2))
+    r16 = newid Ordering.Customer
+    r17 = newid Dispatch.Driver
+    r18 = newid Ordering.Order
+    r19 = coll.list r17
+    test.cmd Dispatch.Matching.Setup(freeDrivers: r19)
+    test.cmd Ordering.Payments.Setup(limitAmount: decimal(1000))
+    test.cmd [r16] Ordering.Customer.SignUp(phoneNumber: "+79990000013") as r16
+    test.cmd [r17] Dispatch.Driver.Register(driverName: "John", driverCar: r9) as admin
+    test.cmd [r17] Dispatch.Driver.GoOnline() as r17
+    test.cmd [r16] Ordering.Customer.OrderTaxi(orderId: r18, orderRoute: r12, requestedClass: Ordering.CarClass.economy) as r16
+    test.cmd [r17] Dispatch.Driver.Accept() as r17
+    test.cmd [r17] Dispatch.Driver.FinishRide() as r17
+    test.time 5s
+    test.when
+    r20 = val.new Ordering.Money(amount: decimal(50), currency: Ordering.Currency.rub)
+    test.cmd [r18] Ordering.Order.LeaveTip(amount: r20) as r16
+    r21 = id.conv Dispatch.Trip r18
+    expect.notify Dispatch.Trip.tipReceived(tripId: r21) to r17
+    r22 = test.query Ordering.Order.Card(orderId: r18) as r16
+    r23 = val.new Ordering.Money(amount: decimal(50), currency: Ordering.Currency.rub)
+    expect.matches r22 Ordering.OrderCard(status: Ordering.OrderStatus.paid, tip: r23)
+    ret
+
+func test "No tips before payment"
+  slots: r0 Ordering.GeoPoint, r1 Ordering.GeoPoint, r2 adminRide Ordering.Route, r3 moscow Ordering.GeoPoint, r4 car1 Dispatch.Car, r5 center Ordering.GeoPoint, r6 ride Ordering.Route, r7 peakPoint Ordering.GeoPoint, r8 peakRide Ordering.Route, r9 kia Dispatch.Car, r10 lada Dispatch.Car, r11 point Ordering.GeoPoint, r12 trip Ordering.Route, r13 car Dispatch.Car, r14 here Ordering.GeoPoint, r15 hop Ordering.Route, r16 c1 Ordering.Customer.Id, r17 d1 Dispatch.Driver.Id, r18 o1 Ordering.Order.Id, r19 list<Dispatch.Driver.Id>, r20 Ordering.Money
+  b0:
+    test.feature Ordering.tips
+    r0 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r1 = val.new Ordering.GeoPoint(lat: float(55.8), lon: float(37.6))
+    r2 = val.new Ordering.Route(from: r0, to: r1, distanceKm: float(10))
+    r3 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r4 = val.new Dispatch.Car(plate: "A001AA77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r5 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r6 = val.new Ordering.Route(from: r5, to: r5, distanceKm: float(3))
+    r7 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r8 = val.new Ordering.Route(from: r7, to: r7, distanceKm: float(5))
+    r9 = val.new Dispatch.Car(plate: "B002BB77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r10 = val.new Dispatch.Car(plate: "E003EE77", model: "Lada Vesta", carClass: Dispatch.CarClass.economy)
+    r11 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r12 = val.new Ordering.Route(from: r11, to: r11, distanceKm: float(3))
+    r13 = val.new Dispatch.Car(plate: "K004KK77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r14 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r15 = val.new Ordering.Route(from: r14, to: r14, distanceKm: float(2))
+    r16 = newid Ordering.Customer
+    r17 = newid Dispatch.Driver
+    r18 = newid Ordering.Order
+    r19 = coll.list r17
+    test.cmd Dispatch.Matching.Setup(freeDrivers: r19)
+    test.cmd [r16] Ordering.Customer.SignUp(phoneNumber: "+79990000014") as r16
+    test.cmd [r17] Dispatch.Driver.Register(driverName: "John", driverCar: r9) as admin
+    test.cmd [r17] Dispatch.Driver.GoOnline() as r17
+    test.cmd [r16] Ordering.Customer.OrderTaxi(orderId: r18, orderRoute: r12, requestedClass: Ordering.CarClass.economy) as r16
+    test.cmd [r17] Dispatch.Driver.Accept() as r17
+    test.when
+    r20 = val.new Ordering.Money(amount: decimal(50), currency: Ordering.Currency.rub)
+    test.cmd [r18] Ordering.Order.LeaveTip(amount: r20) as r16
+    expect.error Ordering.Order.cannotTip(currentStatus: Ordering.OrderStatus.assigned)
+    ret
+
+func test "A payment over the limit is declined"
+  slots: r0 Ordering.GeoPoint, r1 Ordering.GeoPoint, r2 adminRide Ordering.Route, r3 moscow Ordering.GeoPoint, r4 car1 Dispatch.Car, r5 center Ordering.GeoPoint, r6 ride Ordering.Route, r7 peakPoint Ordering.GeoPoint, r8 peakRide Ordering.Route, r9 kia Dispatch.Car, r10 lada Dispatch.Car, r11 point Ordering.GeoPoint, r12 trip Ordering.Route, r13 car Dispatch.Car, r14 here Ordering.GeoPoint, r15 hop Ordering.Route, r16 c1 Ordering.Customer.Id, r17 d1 Dispatch.Driver.Id, r18 o1 Ordering.Order.Id, r19 list<Dispatch.Driver.Id>, r20 Ordering.OrderCard
+  b0:
+    r0 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r1 = val.new Ordering.GeoPoint(lat: float(55.8), lon: float(37.6))
+    r2 = val.new Ordering.Route(from: r0, to: r1, distanceKm: float(10))
+    r3 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r4 = val.new Dispatch.Car(plate: "A001AA77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r5 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r6 = val.new Ordering.Route(from: r5, to: r5, distanceKm: float(3))
+    r7 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r8 = val.new Ordering.Route(from: r7, to: r7, distanceKm: float(5))
+    r9 = val.new Dispatch.Car(plate: "B002BB77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r10 = val.new Dispatch.Car(plate: "E003EE77", model: "Lada Vesta", carClass: Dispatch.CarClass.economy)
+    r11 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r12 = val.new Ordering.Route(from: r11, to: r11, distanceKm: float(3))
+    r13 = val.new Dispatch.Car(plate: "K004KK77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r14 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r15 = val.new Ordering.Route(from: r14, to: r14, distanceKm: float(2))
+    r16 = newid Ordering.Customer
+    r17 = newid Dispatch.Driver
+    r18 = newid Ordering.Order
+    r19 = coll.list r17
+    test.cmd Dispatch.Matching.Setup(freeDrivers: r19)
+    test.cmd Ordering.Payments.Setup(limitAmount: decimal(100))
+    test.cmd [r16] Ordering.Customer.SignUp(phoneNumber: "+79990000011") as r16
+    test.cmd [r17] Dispatch.Driver.Register(driverName: "John", driverCar: r9) as admin
+    test.cmd [r17] Dispatch.Driver.GoOnline() as r17
+    test.cmd [r16] Ordering.Customer.OrderTaxi(orderId: r18, orderRoute: r12, requestedClass: Ordering.CarClass.economy) as r16
+    test.cmd [r17] Dispatch.Driver.Accept() as r17
+    test.when
+    test.cmd [r17] Dispatch.Driver.FinishRide() as r17
+    expect.notify Ordering.Order.paymentProblem(orderId: r18, reason: "limit exceeded") to r16
+    r20 = test.query Ordering.Order.Card(orderId: r18) as r16
+    expect.matches r20 Ordering.OrderCard(status: Ordering.OrderStatus.unpaid)
+    ret
+
+func test "No free drivers"
+  slots: r0 Ordering.GeoPoint, r1 Ordering.GeoPoint, r2 adminRide Ordering.Route, r3 moscow Ordering.GeoPoint, r4 car1 Dispatch.Car, r5 center Ordering.GeoPoint, r6 ride Ordering.Route, r7 peakPoint Ordering.GeoPoint, r8 peakRide Ordering.Route, r9 kia Dispatch.Car, r10 lada Dispatch.Car, r11 point Ordering.GeoPoint, r12 trip Ordering.Route, r13 car Dispatch.Car, r14 here Ordering.GeoPoint, r15 hop Ordering.Route, r16 c1 Ordering.Customer.Id, r17 o1 Ordering.Order.Id, r18 list<Dispatch.Driver.Id>, r19 Ordering.OrderCard
+  b0:
+    r0 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r1 = val.new Ordering.GeoPoint(lat: float(55.8), lon: float(37.6))
+    r2 = val.new Ordering.Route(from: r0, to: r1, distanceKm: float(10))
+    r3 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r4 = val.new Dispatch.Car(plate: "A001AA77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r5 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r6 = val.new Ordering.Route(from: r5, to: r5, distanceKm: float(3))
+    r7 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r8 = val.new Ordering.Route(from: r7, to: r7, distanceKm: float(5))
+    r9 = val.new Dispatch.Car(plate: "B002BB77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r10 = val.new Dispatch.Car(plate: "E003EE77", model: "Lada Vesta", carClass: Dispatch.CarClass.economy)
+    r11 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r12 = val.new Ordering.Route(from: r11, to: r11, distanceKm: float(3))
+    r13 = val.new Dispatch.Car(plate: "K004KK77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r14 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r15 = val.new Ordering.Route(from: r14, to: r14, distanceKm: float(2))
+    r16 = newid Ordering.Customer
+    r17 = newid Ordering.Order
+    r18 = coll.list
+    test.cmd Dispatch.Matching.Setup(freeDrivers: r18)
+    test.cmd [r16] Ordering.Customer.SignUp(phoneNumber: "+79990000012") as r16
+    test.when
+    test.cmd [r16] Ordering.Customer.OrderTaxi(orderId: r17, orderRoute: r12, requestedClass: Ordering.CarClass.economy) as r16
+    expect.notify Ordering.Order.noDriversAvailable(orderId: r17) to r16
+    r19 = test.query Ordering.Order.Card(orderId: r17) as r16
+    expect.matches r19 Ordering.OrderCard(status: Ordering.OrderStatus.noDrivers)
+    ret
+
+func test "The first driver is busy: the fake offers the next one"
+  slots: r0 Ordering.GeoPoint, r1 Ordering.GeoPoint, r2 adminRide Ordering.Route, r3 moscow Ordering.GeoPoint, r4 car1 Dispatch.Car, r5 center Ordering.GeoPoint, r6 ride Ordering.Route, r7 peakPoint Ordering.GeoPoint, r8 peakRide Ordering.Route, r9 kia Dispatch.Car, r10 lada Dispatch.Car, r11 point Ordering.GeoPoint, r12 trip Ordering.Route, r13 car Dispatch.Car, r14 here Ordering.GeoPoint, r15 hop Ordering.Route, r16 c1 Ordering.Customer.Id, r17 c2 Ordering.Customer.Id, r18 d1 Dispatch.Driver.Id, r19 d2 Dispatch.Driver.Id, r20 o1 Ordering.Order.Id, r21 o2 Ordering.Order.Id, r22 list<Dispatch.Driver.Id>, r23 Dispatch.Trip.Id, r24 set<Dispatch.Driver.Id>, r25 Ordering.OrderCard, r26 Dispatch.DriverState
+  b0:
+    r0 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r1 = val.new Ordering.GeoPoint(lat: float(55.8), lon: float(37.6))
+    r2 = val.new Ordering.Route(from: r0, to: r1, distanceKm: float(10))
+    r3 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r4 = val.new Dispatch.Car(plate: "A001AA77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r5 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r6 = val.new Ordering.Route(from: r5, to: r5, distanceKm: float(3))
+    r7 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r8 = val.new Ordering.Route(from: r7, to: r7, distanceKm: float(5))
+    r9 = val.new Dispatch.Car(plate: "B002BB77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r10 = val.new Dispatch.Car(plate: "E003EE77", model: "Lada Vesta", carClass: Dispatch.CarClass.economy)
+    r11 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r12 = val.new Ordering.Route(from: r11, to: r11, distanceKm: float(3))
+    r13 = val.new Dispatch.Car(plate: "K004KK77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r14 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r15 = val.new Ordering.Route(from: r14, to: r14, distanceKm: float(2))
+    r16 = newid Ordering.Customer
+    r17 = newid Ordering.Customer
+    r18 = newid Dispatch.Driver
+    r19 = newid Dispatch.Driver
+    r20 = newid Ordering.Order
+    r21 = newid Ordering.Order
+    r22 = coll.list r18, r19
+    test.cmd Dispatch.Matching.Setup(freeDrivers: r22)
+    test.cmd [r16] Ordering.Customer.SignUp(phoneNumber: "+79990000013") as r16
+    test.cmd [r17] Ordering.Customer.SignUp(phoneNumber: "+79990000014") as r17
+    test.cmd [r18] Dispatch.Driver.Register(driverName: "John", driverCar: r9) as admin
+    test.cmd [r19] Dispatch.Driver.Register(driverName: "Peter", driverCar: r10) as admin
+    test.cmd [r18] Dispatch.Driver.GoOnline() as r18
+    test.cmd [r19] Dispatch.Driver.GoOnline() as r19
+    test.cmd [r16] Ordering.Customer.OrderTaxi(orderId: r20, orderRoute: r12, requestedClass: Ordering.CarClass.economy) as r16
+    test.cmd [r18] Dispatch.Driver.Accept() as r18
+    test.when
+    test.cmd [r17] Ordering.Customer.OrderTaxi(orderId: r21, orderRoute: r12, requestedClass: Ordering.CarClass.economy) as r17
+    r23 = id.conv Dispatch.Trip r21
+    r24 = coll.set r18
+    expect.request Dispatch.Matching.findDriver(tripId: r23, exclude: r24)
+    r25 = test.query Ordering.Order.Card(orderId: r21) as r17
+    expect.matches r25 Ordering.OrderCard(status: Ordering.OrderStatus.offered)
+    r26 = test.query Dispatch.Driver.MyState() as r19
+    expect.matches r26 Dispatch.DriverState(status: Dispatch.DriverStatus.offered)
+    ret
+
+func test "The matching service is silent: no drivers after three attempts"
+  slots: r0 Ordering.GeoPoint, r1 Ordering.GeoPoint, r2 adminRide Ordering.Route, r3 moscow Ordering.GeoPoint, r4 car1 Dispatch.Car, r5 center Ordering.GeoPoint, r6 ride Ordering.Route, r7 peakPoint Ordering.GeoPoint, r8 peakRide Ordering.Route, r9 kia Dispatch.Car, r10 lada Dispatch.Car, r11 point Ordering.GeoPoint, r12 trip Ordering.Route, r13 car Dispatch.Car, r14 here Ordering.GeoPoint, r15 hop Ordering.Route, r16 c1 Ordering.Customer.Id, r17 o1 Ordering.Order.Id, r18 Ordering.OrderCard
+  b0:
+    r0 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r1 = val.new Ordering.GeoPoint(lat: float(55.8), lon: float(37.6))
+    r2 = val.new Ordering.Route(from: r0, to: r1, distanceKm: float(10))
+    r3 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r4 = val.new Dispatch.Car(plate: "A001AA77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r5 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r6 = val.new Ordering.Route(from: r5, to: r5, distanceKm: float(3))
+    r7 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r8 = val.new Ordering.Route(from: r7, to: r7, distanceKm: float(5))
+    r9 = val.new Dispatch.Car(plate: "B002BB77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r10 = val.new Dispatch.Car(plate: "E003EE77", model: "Lada Vesta", carClass: Dispatch.CarClass.economy)
+    r11 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r12 = val.new Ordering.Route(from: r11, to: r11, distanceKm: float(3))
+    r13 = val.new Dispatch.Car(plate: "K004KK77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r14 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r15 = val.new Ordering.Route(from: r14, to: r14, distanceKm: float(2))
+    r16 = newid Ordering.Customer
+    r17 = newid Ordering.Order
+    test.cmd Dispatch.Matching.GoSilent()
+    test.cmd [r16] Ordering.Customer.SignUp(phoneNumber: "+79990000015") as r16
+    test.cmd [r16] Ordering.Customer.OrderTaxi(orderId: r17, orderRoute: r12, requestedClass: Ordering.CarClass.economy) as r16
+    test.when
+    test.time 4m
+    expect.notify Ordering.Order.noDriversAvailable(orderId: r17) to r16
+    r18 = test.query Ordering.Order.Card(orderId: r17) as r16
+    expect.matches r18 Ordering.OrderCard(status: Ordering.OrderStatus.noDrivers)
+    ret
+
+func test "Cancelling an order while matching is silent"
+  slots: r0 Ordering.GeoPoint, r1 Ordering.GeoPoint, r2 adminRide Ordering.Route, r3 moscow Ordering.GeoPoint, r4 car1 Dispatch.Car, r5 center Ordering.GeoPoint, r6 ride Ordering.Route, r7 peakPoint Ordering.GeoPoint, r8 peakRide Ordering.Route, r9 kia Dispatch.Car, r10 lada Dispatch.Car, r11 point Ordering.GeoPoint, r12 trip Ordering.Route, r13 car Dispatch.Car, r14 here Ordering.GeoPoint, r15 hop Ordering.Route, r16 c1 Ordering.Customer.Id, r17 o1 Ordering.Order.Id, r18 Ordering.OrderCard
+  b0:
+    r0 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r1 = val.new Ordering.GeoPoint(lat: float(55.8), lon: float(37.6))
+    r2 = val.new Ordering.Route(from: r0, to: r1, distanceKm: float(10))
+    r3 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r4 = val.new Dispatch.Car(plate: "A001AA77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r5 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r6 = val.new Ordering.Route(from: r5, to: r5, distanceKm: float(3))
+    r7 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r8 = val.new Ordering.Route(from: r7, to: r7, distanceKm: float(5))
+    r9 = val.new Dispatch.Car(plate: "B002BB77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r10 = val.new Dispatch.Car(plate: "E003EE77", model: "Lada Vesta", carClass: Dispatch.CarClass.economy)
+    r11 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r12 = val.new Ordering.Route(from: r11, to: r11, distanceKm: float(3))
+    r13 = val.new Dispatch.Car(plate: "K004KK77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r14 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r15 = val.new Ordering.Route(from: r14, to: r14, distanceKm: float(2))
+    r16 = newid Ordering.Customer
+    r17 = newid Ordering.Order
+    test.cmd Dispatch.Matching.GoSilent()
+    test.cmd [r16] Ordering.Customer.SignUp(phoneNumber: "+79990000016") as r16
+    test.cmd [r16] Ordering.Customer.OrderTaxi(orderId: r17, orderRoute: r12, requestedClass: Ordering.CarClass.economy) as r16
+    test.cmd [r17] Ordering.Order.Cancel(reason: "changed my mind") as r16
+    test.when
+    test.time 1m
+    r18 = test.query Ordering.Order.Card(orderId: r17) as r16
+    expect.matches r18 Ordering.OrderCard(status: Ordering.OrderStatus.cancelled)
+    ret
+
+func test "A driver goes online"
+  slots: r0 Ordering.GeoPoint, r1 Ordering.GeoPoint, r2 adminRide Ordering.Route, r3 moscow Ordering.GeoPoint, r4 car1 Dispatch.Car, r5 center Ordering.GeoPoint, r6 ride Ordering.Route, r7 peakPoint Ordering.GeoPoint, r8 peakRide Ordering.Route, r9 kia Dispatch.Car, r10 lada Dispatch.Car, r11 point Ordering.GeoPoint, r12 trip Ordering.Route, r13 car Dispatch.Car, r14 here Ordering.GeoPoint, r15 hop Ordering.Route, r16 d1 Dispatch.Driver.Id, r17 Dispatch.DriverState
+  b0:
+    r0 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r1 = val.new Ordering.GeoPoint(lat: float(55.8), lon: float(37.6))
+    r2 = val.new Ordering.Route(from: r0, to: r1, distanceKm: float(10))
+    r3 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r4 = val.new Dispatch.Car(plate: "A001AA77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r5 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r6 = val.new Ordering.Route(from: r5, to: r5, distanceKm: float(3))
+    r7 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r8 = val.new Ordering.Route(from: r7, to: r7, distanceKm: float(5))
+    r9 = val.new Dispatch.Car(plate: "B002BB77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r10 = val.new Dispatch.Car(plate: "E003EE77", model: "Lada Vesta", carClass: Dispatch.CarClass.economy)
+    r11 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r12 = val.new Ordering.Route(from: r11, to: r11, distanceKm: float(3))
+    r13 = val.new Dispatch.Car(plate: "K004KK77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r14 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r15 = val.new Ordering.Route(from: r14, to: r14, distanceKm: float(2))
+    r16 = newid Dispatch.Driver
+    test.cmd [r16] Dispatch.Driver.Register(driverName: "John", driverCar: r13) as admin
+    test.when
+    test.cmd [r16] Dispatch.Driver.GoOnline() as r16
+    r17 = test.query Dispatch.Driver.MyState() as r16
+    expect.matches r17 Dispatch.DriverState(status: Dispatch.DriverStatus.free)
+    ret
+
+func test "A driver goes offline"
+  slots: r0 Ordering.GeoPoint, r1 Ordering.GeoPoint, r2 adminRide Ordering.Route, r3 moscow Ordering.GeoPoint, r4 car1 Dispatch.Car, r5 center Ordering.GeoPoint, r6 ride Ordering.Route, r7 peakPoint Ordering.GeoPoint, r8 peakRide Ordering.Route, r9 kia Dispatch.Car, r10 lada Dispatch.Car, r11 point Ordering.GeoPoint, r12 trip Ordering.Route, r13 car Dispatch.Car, r14 here Ordering.GeoPoint, r15 hop Ordering.Route, r16 d1 Dispatch.Driver.Id, r17 Dispatch.DriverState
+  b0:
+    r0 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r1 = val.new Ordering.GeoPoint(lat: float(55.8), lon: float(37.6))
+    r2 = val.new Ordering.Route(from: r0, to: r1, distanceKm: float(10))
+    r3 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r4 = val.new Dispatch.Car(plate: "A001AA77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r5 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r6 = val.new Ordering.Route(from: r5, to: r5, distanceKm: float(3))
+    r7 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r8 = val.new Ordering.Route(from: r7, to: r7, distanceKm: float(5))
+    r9 = val.new Dispatch.Car(plate: "B002BB77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r10 = val.new Dispatch.Car(plate: "E003EE77", model: "Lada Vesta", carClass: Dispatch.CarClass.economy)
+    r11 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r12 = val.new Ordering.Route(from: r11, to: r11, distanceKm: float(3))
+    r13 = val.new Dispatch.Car(plate: "K004KK77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r14 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r15 = val.new Ordering.Route(from: r14, to: r14, distanceKm: float(2))
+    r16 = newid Dispatch.Driver
+    test.cmd [r16] Dispatch.Driver.Register(driverName: "John", driverCar: r13) as admin
+    test.cmd [r16] Dispatch.Driver.GoOnline() as r16
+    test.when
+    test.cmd [r16] Dispatch.Driver.GoOffline() as r16
+    r17 = test.query Dispatch.Driver.MyState() as r16
+    expect.matches r17 Dispatch.DriverState(status: Dispatch.DriverStatus.offline)
+    ret
+
+func test "A driver declines an offer"
+  slots: r0 Ordering.GeoPoint, r1 Ordering.GeoPoint, r2 adminRide Ordering.Route, r3 moscow Ordering.GeoPoint, r4 car1 Dispatch.Car, r5 center Ordering.GeoPoint, r6 ride Ordering.Route, r7 peakPoint Ordering.GeoPoint, r8 peakRide Ordering.Route, r9 kia Dispatch.Car, r10 lada Dispatch.Car, r11 point Ordering.GeoPoint, r12 trip Ordering.Route, r13 car Dispatch.Car, r14 here Ordering.GeoPoint, r15 hop Ordering.Route, r16 c1 Ordering.Customer.Id, r17 d1 Dispatch.Driver.Id, r18 o1 Ordering.Order.Id, r19 Dispatch.Trip.Id, r20 Dispatch.Trip.Id, r21 set<Dispatch.Driver.Id>, r22 Dispatch.DriverState
+  b0:
+    r0 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r1 = val.new Ordering.GeoPoint(lat: float(55.8), lon: float(37.6))
+    r2 = val.new Ordering.Route(from: r0, to: r1, distanceKm: float(10))
+    r3 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r4 = val.new Dispatch.Car(plate: "A001AA77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r5 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r6 = val.new Ordering.Route(from: r5, to: r5, distanceKm: float(3))
+    r7 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r8 = val.new Ordering.Route(from: r7, to: r7, distanceKm: float(5))
+    r9 = val.new Dispatch.Car(plate: "B002BB77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r10 = val.new Dispatch.Car(plate: "E003EE77", model: "Lada Vesta", carClass: Dispatch.CarClass.economy)
+    r11 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r12 = val.new Ordering.Route(from: r11, to: r11, distanceKm: float(3))
+    r13 = val.new Dispatch.Car(plate: "K004KK77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r14 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r15 = val.new Ordering.Route(from: r14, to: r14, distanceKm: float(2))
+    r16 = newid Ordering.Customer
+    r17 = newid Dispatch.Driver
+    r18 = newid Ordering.Order
+    test.cmd [r16] Ordering.Customer.SignUp(phoneNumber: "+79990000020") as r16
+    test.cmd [r17] Dispatch.Driver.Register(driverName: "John", driverCar: r13) as admin
+    test.cmd [r17] Dispatch.Driver.GoOnline() as r17
+    test.cmd [r16] Ordering.Customer.OrderTaxi(orderId: r18, orderRoute: r15, requestedClass: Ordering.CarClass.economy) as r16
+    r19 = id.conv Dispatch.Trip r18
+    test.cmd [r19] Dispatch.Trip.DriverFound(driverId: r17) as matching
+    test.when
+    test.cmd [r17] Dispatch.Driver.Decline() as r17
+    r20 = id.conv Dispatch.Trip r18
+    r21 = coll.set r17
+    expect.request Dispatch.Matching.findDriver(tripId: r20, exclude: r21)
+    r22 = test.query Dispatch.Driver.MyState() as r17
+    expect.matches r22 Dispatch.DriverState(status: Dispatch.DriverStatus.free)
+    ret
+
+func test "A passenger cancels their order"
+  slots: r0 Ordering.GeoPoint, r1 Ordering.GeoPoint, r2 adminRide Ordering.Route, r3 moscow Ordering.GeoPoint, r4 car1 Dispatch.Car, r5 center Ordering.GeoPoint, r6 ride Ordering.Route, r7 peakPoint Ordering.GeoPoint, r8 peakRide Ordering.Route, r9 kia Dispatch.Car, r10 lada Dispatch.Car, r11 point Ordering.GeoPoint, r12 trip Ordering.Route, r13 car Dispatch.Car, r14 here Ordering.GeoPoint, r15 hop Ordering.Route, r16 c1 Ordering.Customer.Id, r17 o1 Ordering.Order.Id, r18 Ordering.OrderCard
+  b0:
+    r0 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r1 = val.new Ordering.GeoPoint(lat: float(55.8), lon: float(37.6))
+    r2 = val.new Ordering.Route(from: r0, to: r1, distanceKm: float(10))
+    r3 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r4 = val.new Dispatch.Car(plate: "A001AA77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r5 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r6 = val.new Ordering.Route(from: r5, to: r5, distanceKm: float(3))
+    r7 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r8 = val.new Ordering.Route(from: r7, to: r7, distanceKm: float(5))
+    r9 = val.new Dispatch.Car(plate: "B002BB77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r10 = val.new Dispatch.Car(plate: "E003EE77", model: "Lada Vesta", carClass: Dispatch.CarClass.economy)
+    r11 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r12 = val.new Ordering.Route(from: r11, to: r11, distanceKm: float(3))
+    r13 = val.new Dispatch.Car(plate: "K004KK77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r14 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r15 = val.new Ordering.Route(from: r14, to: r14, distanceKm: float(2))
+    r16 = newid Ordering.Customer
+    r17 = newid Ordering.Order
+    test.cmd [r16] Ordering.Customer.SignUp(phoneNumber: "+79990000021") as r16
+    test.cmd [r16] Ordering.Customer.OrderTaxi(orderId: r17, orderRoute: r15, requestedClass: Ordering.CarClass.economy) as r16
+    test.when
+    test.cmd [r17] Ordering.Order.Cancel(reason: "changed my mind") as r16
+    r18 = test.query Ordering.Order.Card(orderId: r17) as r16
+    expect.matches r18 Ordering.OrderCard(status: Ordering.OrderStatus.cancelled)
+    ret
+
+func test "A passenger opens their orders"
+  slots: r0 Ordering.GeoPoint, r1 Ordering.GeoPoint, r2 adminRide Ordering.Route, r3 moscow Ordering.GeoPoint, r4 car1 Dispatch.Car, r5 center Ordering.GeoPoint, r6 ride Ordering.Route, r7 peakPoint Ordering.GeoPoint, r8 peakRide Ordering.Route, r9 kia Dispatch.Car, r10 lada Dispatch.Car, r11 point Ordering.GeoPoint, r12 trip Ordering.Route, r13 car Dispatch.Car, r14 here Ordering.GeoPoint, r15 hop Ordering.Route, r16 c1 Ordering.Customer.Id, r17 o1 Ordering.Order.Id, r18 page<Ordering.OrderRow>, r19 Ordering.OrderCard
+  b0:
+    r0 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r1 = val.new Ordering.GeoPoint(lat: float(55.8), lon: float(37.6))
+    r2 = val.new Ordering.Route(from: r0, to: r1, distanceKm: float(10))
+    r3 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r4 = val.new Dispatch.Car(plate: "A001AA77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r5 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r6 = val.new Ordering.Route(from: r5, to: r5, distanceKm: float(3))
+    r7 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r8 = val.new Ordering.Route(from: r7, to: r7, distanceKm: float(5))
+    r9 = val.new Dispatch.Car(plate: "B002BB77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r10 = val.new Dispatch.Car(plate: "E003EE77", model: "Lada Vesta", carClass: Dispatch.CarClass.economy)
+    r11 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r12 = val.new Ordering.Route(from: r11, to: r11, distanceKm: float(3))
+    r13 = val.new Dispatch.Car(plate: "K004KK77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r14 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r15 = val.new Ordering.Route(from: r14, to: r14, distanceKm: float(2))
+    r16 = newid Ordering.Customer
+    r17 = newid Ordering.Order
+    test.cmd [r16] Ordering.Customer.SignUp(phoneNumber: "+79990000022") as r16
+    test.cmd [r16] Ordering.Customer.OrderTaxi(orderId: r17, orderRoute: r15, requestedClass: Ordering.CarClass.economy) as r16
+    test.when
+    r18 = test.query Ordering.Order.MyOrders(pageReq: none) as r16
+    r19 = test.query Ordering.Order.Card(orderId: r17) as r16
+    expect.matches r19 Ordering.OrderCard(status: Ordering.OrderStatus.searching)
+    ret
+
+func test "Staff open the orders being matched"
+  slots: r0 Ordering.GeoPoint, r1 Ordering.GeoPoint, r2 adminRide Ordering.Route, r3 moscow Ordering.GeoPoint, r4 car1 Dispatch.Car, r5 center Ordering.GeoPoint, r6 ride Ordering.Route, r7 peakPoint Ordering.GeoPoint, r8 peakRide Ordering.Route, r9 kia Dispatch.Car, r10 lada Dispatch.Car, r11 point Ordering.GeoPoint, r12 trip Ordering.Route, r13 car Dispatch.Car, r14 here Ordering.GeoPoint, r15 hop Ordering.Route, r16 c1 Ordering.Customer.Id, r17 o1 Ordering.Order.Id, r18 page<Ordering.OrderRow>, r19 Ordering.OrderDetails
+  b0:
+    r0 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r1 = val.new Ordering.GeoPoint(lat: float(55.8), lon: float(37.6))
+    r2 = val.new Ordering.Route(from: r0, to: r1, distanceKm: float(10))
+    r3 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r4 = val.new Dispatch.Car(plate: "A001AA77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r5 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r6 = val.new Ordering.Route(from: r5, to: r5, distanceKm: float(3))
+    r7 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r8 = val.new Ordering.Route(from: r7, to: r7, distanceKm: float(5))
+    r9 = val.new Dispatch.Car(plate: "B002BB77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r10 = val.new Dispatch.Car(plate: "E003EE77", model: "Lada Vesta", carClass: Dispatch.CarClass.economy)
+    r11 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r12 = val.new Ordering.Route(from: r11, to: r11, distanceKm: float(3))
+    r13 = val.new Dispatch.Car(plate: "K004KK77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r14 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r15 = val.new Ordering.Route(from: r14, to: r14, distanceKm: float(2))
+    r16 = newid Ordering.Customer
+    r17 = newid Ordering.Order
+    test.cmd [r16] Ordering.Customer.SignUp(phoneNumber: "+79990000023") as r16
+    test.cmd [r16] Ordering.Customer.OrderTaxi(orderId: r17, orderRoute: r15, requestedClass: Ordering.CarClass.economy) as r16
+    test.when
+    r18 = test.query Ordering.Order.List(wanted: Ordering.OrderStatus.searching, pageReq: none) as admin
+    r19 = test.query Ordering.Order.Details(orderId: r17) as admin
+    expect.matches r19 Ordering.OrderDetails(status: Ordering.OrderStatus.searching)
+    ret
+
+func test "The dispatcher opens the order board"
+  slots: r0 Ordering.GeoPoint, r1 Ordering.GeoPoint, r2 adminRide Ordering.Route, r3 moscow Ordering.GeoPoint, r4 car1 Dispatch.Car, r5 center Ordering.GeoPoint, r6 ride Ordering.Route, r7 peakPoint Ordering.GeoPoint, r8 peakRide Ordering.Route, r9 kia Dispatch.Car, r10 lada Dispatch.Car, r11 point Ordering.GeoPoint, r12 trip Ordering.Route, r13 car Dispatch.Car, r14 here Ordering.GeoPoint, r15 hop Ordering.Route, r16 c1 Ordering.Customer.Id, r17 o1 Ordering.Order.Id, r18 page<Ordering.BoardRow>, r19 Ordering.OrderDetails
+  b0:
+    r0 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r1 = val.new Ordering.GeoPoint(lat: float(55.8), lon: float(37.6))
+    r2 = val.new Ordering.Route(from: r0, to: r1, distanceKm: float(10))
+    r3 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r4 = val.new Dispatch.Car(plate: "A001AA77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r5 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r6 = val.new Ordering.Route(from: r5, to: r5, distanceKm: float(3))
+    r7 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r8 = val.new Ordering.Route(from: r7, to: r7, distanceKm: float(5))
+    r9 = val.new Dispatch.Car(plate: "B002BB77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r10 = val.new Dispatch.Car(plate: "E003EE77", model: "Lada Vesta", carClass: Dispatch.CarClass.economy)
+    r11 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r12 = val.new Ordering.Route(from: r11, to: r11, distanceKm: float(3))
+    r13 = val.new Dispatch.Car(plate: "K004KK77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r14 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r15 = val.new Ordering.Route(from: r14, to: r14, distanceKm: float(2))
+    r16 = newid Ordering.Customer
+    r17 = newid Ordering.Order
+    test.cmd [r16] Ordering.Customer.SignUp(phoneNumber: "+79990000024") as r16
+    test.cmd [r16] Ordering.Customer.OrderTaxi(orderId: r17, orderRoute: r15, requestedClass: Ordering.CarClass.economy) as r16
+    test.when
+    r18 = test.query Ordering.OrderMart.Board(wanted: Ordering.OrderStatus.searching, pageReq: none) as dispatcher
+    r19 = test.query Ordering.Order.Details(orderId: r17) as admin
+    expect.matches r19 Ordering.OrderDetails(status: Ordering.OrderStatus.searching)
+    ret
+
+func test "The dispatcher opens the free drivers"
+  slots: r0 Ordering.GeoPoint, r1 Ordering.GeoPoint, r2 adminRide Ordering.Route, r3 moscow Ordering.GeoPoint, r4 car1 Dispatch.Car, r5 center Ordering.GeoPoint, r6 ride Ordering.Route, r7 peakPoint Ordering.GeoPoint, r8 peakRide Ordering.Route, r9 kia Dispatch.Car, r10 lada Dispatch.Car, r11 point Ordering.GeoPoint, r12 trip Ordering.Route, r13 car Dispatch.Car, r14 here Ordering.GeoPoint, r15 hop Ordering.Route, r16 d1 Dispatch.Driver.Id, r17 page<Dispatch.DriverInfo>, r18 Dispatch.DriverState
+  b0:
+    r0 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r1 = val.new Ordering.GeoPoint(lat: float(55.8), lon: float(37.6))
+    r2 = val.new Ordering.Route(from: r0, to: r1, distanceKm: float(10))
+    r3 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r4 = val.new Dispatch.Car(plate: "A001AA77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r5 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r6 = val.new Ordering.Route(from: r5, to: r5, distanceKm: float(3))
+    r7 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r8 = val.new Ordering.Route(from: r7, to: r7, distanceKm: float(5))
+    r9 = val.new Dispatch.Car(plate: "B002BB77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r10 = val.new Dispatch.Car(plate: "E003EE77", model: "Lada Vesta", carClass: Dispatch.CarClass.economy)
+    r11 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r12 = val.new Ordering.Route(from: r11, to: r11, distanceKm: float(3))
+    r13 = val.new Dispatch.Car(plate: "K004KK77", model: "Kia Rio", carClass: Dispatch.CarClass.economy)
+    r14 = val.new Ordering.GeoPoint(lat: float(55.75), lon: float(37.62))
+    r15 = val.new Ordering.Route(from: r14, to: r14, distanceKm: float(2))
+    r16 = newid Dispatch.Driver
+    test.cmd [r16] Dispatch.Driver.Register(driverName: "John", driverCar: r13) as admin
+    test.cmd [r16] Dispatch.Driver.GoOnline() as r16
+    test.when
+    r17 = test.query Dispatch.Driver.FreeDrivers(wantedClass: Dispatch.CarClass.economy, pageReq: none) as dispatcher
+    r18 = test.query Dispatch.Driver.MyState() as r16
+    expect.matches r18 Dispatch.DriverState(status: Dispatch.DriverStatus.free)
+    ret
+
+func ui ui.Dispatch.Shift:Driver.GoOnline.if(status Dispatch.DriverStatus) bool
+  slots: r0 status Dispatch.DriverStatus, r1 bool
+  b0:
+    r1 = eq.enum r0, Dispatch.DriverStatus.offline
+    ret.val r1
+
+func ui ui.Dispatch.Shift:Driver.GoOffline.if(status Dispatch.DriverStatus) bool
+  slots: r0 status Dispatch.DriverStatus, r1 bool
+  b0:
+    r1 = eq.enum r0, Dispatch.DriverStatus.free
+    ret.val r1
+
+func ui ui.Dispatch.Shift:Driver.Accept.if(status Dispatch.DriverStatus) bool
+  slots: r0 status Dispatch.DriverStatus, r1 bool
+  b0:
+    r1 = eq.enum r0, Dispatch.DriverStatus.offered
+    ret.val r1
+
+func ui ui.Dispatch.Shift:Driver.Decline.if(status Dispatch.DriverStatus) bool
+  slots: r0 status Dispatch.DriverStatus, r1 bool
+  b0:
+    r1 = eq.enum r0, Dispatch.DriverStatus.offered
+    ret.val r1
+
+func ui ui.Dispatch.Shift:Driver.FinishRide.if(status Dispatch.DriverStatus) bool
+  slots: r0 status Dispatch.DriverStatus, r1 bool
+  b0:
+    r1 = eq.enum r0, Dispatch.DriverStatus.busy
+    ret.val r1
+
+func ui ui.Ordering.AdminOrders:Order.Cancel.if(status Ordering.OrderStatus) bool
+  slots: r0 status Ordering.OrderStatus, r1 list<Ordering.OrderStatus>, r2 bool
+  b0:
+    r1 = coll.list Ordering.OrderStatus.searching, Ordering.OrderStatus.offered, Ordering.OrderStatus.assigned
+    r2 = in.list r0, r1
+    ret.val r2
+
+func ui ui.Ordering.AdminOrder:Order.Edit.if(status Ordering.OrderStatus) bool
+  slots: r0 status Ordering.OrderStatus, r1 bool
+  b0:
+    r1 = eq.enum r0, Ordering.OrderStatus.searching
+    ret.val r1
+
+func ui ui.Ordering.AdminOrder:Order.Cancel.if(status Ordering.OrderStatus) bool
+  slots: r0 status Ordering.OrderStatus, r1 list<Ordering.OrderStatus>, r2 bool
+  b0:
+    r1 = coll.list Ordering.OrderStatus.searching, Ordering.OrderStatus.offered, Ordering.OrderStatus.assigned
+    r2 = in.list r0, r1
+    ret.val r2
+
+func ui ui.Ordering.MyOrder:Order.Cancel.if(status Ordering.OrderStatus) bool
+  slots: r0 status Ordering.OrderStatus, r1 list<Ordering.OrderStatus>, r2 bool
+  b0:
+    r1 = coll.list Ordering.OrderStatus.searching, Ordering.OrderStatus.offered, Ordering.OrderStatus.assigned
+    r2 = in.list r0, r1
+    ret.val r2
+
+func ui ui.Ordering.MyOrder:Order.LeaveTip.if(status Ordering.OrderStatus) bool
+  slots: r0 status Ordering.OrderStatus, r1 bool, r2 bool, r3 bool
+  b0:
+    r1 = feature Ordering.tips
+    br r1, b1, b3
+  b1:
+    r2 = eq.enum r0, Ordering.OrderStatus.paid
+    br r2, b2, b3
+  b2:
+    r3 = move true
+    jmp b4
+  b3:
+    r3 = move false
+    jmp b4
+  b4:
+    ret.val r3
+
+reactions
+  Ordering.Order.placed: Ordering.Order.on.placed@Dispatch
+  Ordering.Order.edited: Ordering.Order.on.edited@Dispatch
+  Ordering.Order.orderCancelled: Ordering.Order.on.orderCancelled@Dispatch
+  Ordering.Order.tipped: Ordering.Order.on.tipped@Dispatch
+  Dispatch.Trip.offerSent: Dispatch.Trip.on.offerSent@Ordering
+  Dispatch.Trip.driverSkipped: Dispatch.Trip.on.driverSkipped@Ordering
+  Dispatch.Trip.driverAssigned: Dispatch.Trip.on.driverAssigned@Ordering
+  Dispatch.Trip.searchFailed: Dispatch.Trip.on.searchFailed@Ordering
+  Dispatch.Trip.rideCompleted: Dispatch.Trip.on.rideCompleted@Ordering

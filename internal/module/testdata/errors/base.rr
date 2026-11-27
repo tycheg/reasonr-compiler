@@ -1,0 +1,31 @@
+aggregate Order
+  id uuid
+  status string
+
+  event placed()
+
+  rule rate(c string) decimal
+    return 1
+
+  command place()
+    placed()
+
+value Money
+  amount decimal
+
+projection Mart
+  id Order.Id
+
+screen OrderPage
+  Toolbar
+
+screen Twice
+  Toolbar
+    Actions
+  Toolbar
+    Actions
+
+extend Order  # want "E1009"
+  x int
+
+exclude test "Base" because "no"  # want "E1009"

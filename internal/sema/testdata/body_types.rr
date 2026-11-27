@@ -1,0 +1,110 @@
+role admin
+
+enum Status
+  active
+  closed
+
+value Money
+  amount decimal
+  currency string
+
+  times(k decimal) Money
+    return Money(amount: amount * k, currency: currency)
+
+actor Customer
+  id uuid
+
+  command touch()
+    return
+
+aggregate Order
+  id uuid
+  status Status
+  price Money
+  customer Customer.Id?
+  note string?
+  tags list<string>
+  timer Timer.Id?
+
+  command place(x int, d decimal, active int)
+    let a = x + d        # want "E0220"
+    let b string = x     # want "E0202"
+    let c = none         # want "E0218"
+    let e = []           # want "E0218"
+    let f = [:]          # want "E0218"
+    let g = note.length  # want "E0219"
+    let h = note?.length
+    let i = unknownThing  # want "E0201"
+    let j = price.weight  # want "E0221"
+    let k = price.times(k: 2)
+    let l = price.divide(k: 2)  # want "E0221"
+    let m = tags.with("x")
+    let n = tags.count + 1
+    let o = Status.active
+    let p = Status.paused  # want "E0221"
+    let q = new Money.Id   # want "E0107"
+    let r = x < "a"        # want "E0220"
+    let s = note ?? "—"
+    let t = x ?? 1       # want "E0220"
+    if status == active  # want "E0105"
+      return
+    if [customer]
+      [customer].touch()
+    [customer].touch()  # want "E0206"
+    [customer]?.touch()
+    let v = price?.amount  # want "E0207"
+    delete status          # want "E0208"
+    sent() to status       # want "E0209"
+    let u = Order          # want "E0214"
+
+  event placed()
+    status = closed
+
+  notification sent()
+
+  query Card(o Order.Id) Money
+    return [o].price  # want "E0219"
+
+  command peek(o Order.Id)
+    let r = [o]
+    if r is not none
+      return
+    let w = [customer]
+    return
+
+  command readOther(c Customer.Id)
+    let w = c
+    if [c]
+      return
+
+aggregate Shift
+  id ShiftKey
+
+  command start()
+    let s = new Shift.Id  # want "E0215"
+
+value ShiftKey
+  day date
+
+projection Mart
+  id Order.Id
+  status Status
+
+  command touch(o Order.Id, other Customer.Id)
+    Mart(id: Mart.Id(o), status: active)
+    Mart(id: Mart.Id(other), status: active)  # want "E0216"
+    Mart(id: Mart.Id(o))  # want "E0305"
+
+aggregate Peer
+  id uuid
+  partner Customer.Id?
+
+  command look()
+    if [partner]
+      return
+
+  command ping(p Peer.Id)
+    let r = [p]
+    if r is none
+      return
+    let s = r.partner  # want "E0217"

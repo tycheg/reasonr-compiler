@@ -1,0 +1,449 @@
+func method Point.sum() int
+  slots: r0 int, r1 int, r2 int
+  b0:
+    r0 = field x
+    r1 = field y
+    r2 = add.i64 r0, r1
+    ret.val r2
+
+func method Point.shifted(dx int) Point
+  slots: r0 dx int, r1 int, r2 int, r3 int, r4 Point
+  b0:
+    r1 = field x
+    r2 = add.i64 r1, r0
+    r3 = field y
+    r4 = val.new Point(x: r2, y: r3)
+    ret.val r4
+
+func method Point.total(dx int) int
+  slots: r0 dx int, r1 Point, r2 Point, r3 int
+  b0:
+    r1 = self
+    r2 = method.call r1 Point.shifted(dx: r0)
+    r3 = method.call r2 Point.sum()
+    ret.val r3
+
+func check Point.check bool
+  slots: r0 int, r1 bool
+  b0:
+    r0 = field x
+    r1 = ge.i64 r0, 0
+    br r1, b1, b2
+  b1:
+    ret.val true
+  b2:
+    ret.val false
+
+func command Keeper.Join(keeperName string) access=[self]
+  slots: r0 keeperName string
+  b0:
+    event Keeper.joined(keeperName: r0)
+    ret
+
+func command Keeper.Leave() access=[self]
+  slots: r0 id Keeper.Id
+  b0:
+    r0 = id
+    forget Keeper r0
+    event Keeper.left()
+    ret
+
+func command Keeper.ping(boxId Box.Id)
+  slots: r0 boxId Box.Id
+  b0:
+    event Keeper.pinged(boxId: r0)
+    ret
+
+func apply Keeper.joined(keeperName string?)
+  slots: r0 keeperName string?
+  b0:
+    set name, r0
+    ret
+
+func rule Box.capacity(k Kind) int
+  slots: r0 k Kind, r1 bool
+  b0:
+    r1 = eq.enum r0, Kind.big
+    br r1, b1, b2
+  b1:
+    ret.val 20
+  b2:
+    ret.val -3
+
+func command Box.Create(keeper Keeper.Id, boxKind Kind) access=[role admin]
+  slots: r0 keeper Keeper.Id, r1 boxKind Kind, r2 id Box.Id, r3 now timestamp, r4 bool, r5 BoxView.Id, r6 timestamp, r7 t Timer.Id
+  b0:
+    r2 = id
+    r3 = now
+    r4 = ref.exists Box r2
+    br r4, b1, b2
+  b1:
+    error Box.alreadyExists()
+    ret
+  b2:
+    event Box.created(keeper: r0, boxKind: r1)
+    r5 = id.conv BoxView r2
+    proj.upsert BoxView(id: r5, kind: r1, size: 0)
+    r6 = add.ts r3, 1m
+    r7 = schedule r6, Box.expire()
+    event Box.timerSet(newTimer: r7)
+    request Store.save(boxId: r2)
+    ret
+
+func command Box.Fill(names list<string>, limit int) access=[role admin]
+  slots: r0 names list<string>, r1 limit int, r2 id Box.Id, r3 caller Caller, r4 total int, r5 int, r6 int, r7 bool, r8 n string, r9 int, r10 bool, r11 i int, r12 Kind, r13 map<string, int>, r14 list<string>, r15 k string, r16 set<string>, r17 list<string>, r18 bool, r19 map<string, int>, r20 int?, r21 bool, r22 int, r23 int, r24 string, r25 string, r26 label string, r27 string?, r28 string, r29 first string, r30 int?, r31 len int?, r32 list<Kind>, r33 ok bool, r34 Point, r35 p Point, r36 int, r37 Keeper.Id?, r38 other Box.Id, r39 Keeper.Id, r40 Keeper.Id
+  b0:
+    r2 = id
+    r3 = caller
+    r4 = move 0
+    r5 = coll.len r0
+    r6 = move 0
+    jmp b1
+  b1:
+    loop.guard
+    r7 = lt.i64 r6, r5
+    br r7, b2, b7
+  b2:
+    r8 = coll.get r0, r6
+    r9 = intrinsic str.length(r8)
+    r10 = eq.i64 r9, 0
+    br r10, b6, b3
+  b3:
+    r10 = ge.i64 r4, r1
+    br r10, b4, b5
+  b4:
+    error Box.tooMany(limit: r1)
+    jmp b7
+  b5:
+    r4 = add.i64 r4, 1
+    jmp b6
+  b6:
+    r6 = add.i64 r6, 1
+    jmp b1
+  b7:
+    r11 = move 0
+    jmp b8
+  b8:
+    loop.guard
+    r12 = field kind
+    r6 = rule.call Box.capacity(k: r12)
+    r7 = lt.i64 r11, r6
+    br r7, b9, b11
+  b9:
+    r10 = gt.i64 r11, 100
+    br r10, b11, b10
+  b10:
+    r11 = add.i64 r11, 1
+    jmp b8
+  b11:
+    r13 = field counts
+    r14 = intrinsic map.keys(r13)
+    r6 = coll.len r14
+    r5 = move 0
+    jmp b12
+  b12:
+    loop.guard
+    r10 = lt.i64 r5, r6
+    br r10, b13, b20
+  b13:
+    r15 = coll.get r14, r5
+    r16 = field tags
+    r7 = in.set r15, r16
+    br r7, b15, b14
+  b14:
+    r17 = field items
+    r18 = in.list r15, r17
+    br r18, b15, b19
+  b15:
+    r19 = field counts
+    r20 = intrinsic map.get(r19, r15)
+    r21 = opt.isnone r20
+    br r21, b16, b17
+  b16:
+    r9 = move 0
+    jmp b18
+  b17:
+    r9 = move r20
+    jmp b18
+  b18:
+    r4 = add.i64 r4, r9
+    jmp b19
+  b19:
+    r5 = add.i64 r5, 1
+    jmp b12
+  b20:
+    r16 = intrinsic caller.roles(r3)
+    r10 = in.set "admin", r16
+    br r10, b21, b22
+  b21:
+    r5 = intrinsic abs(-1)
+    r6 = add.i64 r4, r5
+    r22 = intrinsic min(1, 2)
+    r9 = add.i64 r6, r22
+    r23 = intrinsic int("5")
+    r4 = add.i64 r9, r23
+    jmp b22
+  b22:
+    r12 = field kind
+    r24 = intrinsic string(r12)
+    r25 = intrinsic string(r4)
+    r26 = intrinsic str.concat("Box ", r24, " of ", r25, " pcs.")
+    r14 = field items
+    r27 = intrinsic list.first(r14)
+    r10 = opt.isnone r27
+    br r10, b23, b24
+  b23:
+    r28 = move "empty"
+    jmp b25
+  b24:
+    r28 = move r27
+    jmp b25
+  b25:
+    r29 = move r28
+    r27 = field note
+    r10 = opt.isnone r27
+    br r10, b26, b27
+  b26:
+    r20 = move none
+    jmp b28
+  b27:
+    r30 = intrinsic str.length(r27)
+    r20 = move r30
+    jmp b28
+  b28:
+    r31 = move r20
+    r18 = gt.i64 r4, 0
+    br r18, b29, b31
+  b29:
+    r12 = field kind
+    r32 = coll.list Kind.small, Kind.big
+    r7 = in.list r12, r32
+    br r7, b30, b31
+  b30:
+    r10 = move true
+    jmp b32
+  b31:
+    r10 = move false
+    jmp b32
+  b32:
+    r33 = move r10
+    r34 = field origin
+    r35 = method.call r34 Point.shifted(dx: r4)
+    r7 = haserrors
+    br r7, b33, b34
+  b33:
+    ret
+  b34:
+    r28 = add.str r26, r29
+    br r33, b35, b37
+  b35:
+    r36 = method.call r35 Point.sum()
+    r18 = gt.i64 r36, 0
+    br r18, b36, b37
+  b36:
+    r7 = move true
+    jmp b38
+  b37:
+    r7 = move false
+    jmp b38
+  b38:
+    event Box.filled(count: r4, label: r28, wide: r7)
+    r36 = after.field size
+    r18 = gt.i64 r36, 100
+    br r18, b39, b40
+  b39:
+    error Box.tooMany(limit: 100)
+    jmp b40
+  b40:
+    r37 = field owner
+    notify Box.boxReady(boxId: r2) to r37
+    r37 = field owner
+    cmd? [r37] Keeper.ping(boxId: r2)
+    r38 = newid Box
+    r37 = field owner
+    r18 = opt.isnone r37
+    br r18, b41, b42
+  b41:
+    r39 = newid Keeper
+    r40 = move r39
+    jmp b43
+  b42:
+    r40 = move r37
+    jmp b43
+  b43:
+    cmd [r38] Box.Create(keeper: r40, boxKind: Kind.small)
+    ret
+
+func command Box.expire()
+  slots: r0 id Box.Id, r1 now timestamp, r2 Timer.Id?, r3 BoxView.Id
+  b0:
+    r0 = id
+    r1 = now
+    r2 = field timer
+    timer.delete r2
+    r3 = id.conv BoxView r0
+    proj.delete BoxView r3
+    event Box.expired(at: r1, delay: 0s)
+    ret
+
+func command Box.touch()
+  b0:
+    event Box.touched()
+    ret
+
+func apply Box.created(keeper Keeper.Id, boxKind Kind)
+  slots: r0 keeper Keeper.Id, r1 boxKind Kind, r2 map<string, int>, r3 map<string, int>, r4 set<string>
+  b0:
+    set owner, r0
+    set kind, r1
+    r2 = field counts
+    r3 = intrinsic map.put(r2, "start", 1)
+    set counts, r3
+    r4 = coll.set "new"
+    set tags, r4
+    ret
+
+func apply Box.timerSet(newTimer Timer.Id)
+  slots: r0 newTimer Timer.Id
+  b0:
+    set timer, r0
+    ret
+
+func apply Box.filled(count int, label string, wide bool)
+  slots: r0 count int, r1 label string, r2 wide bool, r3 list<string>, r4 list<string>
+  b0:
+    set size, r0
+    r3 = field items
+    r4 = intrinsic list.with(r3, r1)
+    set items, r4
+    ret
+
+func apply Box.expired(at timestamp, delay duration)
+  slots: r0 at timestamp, r1 delay duration
+  b0:
+    set timer, none
+    ret
+
+func query Box.Stats(wanted Kind) BoxStats access=[role admin]
+  slots: r0 wanted Kind, r1 BoxStats
+  b0:
+    r1 = val.new BoxStats(total: 0)
+    ret.val r1
+
+func query BoxView.Small(top int) list<BoxRow> access=[role admin]
+  slots: r0 top int, r1 list<BoxView>, r2 list<BoxRow>, r3 int, r4 int, r5 bool, r6 BoxView, r7 BoxView.Id, r8 Box.Id, r9 int, r10 BoxRow
+  b0:
+    r1 = find BoxView by byKind where kind == Kind.small and size >= r0 sort size desc limit 10
+    r2 = coll.list
+    r3 = coll.len r1
+    r4 = move 0
+    jmp b1
+  b1:
+    loop.guard
+    r5 = lt.i64 r4, r3
+    br r5, b2, b3
+  b2:
+    r6 = coll.get r1, r4
+    r7 = rec.get r6, id
+    r8 = id.conv Box r7
+    r9 = rec.get r6, size
+    r10 = val.new BoxRow(boxId: r8, size: r9)
+    r2 = coll.append r2, r10
+    r4 = add.i64 r4, 1
+    jmp b1
+  b3:
+    ret.val r2
+
+func query BoxView.Total(wanted Kind) BoxStats access=[role admin]
+  slots: r0 wanted Kind, r1 total int, r2 rows list<BoxView>, r3 int, r4 int, r5 bool, r6 r BoxView, r7 int, r8 BoxStats
+  b0:
+    r1 = move 0
+    r2 = find BoxView by byKind where kind == r0 limit 100
+    r3 = coll.len r2
+    r4 = move 0
+    jmp b1
+  b1:
+    loop.guard
+    r5 = lt.i64 r4, r3
+    br r5, b2, b4
+  b2:
+    r6 = coll.get r2, r4
+    r7 = rec.get r6, size
+    r1 = add.i64 r1, r7
+    jmp b3
+  b3:
+    r4 = add.i64 r4, 1
+    jmp b1
+  b4:
+    r8 = val.new BoxStats(total: r1)
+    ret.val r8
+
+func query BoxView.Orphans() list<BoxRow> access=[role admin]
+  slots: r0 list<BoxView>, r1 list<BoxRow>, r2 int, r3 int, r4 bool, r5 BoxView, r6 BoxView.Id, r7 Box.Id, r8 int, r9 BoxRow
+  b0:
+    r0 = find BoxView by byOwner where owner == none limit 10
+    r1 = coll.list
+    r2 = coll.len r0
+    r3 = move 0
+    jmp b1
+  b1:
+    loop.guard
+    r4 = lt.i64 r3, r2
+    br r4, b2, b3
+  b2:
+    r5 = coll.get r0, r3
+    r6 = rec.get r5, id
+    r7 = id.conv Box r6
+    r8 = rec.get r5, size
+    r9 = val.new BoxRow(boxId: r7, size: r8)
+    r1 = coll.append r1, r9
+    r3 = add.i64 r3, 1
+    jmp b1
+  b3:
+    ret.val r1
+
+func migration migration.retouch
+  slots: r0 list<Box.Id>, r1 int, r2 int, r3 bool, r4 b Box.Id
+  b0:
+    r0 = all Box
+    r1 = coll.len r0
+    r2 = move 0
+    jmp b1
+  b1:
+    loop.guard
+    r3 = lt.i64 r2, r1
+    br r3, b2, b4
+  b2:
+    r4 = coll.get r0, r2
+    cmd [r4] Box.touch()
+    jmp b3
+  b3:
+    r2 = add.i64 r2, 1
+    jmp b1
+  b4:
+    ret
+
+func test "A box is created"
+  slots: r0 start Point, r1 k1 Keeper.Id, r2 b1 Box.Id, r3 BoxStats
+  b0:
+    r0 = val.new Point(x: 1, y: 2)
+    r1 = newid Keeper
+    r2 = newid Box
+    test.cmd [r1] Keeper.Join(keeperName: "Ann") as r1
+    test.time 5m
+    test.when
+    test.cmd [r2] Box.Create(keeper: r1, boxKind: Kind.big) as admin
+    expect.request Store.save(boxId: r2)
+    r3 = test.query BoxView.Total(wanted: Kind.big) as admin
+    expect.matches r3 BoxStats(total: 0)
+    ret
+
+func test "Statistics"
+  slots: r0 start Point, r1 BoxStats
+  b0:
+    r0 = val.new Point(x: 1, y: 2)
+    test.when
+    r1 = test.query BoxView.Total(wanted: Kind.small) as admin
+    expect.matches r1 BoxStats(total: 0)
+    expect.error Box.tooMany(limit: 10)
+    ret

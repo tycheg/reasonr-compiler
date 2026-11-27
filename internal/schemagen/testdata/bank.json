@@ -1,0 +1,750 @@
+{
+  "types": [
+    {
+      "ref": 1,
+      "name": "Accounts.Account",
+      "kind": "entity",
+      "id": "uuid",
+      "fields": [
+        {
+          "ref": 0,
+          "name": "owner",
+          "type": {
+            "kind": "id",
+            "ref": 2,
+            "optional": true
+          },
+          "default": {
+            "kind": "none"
+          }
+        },
+        {
+          "ref": 1,
+          "name": "balance",
+          "type": {
+            "kind": "decimal"
+          },
+          "default": {
+            "kind": "decimal",
+            "text": "0"
+          }
+        },
+        {
+          "ref": 2,
+          "name": "overdraft",
+          "type": {
+            "kind": "decimal"
+          },
+          "default": {
+            "kind": "decimal",
+            "text": "0"
+          }
+        },
+        {
+          "ref": 3,
+          "name": "frozen",
+          "type": {
+            "kind": "bool"
+          },
+          "default": {
+            "kind": "bool",
+            "text": "false"
+          }
+        }
+      ],
+      "indexes": [
+        {
+          "ref": 0,
+          "name": "byOwner",
+          "keys": [
+            {
+              "field": [
+                0
+              ]
+            }
+          ]
+        }
+      ],
+      "methods": [
+        {
+          "ref": 0,
+          "name": "Freeze",
+          "kind": "command",
+          "public": true,
+          "access": [
+            {
+              "kind": "role",
+              "role": "compliance"
+            },
+            {
+              "kind": "role",
+              "role": "antifraud"
+            }
+          ],
+          "params": [
+            {
+              "ref": 0,
+              "name": "reason",
+              "type": {
+                "kind": "string"
+              }
+            }
+          ]
+        },
+        {
+          "ref": 1,
+          "name": "Open",
+          "kind": "command",
+          "public": true,
+          "access": [
+            {
+              "kind": "actor",
+              "actor": 2
+            }
+          ],
+          "doc": "Open an account: the bank issues the number, the client learns it from the response",
+          "create": true
+        },
+        {
+          "ref": 2,
+          "name": "SetOverdraft",
+          "kind": "command",
+          "public": true,
+          "access": [
+            {
+              "kind": "role",
+              "role": "compliance"
+            }
+          ],
+          "params": [
+            {
+              "ref": 0,
+              "name": "limit",
+              "type": {
+                "kind": "decimal"
+              }
+            }
+          ],
+          "doc": "The allowed overdraft of the account"
+        },
+        {
+          "ref": 3,
+          "name": "Transfer",
+          "kind": "command",
+          "public": true,
+          "access": [
+            {
+              "kind": "field",
+              "field": [
+                0
+              ]
+            }
+          ],
+          "params": [
+            {
+              "ref": 0,
+              "name": "target",
+              "type": {
+                "kind": "id",
+                "ref": 1
+              }
+            },
+            {
+              "ref": 1,
+              "name": "sum",
+              "type": {
+                "kind": "decimal"
+              }
+            },
+            {
+              "ref": 2,
+              "name": "comment",
+              "type": {
+                "kind": "string"
+              }
+            }
+          ],
+          "doc": "Transfer to another account"
+        },
+        {
+          "ref": 4,
+          "name": "deposit",
+          "kind": "command",
+          "params": [
+            {
+              "ref": 0,
+              "name": "amount",
+              "type": {
+                "kind": "decimal"
+              }
+            },
+            {
+              "ref": 1,
+              "name": "source",
+              "type": {
+                "kind": "id",
+                "ref": 1
+              }
+            }
+          ]
+        },
+        {
+          "ref": 5,
+          "name": "accountCreated",
+          "kind": "event",
+          "params": [
+            {
+              "ref": 0,
+              "name": "ownerId",
+              "type": {
+                "kind": "id",
+                "ref": 2
+              }
+            }
+          ]
+        },
+        {
+          "ref": 6,
+          "name": "deposited",
+          "kind": "event",
+          "params": [
+            {
+              "ref": 0,
+              "name": "amount",
+              "type": {
+                "kind": "decimal"
+              }
+            },
+            {
+              "ref": 1,
+              "name": "source",
+              "type": {
+                "kind": "id",
+                "ref": 1
+              }
+            }
+          ]
+        },
+        {
+          "ref": 7,
+          "name": "frozenBy",
+          "kind": "event",
+          "params": [
+            {
+              "ref": 0,
+              "name": "reason",
+              "type": {
+                "kind": "string"
+              }
+            }
+          ]
+        },
+        {
+          "ref": 8,
+          "name": "overdraftSet",
+          "kind": "event",
+          "params": [
+            {
+              "ref": 0,
+              "name": "limit",
+              "type": {
+                "kind": "decimal"
+              }
+            }
+          ]
+        },
+        {
+          "ref": 9,
+          "name": "withdrawn",
+          "kind": "event",
+          "params": [
+            {
+              "ref": 0,
+              "name": "amount",
+              "type": {
+                "kind": "decimal"
+              }
+            },
+            {
+              "ref": 1,
+              "name": "target",
+              "type": {
+                "kind": "id",
+                "ref": 1
+              }
+            },
+            {
+              "ref": 2,
+              "name": "note",
+              "type": {
+                "kind": "string"
+              }
+            }
+          ]
+        },
+        {
+          "ref": 10,
+          "name": "accountOpened",
+          "kind": "notification",
+          "params": [
+            {
+              "ref": 0,
+              "name": "accountId",
+              "type": {
+                "kind": "id",
+                "ref": 1
+              }
+            }
+          ]
+        },
+        {
+          "ref": 11,
+          "name": "transferDone",
+          "kind": "notification",
+          "params": [
+            {
+              "ref": 0,
+              "name": "newBalance",
+              "type": {
+                "kind": "decimal"
+              }
+            }
+          ]
+        },
+        {
+          "ref": 12,
+          "name": "accountFrozen",
+          "kind": "error",
+          "params": [
+            {
+              "ref": 0,
+              "name": "accountId",
+              "type": {
+                "kind": "id",
+                "ref": 1
+              }
+            }
+          ]
+        },
+        {
+          "ref": 13,
+          "name": "accountNotFound",
+          "kind": "error",
+          "params": [
+            {
+              "ref": 0,
+              "name": "accountId",
+              "type": {
+                "kind": "id",
+                "ref": 1
+              }
+            }
+          ]
+        },
+        {
+          "ref": 14,
+          "name": "commentTooLong",
+          "kind": "error",
+          "params": [
+            {
+              "ref": 0,
+              "name": "max",
+              "type": {
+                "kind": "int"
+              }
+            }
+          ]
+        },
+        {
+          "ref": 15,
+          "name": "insufficientFunds",
+          "kind": "error",
+          "params": [
+            {
+              "ref": 0,
+              "name": "available",
+              "type": {
+                "kind": "decimal"
+              }
+            }
+          ]
+        },
+        {
+          "ref": 16,
+          "name": "invalidSum",
+          "kind": "error",
+          "params": [
+            {
+              "ref": 0,
+              "name": "sum",
+              "type": {
+                "kind": "decimal"
+              }
+            }
+          ]
+        },
+        {
+          "ref": 17,
+          "name": "sameAccount",
+          "kind": "error"
+        },
+        {
+          "ref": 18,
+          "name": "Details",
+          "kind": "query",
+          "public": true,
+          "access": [
+            {
+              "kind": "actor",
+              "actor": 2
+            }
+          ],
+          "params": [
+            {
+              "ref": 0,
+              "name": "accountId",
+              "type": {
+                "kind": "id",
+                "ref": 1
+              }
+            }
+          ],
+          "result": {
+            "kind": "record",
+            "ref": 3
+          }
+        },
+        {
+          "ref": 19,
+          "name": "MyAccounts",
+          "kind": "query",
+          "public": true,
+          "access": [
+            {
+              "kind": "actor",
+              "actor": 2
+            }
+          ],
+          "params": [
+            {
+              "ref": 0,
+              "name": "pageReq",
+              "type": {
+                "kind": "pageRequest"
+              }
+            }
+          ],
+          "result": {
+            "kind": "page",
+            "elem": {
+              "kind": "record",
+              "ref": 3
+            }
+          }
+        }
+      ]
+    },
+    {
+      "ref": 2,
+      "name": "Accounts.Client",
+      "kind": "actor",
+      "id": "uuid",
+      "fields": [
+        {
+          "ref": 0,
+          "name": "fullName",
+          "type": {
+            "kind": "string",
+            "optional": true
+          },
+          "default": {
+            "kind": "none"
+          },
+          "personal": {
+            "subjectType": 2
+          }
+        }
+      ],
+      "methods": [
+        {
+          "ref": 0,
+          "name": "Forget",
+          "kind": "command",
+          "public": true,
+          "access": [
+            {
+              "kind": "self"
+            },
+            {
+              "kind": "role",
+              "role": "compliance"
+            }
+          ],
+          "doc": "Delete the client's personal data: the accounts and the transfer history stay",
+          "destructive": true
+        },
+        {
+          "ref": 1,
+          "name": "Join",
+          "kind": "command",
+          "public": true,
+          "access": [
+            {
+              "kind": "self"
+            }
+          ],
+          "params": [
+            {
+              "ref": 0,
+              "name": "clientName",
+              "type": {
+                "kind": "string"
+              },
+              "personal": {
+                "subjectType": 2
+              }
+            }
+          ]
+        },
+        {
+          "ref": 2,
+          "name": "Rename",
+          "kind": "command",
+          "public": true,
+          "access": [
+            {
+              "kind": "self"
+            }
+          ],
+          "params": [
+            {
+              "ref": 0,
+              "name": "clientName",
+              "type": {
+                "kind": "string"
+              },
+              "personal": {
+                "subjectType": 2
+              }
+            }
+          ],
+          "doc": "Change the name"
+        },
+        {
+          "ref": 3,
+          "name": "forgotten",
+          "kind": "event"
+        },
+        {
+          "ref": 4,
+          "name": "joined",
+          "kind": "event",
+          "params": [
+            {
+              "ref": 0,
+              "name": "clientName",
+              "type": {
+                "kind": "string",
+                "optional": true
+              },
+              "personal": {
+                "subjectType": 2
+              }
+            }
+          ]
+        },
+        {
+          "ref": 5,
+          "name": "renamed",
+          "kind": "event",
+          "params": [
+            {
+              "ref": 0,
+              "name": "clientName",
+              "type": {
+                "kind": "string",
+                "optional": true
+              },
+              "personal": {
+                "subjectType": 2
+              }
+            }
+          ]
+        },
+        {
+          "ref": 6,
+          "name": "alreadyJoined",
+          "kind": "error"
+        },
+        {
+          "ref": 7,
+          "name": "notJoined",
+          "kind": "error"
+        },
+        {
+          "ref": 8,
+          "name": "Profile",
+          "kind": "query",
+          "public": true,
+          "access": [
+            {
+              "kind": "actor",
+              "actor": 2
+            }
+          ],
+          "result": {
+            "kind": "record",
+            "ref": 4
+          }
+        }
+      ]
+    },
+    {
+      "ref": 3,
+      "name": "Accounts.AccountRow",
+      "kind": "value",
+      "fields": [
+        {
+          "ref": 0,
+          "name": "accountId",
+          "type": {
+            "kind": "id",
+            "ref": 1
+          }
+        },
+        {
+          "ref": 1,
+          "name": "balance",
+          "type": {
+            "kind": "decimal"
+          },
+          "default": {
+            "kind": "decimal",
+            "text": "0"
+          }
+        },
+        {
+          "ref": 2,
+          "name": "frozen",
+          "type": {
+            "kind": "bool"
+          },
+          "default": {
+            "kind": "bool",
+            "text": "false"
+          }
+        }
+      ]
+    },
+    {
+      "ref": 4,
+      "name": "Accounts.ClientProfile",
+      "kind": "value",
+      "fields": [
+        {
+          "ref": 0,
+          "name": "fullName",
+          "type": {
+            "kind": "string",
+            "optional": true
+          },
+          "default": {
+            "kind": "none"
+          }
+        }
+      ]
+    },
+    {
+      "ref": 5,
+      "name": "Accounts.Antifraud",
+      "kind": "external",
+      "id": "uuid",
+      "fields": [
+        {
+          "ref": 0,
+          "name": "limit",
+          "type": {
+            "kind": "decimal"
+          },
+          "default": {
+            "kind": "decimal",
+            "text": "0"
+          }
+        }
+      ],
+      "methods": [
+        {
+          "ref": 0,
+          "name": "Setup",
+          "kind": "command",
+          "public": true,
+          "access": [
+            {
+              "kind": "any"
+            }
+          ],
+          "params": [
+            {
+              "ref": 0,
+              "name": "limitAmount",
+              "type": {
+                "kind": "decimal"
+              }
+            }
+          ],
+          "doc": "Transfers larger than limitAmount are suspicious"
+        },
+        {
+          "ref": 1,
+          "name": "configured",
+          "kind": "event",
+          "params": [
+            {
+              "ref": 0,
+              "name": "limitAmount",
+              "type": {
+                "kind": "decimal"
+              }
+            }
+          ]
+        },
+        {
+          "ref": 2,
+          "name": "score",
+          "kind": "request",
+          "params": [
+            {
+              "ref": 0,
+              "name": "accountId",
+              "type": {
+                "kind": "id",
+                "ref": 1
+              }
+            },
+            {
+              "ref": 1,
+              "name": "target",
+              "type": {
+                "kind": "id",
+                "ref": 1
+              }
+            },
+            {
+              "ref": 2,
+              "name": "sum",
+              "type": {
+                "kind": "decimal"
+              }
+            }
+          ],
+          "fake": true
+        }
+      ],
+      "role": "antifraud"
+    }
+  ],
+  "roles": [
+    "antifraud",
+    "compliance"
+  ]
+}

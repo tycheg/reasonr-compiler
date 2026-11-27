@@ -1,0 +1,8 @@
+extend Order
+  note string?
+
+  command(admin) Note(text string)
+    noted(text: text)
+
+  event noted(text string)
+    note = text

@@ -1,0 +1,46 @@
+# Personal data subjects in effect arguments (RFC §20).
+
+role admin
+
+actor Customer
+  id uuid
+  phone string? personal
+
+  command(self) SignUp(phoneNumber string personal)
+    signedUp(phoneNumber: phoneNumber)
+    welcome(text: "Number " + phoneNumber)
+    Sms.send(to: phoneNumber)
+
+  event signedUp(phoneNumber string? personal)
+    phone = phoneNumber
+
+  notification welcome(text string)
+
+aggregate Order
+  id uuid
+  customer Customer.Id?
+  address string? personal(customer)
+  note string? personal
+
+  command(admin) Place(c Customer.Id, addr string personal(customer), text string personal)
+    placed(who: c, addr: addr, text: text)
+
+  command(admin) Dispatch()
+    Geo.locate(where: address, comment: note)
+
+  command(admin) Check()
+    if note is not none
+      badNote(both: (address ?? "") + note)
+
+  event placed(who Customer.Id, addr string? personal(customer), text string? personal)
+    customer = who
+    address = addr
+    note = text
+
+  error badNote(both string)
+
+external Sms
+  request send(to string personal)
+
+external Geo
+  request locate(where string? personal, comment string? personal)

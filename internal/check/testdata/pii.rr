@@ -1,0 +1,76 @@
+role admin
+
+actor Customer
+  id uuid
+  phone string? personal
+  note string?
+  nick string personal  # want "E0904" "W1001"
+
+  command(self) SignUp(phoneNumber string personal, plain string)
+    signedUp(phoneNumber: phoneNumber, copy: phoneNumber)  # want "E0901"
+    stored(phoneNumber: plain)                             # want "W1021"
+    [id].remember(val: phoneNumber)                        # want "E0903"
+
+  command remember(val string)
+    return
+
+  command(self) Later(phoneNumber string personal)
+    let timer = schedule(at: now + 1h, run: remember(val: phoneNumber))  # want "E0903"
+    scheduled(timer: timer)
+
+  event scheduled(timer Timer.Id)
+
+  event signedUp(phoneNumber string? personal, copy string?)
+    phone = phoneNumber
+    note = phoneNumber  # want "E0901"
+
+  event stored(phoneNumber string? personal)
+    phone = phoneNumber
+
+  event bad(x string personal)  # want "E0904" "W1001"
+    phone = x
+
+actor Driver
+  id uuid
+  phone string? personal
+
+  command(self) Steal(c Customer.Id)
+    forget c
+    forget id
+
+  event took(p string? personal)  # want "W1001"
+    phone = p
+
+aggregate Order
+  id uuid
+  customer Customer.Id?  # want "W1001"
+  phone string? personal(customer)
+
+  command(admin) Fill(p string personal)
+    filled(p: p)
+
+  event filled(p string? personal)
+    phone = p  # want "E0902"
+
+aggregate Plain
+  id uuid
+
+  command(admin) Wipe()
+    forget id  # want "W1020"
+
+actor Rider
+  id uuid
+  name string? personal
+
+  command(self) Rename(newName string personal)
+    RiderCard(id: RiderCard.Id(id), riderName: newName)  # want "E0906"
+    RiderCard(id: RiderCard.Id(id), rider: id, riderName: newName)
+    renamed(newName: newName)
+
+  event renamed(newName string? personal)
+    name = newName
+
+projection RiderCard
+  id Rider.Id
+  rider Rider.Id?  # want "W1001"
+  riderName string? personal(rider)  # want "W1001"

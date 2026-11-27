@@ -1,0 +1,29 @@
+# taxi/extensions/acme/contexts/Ordering/order.rr
+extend Order
+  costCenter string?
+
+  ## A corporate customer sets the cost center
+  command(customer) SetCostCenter(code string)
+    if code.length == 0
+      invalidCostCenter()
+      return
+    costCenterSet(code: code)
+
+  event costCenterSet(code string)
+    costCenter = code
+
+  ## Corporate limit on the ride price
+  on placed
+    if orderPrice.amount > 5000
+      orderLimitExceeded(limit: 5000)
+
+  ## Corporate rate
+  rule perKmRate(requestedClass CarClass) decimal
+    return 25
+
+  error invalidCostCenter
+  error orderLimitExceeded(limit decimal)
+
+extend screen MyOrder
+  in Actions
+    Edit Order.SetCostCenter

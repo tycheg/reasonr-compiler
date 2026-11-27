@@ -1,0 +1,2 @@
+# Diagnostic E1107 is about the api/contract.json file and has no place in
+# the sources: TestAPI checks it separately.  # want "E1107"

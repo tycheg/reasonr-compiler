@@ -1,0 +1,2 @@
+go test fuzz v1
+[]byte("view\n action \n    view \n    control")

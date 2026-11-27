@@ -1,0 +1,4017 @@
+{
+  "types": [
+    {
+      "ref": 1,
+      "name": "Dispatch.Trip",
+      "kind": "entity",
+      "id": "uuid",
+      "fields": [
+        {
+          "ref": 0,
+          "name": "stage",
+          "type": {
+            "kind": "enum",
+            "ref": 31
+          },
+          "default": {
+            "kind": "enum",
+            "text": "searching"
+          }
+        },
+        {
+          "ref": 1,
+          "name": "pickup",
+          "type": {
+            "kind": "record",
+            "ref": 13
+          },
+          "default": {
+            "kind": "record",
+            "fields": [
+              {
+                "kind": "float",
+                "text": "0"
+              },
+              {
+                "kind": "float",
+                "text": "0"
+              }
+            ]
+          }
+        },
+        {
+          "ref": 2,
+          "name": "carClass",
+          "type": {
+            "kind": "enum",
+            "ref": 27
+          },
+          "default": {
+            "kind": "enum",
+            "text": "economy"
+          }
+        },
+        {
+          "ref": 3,
+          "name": "fare",
+          "type": {
+            "kind": "record",
+            "ref": 14
+          },
+          "default": {
+            "kind": "record",
+            "fields": [
+              {
+                "kind": "decimal",
+                "text": "0"
+              },
+              {
+                "kind": "enum",
+                "text": "rub"
+              }
+            ]
+          }
+        },
+        {
+          "ref": 4,
+          "name": "driver",
+          "type": {
+            "kind": "id",
+            "ref": 5,
+            "optional": true
+          },
+          "default": {
+            "kind": "none"
+          }
+        },
+        {
+          "ref": 5,
+          "name": "candidate",
+          "type": {
+            "kind": "id",
+            "ref": 5,
+            "optional": true
+          },
+          "default": {
+            "kind": "none"
+          }
+        },
+        {
+          "ref": 6,
+          "name": "searchTimer",
+          "type": {
+            "kind": "timerId",
+            "optional": true
+          },
+          "default": {
+            "kind": "none"
+          }
+        },
+        {
+          "ref": 7,
+          "name": "offerTimer",
+          "type": {
+            "kind": "timerId",
+            "optional": true
+          },
+          "default": {
+            "kind": "none"
+          }
+        },
+        {
+          "ref": 8,
+          "name": "searchRetries",
+          "type": {
+            "kind": "int"
+          },
+          "default": {
+            "kind": "int",
+            "text": "0"
+          }
+        },
+        {
+          "ref": 9,
+          "name": "Offer",
+          "type": {
+            "kind": "map",
+            "elem": {
+              "kind": "record",
+              "ref": 2
+            },
+            "key": {
+              "kind": "id",
+              "ref": 2
+            }
+          },
+          "inner": 2
+        }
+      ],
+      "methods": [
+        {
+          "ref": 0,
+          "name": "DriverFound",
+          "kind": "command",
+          "public": true,
+          "access": [
+            {
+              "kind": "role",
+              "role": "matching"
+            }
+          ],
+          "params": [
+            {
+              "ref": 0,
+              "name": "driverId",
+              "type": {
+                "kind": "id",
+                "ref": 5
+              }
+            }
+          ],
+          "doc": "The matching service answers: a driver is found.\nThe offer goes to the driver as the last step: if the driver is busy,\nthey return the order at once (driverDeclined), and matching the next driver starts.",
+          "destructive": true
+        },
+        {
+          "ref": 1,
+          "name": "NoDriverFound",
+          "kind": "command",
+          "public": true,
+          "access": [
+            {
+              "kind": "role",
+              "role": "matching"
+            }
+          ],
+          "doc": "The matching service answers: no drivers",
+          "destructive": true
+        },
+        {
+          "ref": 2,
+          "name": "assignDriver",
+          "kind": "command",
+          "params": [
+            {
+              "ref": 0,
+              "name": "driverId",
+              "type": {
+                "kind": "id",
+                "ref": 5
+              }
+            },
+            {
+              "ref": 1,
+              "name": "assignedName",
+              "type": {
+                "kind": "string"
+              }
+            },
+            {
+              "ref": 2,
+              "name": "assignedPlate",
+              "type": {
+                "kind": "string"
+              }
+            }
+          ]
+        },
+        {
+          "ref": 3,
+          "name": "close",
+          "kind": "command"
+        },
+        {
+          "ref": 4,
+          "name": "closeOffer",
+          "kind": "command",
+          "params": [
+            {
+              "ref": 0,
+              "name": "result",
+              "type": {
+                "kind": "enum",
+                "ref": 30
+              }
+            }
+          ]
+        },
+        {
+          "ref": 5,
+          "name": "driverDeclined",
+          "kind": "command",
+          "params": [
+            {
+              "ref": 0,
+              "name": "driverId",
+              "type": {
+                "kind": "id",
+                "ref": 5
+              }
+            }
+          ]
+        },
+        {
+          "ref": 6,
+          "name": "expireOffer",
+          "kind": "command",
+          "params": [
+            {
+              "ref": 0,
+              "name": "driverId",
+              "type": {
+                "kind": "id",
+                "ref": 5
+              }
+            }
+          ]
+        },
+        {
+          "ref": 7,
+          "name": "findDriver",
+          "kind": "command"
+        },
+        {
+          "ref": 8,
+          "name": "finishRide",
+          "kind": "command",
+          "params": [
+            {
+              "ref": 0,
+              "name": "driverId",
+              "type": {
+                "kind": "id",
+                "ref": 5
+              }
+            }
+          ]
+        },
+        {
+          "ref": 9,
+          "name": "giveUp",
+          "kind": "command"
+        },
+        {
+          "ref": 10,
+          "name": "open",
+          "kind": "command",
+          "params": [
+            {
+              "ref": 0,
+              "name": "pickupPoint",
+              "type": {
+                "kind": "record",
+                "ref": 13
+              }
+            },
+            {
+              "ref": 1,
+              "name": "requestedClass",
+              "type": {
+                "kind": "enum",
+                "ref": 27
+              }
+            },
+            {
+              "ref": 2,
+              "name": "price",
+              "type": {
+                "kind": "record",
+                "ref": 14
+              }
+            }
+          ]
+        },
+        {
+          "ref": 11,
+          "name": "searchAgain",
+          "kind": "command",
+          "params": [
+            {
+              "ref": 0,
+              "name": "skipped",
+              "type": {
+                "kind": "id",
+                "ref": 5
+              }
+            }
+          ]
+        },
+        {
+          "ref": 12,
+          "name": "searchTimedOut",
+          "kind": "command"
+        },
+        {
+          "ref": 13,
+          "name": "tip",
+          "kind": "command",
+          "params": [
+            {
+              "ref": 0,
+              "name": "amount",
+              "type": {
+                "kind": "record",
+                "ref": 14
+              }
+            }
+          ]
+        },
+        {
+          "ref": 14,
+          "name": "update",
+          "kind": "command",
+          "params": [
+            {
+              "ref": 0,
+              "name": "pickupPoint",
+              "type": {
+                "kind": "record",
+                "ref": 13
+              }
+            },
+            {
+              "ref": 1,
+              "name": "requestedClass",
+              "type": {
+                "kind": "enum",
+                "ref": 27
+              }
+            },
+            {
+              "ref": 2,
+              "name": "price",
+              "type": {
+                "kind": "record",
+                "ref": 14
+              }
+            }
+          ]
+        },
+        {
+          "ref": 15,
+          "name": "dispatchClosed",
+          "kind": "event"
+        },
+        {
+          "ref": 16,
+          "name": "driverAssigned",
+          "kind": "event",
+          "params": [
+            {
+              "ref": 0,
+              "name": "driverId",
+              "type": {
+                "kind": "id",
+                "ref": 5
+              }
+            },
+            {
+              "ref": 1,
+              "name": "assignedName",
+              "type": {
+                "kind": "string"
+              }
+            },
+            {
+              "ref": 2,
+              "name": "assignedPlate",
+              "type": {
+                "kind": "string"
+              }
+            }
+          ],
+          "acl": [
+            "Ordering"
+          ]
+        },
+        {
+          "ref": 17,
+          "name": "driverSkipped",
+          "kind": "event",
+          "params": [
+            {
+              "ref": 0,
+              "name": "driverId",
+              "type": {
+                "kind": "id",
+                "ref": 5
+              }
+            }
+          ],
+          "acl": [
+            "Ordering"
+          ]
+        },
+        {
+          "ref": 18,
+          "name": "offerSent",
+          "kind": "event",
+          "params": [
+            {
+              "ref": 0,
+              "name": "driverId",
+              "type": {
+                "kind": "id",
+                "ref": 5
+              }
+            },
+            {
+              "ref": 1,
+              "name": "timer",
+              "type": {
+                "kind": "timerId"
+              }
+            }
+          ],
+          "acl": [
+            "Ordering"
+          ]
+        },
+        {
+          "ref": 19,
+          "name": "rideCompleted",
+          "kind": "event",
+          "params": [
+            {
+              "ref": 0,
+              "name": "at",
+              "type": {
+                "kind": "timestamp"
+              }
+            }
+          ],
+          "acl": [
+            "Ordering"
+          ]
+        },
+        {
+          "ref": 20,
+          "name": "searchFailed",
+          "kind": "event",
+          "params": [
+            {
+              "ref": 0,
+              "name": "at",
+              "type": {
+                "kind": "timestamp"
+              }
+            }
+          ],
+          "acl": [
+            "Ordering"
+          ]
+        },
+        {
+          "ref": 21,
+          "name": "searchOpened",
+          "kind": "event",
+          "params": [
+            {
+              "ref": 0,
+              "name": "pickupPoint",
+              "type": {
+                "kind": "record",
+                "ref": 13
+              }
+            },
+            {
+              "ref": 1,
+              "name": "requestedClass",
+              "type": {
+                "kind": "enum",
+                "ref": 27
+              }
+            },
+            {
+              "ref": 2,
+              "name": "tripFare",
+              "type": {
+                "kind": "record",
+                "ref": 14
+              }
+            }
+          ]
+        },
+        {
+          "ref": 22,
+          "name": "searchRetried",
+          "kind": "event"
+        },
+        {
+          "ref": 23,
+          "name": "searchStarted",
+          "kind": "event",
+          "params": [
+            {
+              "ref": 0,
+              "name": "timer",
+              "type": {
+                "kind": "timerId"
+              }
+            }
+          ]
+        },
+        {
+          "ref": 24,
+          "name": "searchUpdated",
+          "kind": "event",
+          "params": [
+            {
+              "ref": 0,
+              "name": "pickupPoint",
+              "type": {
+                "kind": "record",
+                "ref": 13
+              }
+            },
+            {
+              "ref": 1,
+              "name": "requestedClass",
+              "type": {
+                "kind": "enum",
+                "ref": 27
+              }
+            },
+            {
+              "ref": 2,
+              "name": "tripFare",
+              "type": {
+                "kind": "record",
+                "ref": 14
+              }
+            }
+          ]
+        },
+        {
+          "ref": 25,
+          "name": "rideCancelled",
+          "kind": "notification",
+          "params": [
+            {
+              "ref": 0,
+              "name": "tripId",
+              "type": {
+                "kind": "id",
+                "ref": 1
+              }
+            }
+          ]
+        },
+        {
+          "ref": 26,
+          "name": "tipReceived",
+          "kind": "notification",
+          "params": [
+            {
+              "ref": 0,
+              "name": "tripId",
+              "type": {
+                "kind": "id",
+                "ref": 1
+              }
+            },
+            {
+              "ref": 1,
+              "name": "amount",
+              "type": {
+                "kind": "record",
+                "ref": 14
+              }
+            }
+          ]
+        },
+        {
+          "ref": 27,
+          "name": "offerNoLongerValid",
+          "kind": "error"
+        },
+        {
+          "ref": 28,
+          "name": "rideNotActive",
+          "kind": "error"
+        },
+        {
+          "ref": 29,
+          "name": "Offer.closed",
+          "kind": "event",
+          "params": [
+            {
+              "ref": 0,
+              "name": "id",
+              "type": {
+                "kind": "id",
+                "ref": 2
+              }
+            },
+            {
+              "ref": 1,
+              "name": "result",
+              "type": {
+                "kind": "enum",
+                "ref": 30
+              }
+            }
+          ],
+          "inner": 2,
+          "innerEvent": 2
+        },
+        {
+          "ref": 30,
+          "name": "Offer.opened",
+          "kind": "event",
+          "params": [
+            {
+              "ref": 0,
+              "name": "id",
+              "type": {
+                "kind": "id",
+                "ref": 2
+              }
+            },
+            {
+              "ref": 1,
+              "name": "offeredTo",
+              "type": {
+                "kind": "id",
+                "ref": 5
+              }
+            }
+          ],
+          "inner": 2,
+          "innerEvent": 3
+        }
+      ]
+    },
+    {
+      "ref": 2,
+      "name": "Dispatch.Trip.Offer",
+      "kind": "entity",
+      "id": "sequence",
+      "fields": [
+        {
+          "ref": 0,
+          "name": "driver",
+          "type": {
+            "kind": "id",
+            "ref": 5,
+            "optional": true
+          },
+          "default": {
+            "kind": "none"
+          }
+        },
+        {
+          "ref": 1,
+          "name": "outcome",
+          "type": {
+            "kind": "enum",
+            "ref": 30
+          },
+          "default": {
+            "kind": "enum",
+            "text": "pending"
+          }
+        }
+      ],
+      "methods": [
+        {
+          "ref": 0,
+          "name": "close",
+          "kind": "command",
+          "params": [
+            {
+              "ref": 0,
+              "name": "result",
+              "type": {
+                "kind": "enum",
+                "ref": 30
+              }
+            }
+          ]
+        },
+        {
+          "ref": 1,
+          "name": "open",
+          "kind": "command",
+          "params": [
+            {
+              "ref": 0,
+              "name": "offeredTo",
+              "type": {
+                "kind": "id",
+                "ref": 5
+              }
+            }
+          ]
+        },
+        {
+          "ref": 2,
+          "name": "closed",
+          "kind": "event",
+          "params": [
+            {
+              "ref": 0,
+              "name": "result",
+              "type": {
+                "kind": "enum",
+                "ref": 30
+              }
+            }
+          ]
+        },
+        {
+          "ref": 3,
+          "name": "opened",
+          "kind": "event",
+          "params": [
+            {
+              "ref": 0,
+              "name": "offeredTo",
+              "type": {
+                "kind": "id",
+                "ref": 5
+              }
+            }
+          ]
+        }
+      ],
+      "owner": 1
+    },
+    {
+      "ref": 3,
+      "name": "Ordering.Order",
+      "kind": "entity",
+      "id": "uuid",
+      "fields": [
+        {
+          "ref": 0,
+          "name": "status",
+          "type": {
+            "kind": "enum",
+            "ref": 34
+          },
+          "default": {
+            "kind": "enum",
+            "text": "searching"
+          }
+        },
+        {
+          "ref": 1,
+          "name": "customer",
+          "type": {
+            "kind": "id",
+            "ref": 6,
+            "optional": true
+          },
+          "default": {
+            "kind": "none"
+          }
+        },
+        {
+          "ref": 2,
+          "name": "route",
+          "type": {
+            "kind": "record",
+            "ref": 25
+          },
+          "default": {
+            "kind": "record",
+            "fields": [
+              {
+                "kind": "record",
+                "fields": [
+                  {
+                    "kind": "float",
+                    "text": "0"
+                  },
+                  {
+                    "kind": "float",
+                    "text": "0"
+                  }
+                ]
+              },
+              {
+                "kind": "record",
+                "fields": [
+                  {
+                    "kind": "float",
+                    "text": "0"
+                  },
+                  {
+                    "kind": "float",
+                    "text": "0"
+                  }
+                ]
+              },
+              {
+                "kind": "float",
+                "text": "0"
+              }
+            ]
+          }
+        },
+        {
+          "ref": 3,
+          "name": "carClass",
+          "type": {
+            "kind": "enum",
+            "ref": 32
+          },
+          "default": {
+            "kind": "enum",
+            "text": "economy"
+          }
+        },
+        {
+          "ref": 4,
+          "name": "price",
+          "type": {
+            "kind": "record",
+            "ref": 21
+          },
+          "default": {
+            "kind": "record",
+            "fields": [
+              {
+                "kind": "decimal",
+                "text": "0"
+              },
+              {
+                "kind": "enum",
+                "text": "rub"
+              }
+            ]
+          }
+        },
+        {
+          "ref": 5,
+          "name": "driverName",
+          "type": {
+            "kind": "string",
+            "optional": true
+          },
+          "default": {
+            "kind": "none"
+          }
+        },
+        {
+          "ref": 6,
+          "name": "driverPlate",
+          "type": {
+            "kind": "string",
+            "optional": true
+          },
+          "default": {
+            "kind": "none"
+          }
+        },
+        {
+          "ref": 7,
+          "name": "placedAt",
+          "type": {
+            "kind": "timestamp"
+          },
+          "default": {
+            "kind": "timestamp",
+            "text": "0001-01-01T00:00:00Z"
+          }
+        },
+        {
+          "ref": 8,
+          "name": "tip",
+          "type": {
+            "kind": "record",
+            "ref": 21,
+            "optional": true
+          },
+          "default": {
+            "kind": "none"
+          }
+        }
+      ],
+      "indexes": [
+        {
+          "ref": 0,
+          "name": "byCustomer",
+          "keys": [
+            {
+              "field": [
+                1
+              ]
+            },
+            {
+              "field": [
+                7
+              ],
+              "desc": true
+            }
+          ]
+        },
+        {
+          "ref": 1,
+          "name": "byStatus",
+          "keys": [
+            {
+              "field": [
+                0
+              ]
+            },
+            {
+              "field": [
+                7
+              ],
+              "desc": true
+            }
+          ]
+        }
+      ],
+      "methods": [
+        {
+          "ref": 0,
+          "name": "Cancel",
+          "kind": "command",
+          "public": true,
+          "access": [
+            {
+              "kind": "field",
+              "field": [
+                1
+              ]
+            },
+            {
+              "kind": "role",
+              "role": "support"
+            },
+            {
+              "kind": "role",
+              "role": "admin"
+            }
+          ],
+          "params": [
+            {
+              "ref": 0,
+              "name": "reason",
+              "type": {
+                "kind": "string"
+              }
+            }
+          ],
+          "doc": "Cancelling an order by the customer, support or an administrator;\nDispatch releases the offer and the driver on the orderCancelled event"
+        },
+        {
+          "ref": 1,
+          "name": "Edit",
+          "kind": "command",
+          "public": true,
+          "access": [
+            {
+              "kind": "role",
+              "role": "admin"
+            },
+            {
+              "kind": "role",
+              "role": "support"
+            }
+          ],
+          "params": [
+            {
+              "ref": 0,
+              "name": "orderRoute",
+              "type": {
+                "kind": "record",
+                "ref": 25
+              }
+            },
+            {
+              "ref": 1,
+              "name": "requestedClass",
+              "type": {
+                "kind": "enum",
+                "ref": 32
+              }
+            }
+          ],
+          "doc": "Change the route and class while no driver is found"
+        },
+        {
+          "ref": 2,
+          "name": "LeaveTip",
+          "kind": "command",
+          "public": true,
+          "access": [
+            {
+              "kind": "field",
+              "field": [
+                1
+              ]
+            }
+          ],
+          "params": [
+            {
+              "ref": 0,
+              "name": "amount",
+              "type": {
+                "kind": "record",
+                "ref": 21
+              }
+            }
+          ],
+          "doc": "Tips for the driver after a paid ride, under flag tips"
+        },
+        {
+          "ref": 3,
+          "name": "PaymentCaptured",
+          "kind": "command",
+          "public": true,
+          "access": [
+            {
+              "kind": "role",
+              "role": "payments"
+            }
+          ],
+          "params": [
+            {
+              "ref": 0,
+              "name": "transactionId",
+              "type": {
+                "kind": "string"
+              }
+            }
+          ],
+          "doc": "The payment service answers: the money is captured"
+        },
+        {
+          "ref": 4,
+          "name": "PaymentDeclined",
+          "kind": "command",
+          "public": true,
+          "access": [
+            {
+              "kind": "role",
+              "role": "payments"
+            }
+          ],
+          "params": [
+            {
+              "ref": 0,
+              "name": "reason",
+              "type": {
+                "kind": "string"
+              }
+            }
+          ],
+          "doc": "The payment service answers: declined"
+        },
+        {
+          "ref": 5,
+          "name": "confirmDriver",
+          "kind": "command",
+          "params": [
+            {
+              "ref": 0,
+              "name": "assignedName",
+              "type": {
+                "kind": "string"
+              }
+            },
+            {
+              "ref": 1,
+              "name": "assignedPlate",
+              "type": {
+                "kind": "string"
+              }
+            }
+          ]
+        },
+        {
+          "ref": 6,
+          "name": "failSearch",
+          "kind": "command"
+        },
+        {
+          "ref": 7,
+          "name": "finishRide",
+          "kind": "command"
+        },
+        {
+          "ref": 8,
+          "name": "markOffered",
+          "kind": "command"
+        },
+        {
+          "ref": 9,
+          "name": "place",
+          "kind": "command",
+          "params": [
+            {
+              "ref": 0,
+              "name": "customerId",
+              "type": {
+                "kind": "id",
+                "ref": 6
+              }
+            },
+            {
+              "ref": 1,
+              "name": "orderRoute",
+              "type": {
+                "kind": "record",
+                "ref": 25
+              }
+            },
+            {
+              "ref": 2,
+              "name": "requestedClass",
+              "type": {
+                "kind": "enum",
+                "ref": 32
+              }
+            }
+          ]
+        },
+        {
+          "ref": 10,
+          "name": "resumeSearch",
+          "kind": "command"
+        },
+        {
+          "ref": 11,
+          "name": "writeMart",
+          "kind": "command"
+        },
+        {
+          "ref": 12,
+          "name": "driverConfirmed",
+          "kind": "event",
+          "params": [
+            {
+              "ref": 0,
+              "name": "assignedName",
+              "type": {
+                "kind": "string"
+              }
+            },
+            {
+              "ref": 1,
+              "name": "assignedPlate",
+              "type": {
+                "kind": "string"
+              }
+            }
+          ]
+        },
+        {
+          "ref": 13,
+          "name": "edited",
+          "kind": "event",
+          "params": [
+            {
+              "ref": 0,
+              "name": "orderRoute",
+              "type": {
+                "kind": "record",
+                "ref": 25
+              }
+            },
+            {
+              "ref": 1,
+              "name": "requestedClass",
+              "type": {
+                "kind": "enum",
+                "ref": 32
+              }
+            },
+            {
+              "ref": 2,
+              "name": "orderPrice",
+              "type": {
+                "kind": "record",
+                "ref": 21
+              }
+            }
+          ],
+          "acl": [
+            "Dispatch"
+          ]
+        },
+        {
+          "ref": 14,
+          "name": "offerPending",
+          "kind": "event"
+        },
+        {
+          "ref": 15,
+          "name": "orderCancelled",
+          "kind": "event",
+          "params": [
+            {
+              "ref": 0,
+              "name": "reason",
+              "type": {
+                "kind": "string"
+              }
+            },
+            {
+              "ref": 1,
+              "name": "at",
+              "type": {
+                "kind": "timestamp"
+              }
+            }
+          ],
+          "acl": [
+            "Dispatch"
+          ]
+        },
+        {
+          "ref": 16,
+          "name": "paymentFailed",
+          "kind": "event",
+          "params": [
+            {
+              "ref": 0,
+              "name": "reason",
+              "type": {
+                "kind": "string"
+              }
+            }
+          ]
+        },
+        {
+          "ref": 17,
+          "name": "paymentReceived",
+          "kind": "event",
+          "params": [
+            {
+              "ref": 0,
+              "name": "transactionId",
+              "type": {
+                "kind": "string"
+              }
+            }
+          ]
+        },
+        {
+          "ref": 18,
+          "name": "placed",
+          "kind": "event",
+          "params": [
+            {
+              "ref": 0,
+              "name": "customerId",
+              "type": {
+                "kind": "id",
+                "ref": 6
+              }
+            },
+            {
+              "ref": 1,
+              "name": "orderRoute",
+              "type": {
+                "kind": "record",
+                "ref": 25
+              }
+            },
+            {
+              "ref": 2,
+              "name": "requestedClass",
+              "type": {
+                "kind": "enum",
+                "ref": 32
+              }
+            },
+            {
+              "ref": 3,
+              "name": "orderPrice",
+              "type": {
+                "kind": "record",
+                "ref": 21
+              }
+            },
+            {
+              "ref": 4,
+              "name": "at",
+              "type": {
+                "kind": "timestamp"
+              }
+            }
+          ],
+          "acl": [
+            "Dispatch"
+          ]
+        },
+        {
+          "ref": 19,
+          "name": "rideFinished",
+          "kind": "event"
+        },
+        {
+          "ref": 20,
+          "name": "searchExhausted",
+          "kind": "event"
+        },
+        {
+          "ref": 21,
+          "name": "searchResumed",
+          "kind": "event"
+        },
+        {
+          "ref": 22,
+          "name": "tipped",
+          "kind": "event",
+          "params": [
+            {
+              "ref": 0,
+              "name": "amount",
+              "type": {
+                "kind": "record",
+                "ref": 21
+              }
+            }
+          ],
+          "acl": [
+            "Dispatch"
+          ]
+        },
+        {
+          "ref": 23,
+          "name": "driverOnTheWay",
+          "kind": "notification",
+          "params": [
+            {
+              "ref": 0,
+              "name": "orderId",
+              "type": {
+                "kind": "id",
+                "ref": 3
+              }
+            }
+          ]
+        },
+        {
+          "ref": 24,
+          "name": "noDriversAvailable",
+          "kind": "notification",
+          "params": [
+            {
+              "ref": 0,
+              "name": "orderId",
+              "type": {
+                "kind": "id",
+                "ref": 3
+              }
+            }
+          ]
+        },
+        {
+          "ref": 25,
+          "name": "orderPlaced",
+          "kind": "notification",
+          "params": [
+            {
+              "ref": 0,
+              "name": "orderId",
+              "type": {
+                "kind": "id",
+                "ref": 3
+              }
+            },
+            {
+              "ref": 1,
+              "name": "price",
+              "type": {
+                "kind": "record",
+                "ref": 21
+              }
+            }
+          ]
+        },
+        {
+          "ref": 26,
+          "name": "paymentProblem",
+          "kind": "notification",
+          "params": [
+            {
+              "ref": 0,
+              "name": "orderId",
+              "type": {
+                "kind": "id",
+                "ref": 3
+              }
+            },
+            {
+              "ref": 1,
+              "name": "reason",
+              "type": {
+                "kind": "string"
+              }
+            }
+          ]
+        },
+        {
+          "ref": 27,
+          "name": "receipt",
+          "kind": "notification",
+          "params": [
+            {
+              "ref": 0,
+              "name": "orderId",
+              "type": {
+                "kind": "id",
+                "ref": 3
+              }
+            },
+            {
+              "ref": 1,
+              "name": "amount",
+              "type": {
+                "kind": "record",
+                "ref": 21
+              }
+            }
+          ]
+        },
+        {
+          "ref": 28,
+          "name": "cannotCancel",
+          "kind": "error",
+          "params": [
+            {
+              "ref": 0,
+              "name": "currentStatus",
+              "type": {
+                "kind": "enum",
+                "ref": 34
+              }
+            }
+          ]
+        },
+        {
+          "ref": 29,
+          "name": "cannotEdit",
+          "kind": "error",
+          "params": [
+            {
+              "ref": 0,
+              "name": "currentStatus",
+              "type": {
+                "kind": "enum",
+                "ref": 34
+              }
+            }
+          ]
+        },
+        {
+          "ref": 30,
+          "name": "cannotTip",
+          "kind": "error",
+          "params": [
+            {
+              "ref": 0,
+              "name": "currentStatus",
+              "type": {
+                "kind": "enum",
+                "ref": 34
+              }
+            }
+          ]
+        },
+        {
+          "ref": 31,
+          "name": "orderAlreadyExists",
+          "kind": "error"
+        },
+        {
+          "ref": 32,
+          "name": "orderNotFound",
+          "kind": "error"
+        },
+        {
+          "ref": 33,
+          "name": "tipsDisabled",
+          "kind": "error"
+        },
+        {
+          "ref": 34,
+          "name": "Card",
+          "kind": "query",
+          "public": true,
+          "access": [
+            {
+              "kind": "actor",
+              "actor": 6
+            }
+          ],
+          "params": [
+            {
+              "ref": 0,
+              "name": "orderId",
+              "type": {
+                "kind": "id",
+                "ref": 3
+              }
+            }
+          ],
+          "result": {
+            "kind": "record",
+            "ref": 22
+          },
+          "doc": "Order card"
+        },
+        {
+          "ref": 35,
+          "name": "Details",
+          "kind": "query",
+          "public": true,
+          "access": [
+            {
+              "kind": "role",
+              "role": "admin"
+            },
+            {
+              "kind": "role",
+              "role": "support"
+            }
+          ],
+          "params": [
+            {
+              "ref": 0,
+              "name": "orderId",
+              "type": {
+                "kind": "id",
+                "ref": 3
+              }
+            }
+          ],
+          "result": {
+            "kind": "record",
+            "ref": 23
+          },
+          "doc": "The whole order"
+        },
+        {
+          "ref": 36,
+          "name": "List",
+          "kind": "query",
+          "public": true,
+          "access": [
+            {
+              "kind": "role",
+              "role": "admin"
+            },
+            {
+              "kind": "role",
+              "role": "support"
+            }
+          ],
+          "params": [
+            {
+              "ref": 0,
+              "name": "wanted",
+              "type": {
+                "kind": "enum",
+                "ref": 34
+              },
+              "default": {
+                "kind": "enum",
+                "text": "searching"
+              }
+            },
+            {
+              "ref": 1,
+              "name": "pageReq",
+              "type": {
+                "kind": "pageRequest"
+              }
+            }
+          ],
+          "result": {
+            "kind": "page",
+            "elem": {
+              "kind": "record",
+              "ref": 24
+            }
+          },
+          "doc": "Orders by status, newest first"
+        },
+        {
+          "ref": 37,
+          "name": "MyOrders",
+          "kind": "query",
+          "public": true,
+          "access": [
+            {
+              "kind": "actor",
+              "actor": 6
+            }
+          ],
+          "params": [
+            {
+              "ref": 0,
+              "name": "pageReq",
+              "type": {
+                "kind": "pageRequest"
+              }
+            }
+          ],
+          "result": {
+            "kind": "page",
+            "elem": {
+              "kind": "record",
+              "ref": 24
+            }
+          },
+          "doc": "My orders, newest first"
+        },
+        {
+          "ref": 38,
+          "name": "perKmRate",
+          "kind": "rule",
+          "params": [
+            {
+              "ref": 0,
+              "name": "requestedClass",
+              "type": {
+                "kind": "enum",
+                "ref": 32
+              }
+            }
+          ],
+          "result": {
+            "kind": "decimal"
+          }
+        }
+      ]
+    },
+    {
+      "ref": 4,
+      "name": "Auth.User",
+      "kind": "actor",
+      "id": "uuid",
+      "fields": [
+        {
+          "ref": 0,
+          "name": "name",
+          "type": {
+            "kind": "string",
+            "optional": true
+          },
+          "default": {
+            "kind": "none"
+          }
+        }
+      ],
+      "methods": [
+        {
+          "ref": 0,
+          "name": "Sync",
+          "kind": "command",
+          "public": true,
+          "access": [
+            {
+              "kind": "self"
+            }
+          ],
+          "params": [
+            {
+              "ref": 0,
+              "name": "userName",
+              "type": {
+                "kind": "string"
+              }
+            }
+          ],
+          "doc": "The user name from the Keycloak profile, after sign-in"
+        },
+        {
+          "ref": 1,
+          "name": "synced",
+          "kind": "event",
+          "params": [
+            {
+              "ref": 0,
+              "name": "userName",
+              "type": {
+                "kind": "string"
+              }
+            }
+          ]
+        },
+        {
+          "ref": 2,
+          "name": "notSynced",
+          "kind": "error"
+        },
+        {
+          "ref": 3,
+          "name": "Me",
+          "kind": "query",
+          "public": true,
+          "access": [
+            {
+              "kind": "actor",
+              "actor": 4
+            }
+          ],
+          "result": {
+            "kind": "record",
+            "ref": 9
+          },
+          "doc": "My account"
+        }
+      ]
+    },
+    {
+      "ref": 5,
+      "name": "Dispatch.Driver",
+      "kind": "actor",
+      "id": "uuid",
+      "fields": [
+        {
+          "ref": 0,
+          "name": "name",
+          "type": {
+            "kind": "string"
+          },
+          "default": {
+            "kind": "string"
+          }
+        },
+        {
+          "ref": 1,
+          "name": "car",
+          "type": {
+            "kind": "record",
+            "ref": 10
+          },
+          "default": {
+            "kind": "record",
+            "fields": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "enum",
+                "text": "economy"
+              }
+            ]
+          }
+        },
+        {
+          "ref": 2,
+          "name": "status",
+          "type": {
+            "kind": "enum",
+            "ref": 29
+          },
+          "default": {
+            "kind": "enum",
+            "text": "offline"
+          }
+        },
+        {
+          "ref": 3,
+          "name": "currentTrip",
+          "type": {
+            "kind": "id",
+            "ref": 1,
+            "optional": true
+          },
+          "default": {
+            "kind": "none"
+          }
+        }
+      ],
+      "indexes": [
+        {
+          "ref": 0,
+          "name": "byStatus",
+          "keys": [
+            {
+              "field": [
+                2
+              ]
+            },
+            {
+              "field": [
+                1,
+                2
+              ]
+            }
+          ]
+        },
+        {
+          "ref": 1,
+          "name": "byPlate",
+          "keys": [
+            {
+              "field": [
+                1,
+                0
+              ]
+            }
+          ],
+          "unique": true,
+          "error": "plateTaken"
+        }
+      ],
+      "methods": [
+        {
+          "ref": 0,
+          "name": "Accept",
+          "kind": "command",
+          "public": true,
+          "access": [
+            {
+              "kind": "self"
+            }
+          ],
+          "doc": "Accept the offered order"
+        },
+        {
+          "ref": 1,
+          "name": "Decline",
+          "kind": "command",
+          "public": true,
+          "access": [
+            {
+              "kind": "self"
+            }
+          ],
+          "doc": "Decline the offered order"
+        },
+        {
+          "ref": 2,
+          "name": "FinishRide",
+          "kind": "command",
+          "public": true,
+          "access": [
+            {
+              "kind": "self"
+            }
+          ],
+          "doc": "Finish the ride"
+        },
+        {
+          "ref": 3,
+          "name": "GoOffline",
+          "kind": "command",
+          "public": true,
+          "access": [
+            {
+              "kind": "self"
+            }
+          ]
+        },
+        {
+          "ref": 4,
+          "name": "GoOnline",
+          "kind": "command",
+          "public": true,
+          "access": [
+            {
+              "kind": "self"
+            }
+          ]
+        },
+        {
+          "ref": 5,
+          "name": "Register",
+          "kind": "command",
+          "public": true,
+          "access": [
+            {
+              "kind": "role",
+              "role": "admin"
+            }
+          ],
+          "params": [
+            {
+              "ref": 0,
+              "name": "driverName",
+              "type": {
+                "kind": "string"
+              }
+            },
+            {
+              "ref": 1,
+              "name": "driverCar",
+              "type": {
+                "kind": "record",
+                "ref": 10
+              }
+            }
+          ]
+        },
+        {
+          "ref": 6,
+          "name": "offerTrip",
+          "kind": "command",
+          "params": [
+            {
+              "ref": 0,
+              "name": "tripId",
+              "type": {
+                "kind": "id",
+                "ref": 1
+              }
+            },
+            {
+              "ref": 1,
+              "name": "pickup",
+              "type": {
+                "kind": "record",
+                "ref": 13
+              }
+            },
+            {
+              "ref": 2,
+              "name": "fare",
+              "type": {
+                "kind": "record",
+                "ref": 14
+              }
+            }
+          ]
+        },
+        {
+          "ref": 7,
+          "name": "releaseTrip",
+          "kind": "command",
+          "params": [
+            {
+              "ref": 0,
+              "name": "tripId",
+              "type": {
+                "kind": "id",
+                "ref": 1
+              }
+            }
+          ]
+        },
+        {
+          "ref": 8,
+          "name": "withdrawOffer",
+          "kind": "command",
+          "params": [
+            {
+              "ref": 0,
+              "name": "tripId",
+              "type": {
+                "kind": "id",
+                "ref": 1
+              }
+            }
+          ]
+        },
+        {
+          "ref": 9,
+          "name": "driverRegistered",
+          "kind": "event",
+          "params": [
+            {
+              "ref": 0,
+              "name": "driverName",
+              "type": {
+                "kind": "string"
+              }
+            },
+            {
+              "ref": 1,
+              "name": "driverCar",
+              "type": {
+                "kind": "record",
+                "ref": 10
+              }
+            }
+          ]
+        },
+        {
+          "ref": 10,
+          "name": "offerAccepted",
+          "kind": "event"
+        },
+        {
+          "ref": 11,
+          "name": "offerDeclined",
+          "kind": "event"
+        },
+        {
+          "ref": 12,
+          "name": "offerRejectedBusy",
+          "kind": "event",
+          "params": [
+            {
+              "ref": 0,
+              "name": "tripId",
+              "type": {
+                "kind": "id",
+                "ref": 1
+              }
+            }
+          ]
+        },
+        {
+          "ref": 13,
+          "name": "offerWithdrawn",
+          "kind": "event"
+        },
+        {
+          "ref": 14,
+          "name": "rideFinished",
+          "kind": "event"
+        },
+        {
+          "ref": 15,
+          "name": "tripOffered",
+          "kind": "event",
+          "params": [
+            {
+              "ref": 0,
+              "name": "tripId",
+              "type": {
+                "kind": "id",
+                "ref": 1
+              }
+            }
+          ]
+        },
+        {
+          "ref": 16,
+          "name": "wentOffline",
+          "kind": "event"
+        },
+        {
+          "ref": 17,
+          "name": "wentOnline",
+          "kind": "event"
+        },
+        {
+          "ref": 18,
+          "name": "newOffer",
+          "kind": "notification",
+          "params": [
+            {
+              "ref": 0,
+              "name": "tripId",
+              "type": {
+                "kind": "id",
+                "ref": 1
+              }
+            },
+            {
+              "ref": 1,
+              "name": "pickup",
+              "type": {
+                "kind": "record",
+                "ref": 13
+              }
+            },
+            {
+              "ref": 2,
+              "name": "fare",
+              "type": {
+                "kind": "record",
+                "ref": 14
+              }
+            }
+          ]
+        },
+        {
+          "ref": 19,
+          "name": "offerCancelled",
+          "kind": "notification",
+          "params": [
+            {
+              "ref": 0,
+              "name": "tripId",
+              "type": {
+                "kind": "id",
+                "ref": 1
+              }
+            }
+          ]
+        },
+        {
+          "ref": 20,
+          "name": "alreadyOnline",
+          "kind": "error"
+        },
+        {
+          "ref": 21,
+          "name": "alreadyRegistered",
+          "kind": "error"
+        },
+        {
+          "ref": 22,
+          "name": "cannotGoOffline",
+          "kind": "error",
+          "params": [
+            {
+              "ref": 0,
+              "name": "currentStatus",
+              "type": {
+                "kind": "enum",
+                "ref": 29
+              }
+            }
+          ]
+        },
+        {
+          "ref": 23,
+          "name": "driverNotFound",
+          "kind": "error"
+        },
+        {
+          "ref": 24,
+          "name": "noActiveOffer",
+          "kind": "error"
+        },
+        {
+          "ref": 25,
+          "name": "noActiveRide",
+          "kind": "error"
+        },
+        {
+          "ref": 26,
+          "name": "notRegistered",
+          "kind": "error"
+        },
+        {
+          "ref": 27,
+          "name": "plateTaken",
+          "kind": "error"
+        },
+        {
+          "ref": 28,
+          "name": "FreeDrivers",
+          "kind": "query",
+          "public": true,
+          "access": [
+            {
+              "kind": "role",
+              "role": "dispatcher"
+            }
+          ],
+          "params": [
+            {
+              "ref": 0,
+              "name": "wantedClass",
+              "type": {
+                "kind": "enum",
+                "ref": 27
+              }
+            },
+            {
+              "ref": 1,
+              "name": "pageReq",
+              "type": {
+                "kind": "pageRequest"
+              }
+            }
+          ],
+          "result": {
+            "kind": "page",
+            "elem": {
+              "kind": "record",
+              "ref": 11
+            }
+          },
+          "doc": "Free drivers for the dispatcher"
+        },
+        {
+          "ref": 29,
+          "name": "MyState",
+          "kind": "query",
+          "public": true,
+          "access": [
+            {
+              "kind": "actor",
+              "actor": 5
+            }
+          ],
+          "result": {
+            "kind": "record",
+            "ref": 12
+          },
+          "doc": "The current driver's state"
+        },
+        {
+          "ref": 30,
+          "name": "info",
+          "kind": "query",
+          "params": [
+            {
+              "ref": 0,
+              "name": "driverId",
+              "type": {
+                "kind": "id",
+                "ref": 5
+              }
+            }
+          ],
+          "result": {
+            "kind": "record",
+            "ref": 11
+          }
+        }
+      ]
+    },
+    {
+      "ref": 6,
+      "name": "Ordering.Customer",
+      "kind": "actor",
+      "id": "uuid",
+      "fields": [
+        {
+          "ref": 0,
+          "name": "phone",
+          "type": {
+            "kind": "string",
+            "optional": true
+          },
+          "default": {
+            "kind": "none"
+          },
+          "personal": {
+            "subjectType": 6
+          }
+        },
+        {
+          "ref": 1,
+          "name": "blocked",
+          "type": {
+            "kind": "bool"
+          },
+          "default": {
+            "kind": "bool",
+            "text": "false"
+          }
+        },
+        {
+          "ref": 2,
+          "name": "activeOrder",
+          "type": {
+            "kind": "id",
+            "ref": 3,
+            "optional": true
+          },
+          "default": {
+            "kind": "none"
+          }
+        },
+        {
+          "ref": 3,
+          "name": "homeAddress",
+          "type": {
+            "kind": "string",
+            "optional": true
+          },
+          "default": {
+            "kind": "none"
+          }
+        }
+      ],
+      "indexes": [
+        {
+          "ref": 0,
+          "name": "byPhone",
+          "keys": [
+            {
+              "field": [
+                0
+              ]
+            }
+          ],
+          "unique": true,
+          "error": "phoneTaken"
+        }
+      ],
+      "methods": [
+        {
+          "ref": 0,
+          "name": "Forget",
+          "kind": "command",
+          "public": true,
+          "access": [
+            {
+              "kind": "self"
+            },
+            {
+              "kind": "role",
+              "role": "support"
+            }
+          ],
+          "doc": "Delete personal data",
+          "destructive": true
+        },
+        {
+          "ref": 1,
+          "name": "Join",
+          "kind": "command",
+          "public": true,
+          "access": [
+            {
+              "kind": "self"
+            }
+          ],
+          "params": [
+            {
+              "ref": 0,
+              "name": "phoneNumber",
+              "type": {
+                "kind": "string"
+              },
+              "personal": {
+                "subjectType": 6
+              }
+            }
+          ],
+          "doc": "Become a customer through a Keycloak account: an Auth user is a\ncustomer with the same identifier (auth.acl.rr)"
+        },
+        {
+          "ref": 2,
+          "name": "OrderTaxi",
+          "kind": "command",
+          "public": true,
+          "access": [
+            {
+              "kind": "self"
+            },
+            {
+              "kind": "role",
+              "role": "admin"
+            },
+            {
+              "kind": "role",
+              "role": "support"
+            }
+          ],
+          "params": [
+            {
+              "ref": 0,
+              "name": "orderId",
+              "type": {
+                "kind": "id",
+                "ref": 3
+              }
+            },
+            {
+              "ref": 1,
+              "name": "orderRoute",
+              "type": {
+                "kind": "record",
+                "ref": 25
+              }
+            },
+            {
+              "ref": 2,
+              "name": "requestedClass",
+              "type": {
+                "kind": "enum",
+                "ref": 32
+              }
+            }
+          ],
+          "doc": "Order a taxi. The client generates the order identifier; staff may\nalso place an order for a customer."
+        },
+        {
+          "ref": 3,
+          "name": "SetHome",
+          "kind": "command",
+          "public": true,
+          "access": [
+            {
+              "kind": "self"
+            }
+          ],
+          "params": [
+            {
+              "ref": 0,
+              "name": "address",
+              "type": {
+                "kind": "string"
+              }
+            }
+          ],
+          "doc": "Home address, filled into new orders"
+        },
+        {
+          "ref": 4,
+          "name": "SignUp",
+          "kind": "command",
+          "public": true,
+          "access": [
+            {
+              "kind": "self"
+            }
+          ],
+          "params": [
+            {
+              "ref": 0,
+              "name": "phoneNumber",
+              "type": {
+                "kind": "string"
+              },
+              "personal": {
+                "subjectType": 6
+              }
+            }
+          ],
+          "doc": "Sign up"
+        },
+        {
+          "ref": 5,
+          "name": "orderFinished",
+          "kind": "command",
+          "params": [
+            {
+              "ref": 0,
+              "name": "orderId",
+              "type": {
+                "kind": "id",
+                "ref": 3
+              }
+            }
+          ]
+        },
+        {
+          "ref": 6,
+          "name": "orderUnpaid",
+          "kind": "command",
+          "params": [
+            {
+              "ref": 0,
+              "name": "orderId",
+              "type": {
+                "kind": "id",
+                "ref": 3
+              }
+            }
+          ]
+        },
+        {
+          "ref": 7,
+          "name": "blockedForDebt",
+          "kind": "event",
+          "params": [
+            {
+              "ref": 0,
+              "name": "orderId",
+              "type": {
+                "kind": "id",
+                "ref": 3
+              }
+            }
+          ]
+        },
+        {
+          "ref": 8,
+          "name": "forgotten",
+          "kind": "event"
+        },
+        {
+          "ref": 9,
+          "name": "homeSet",
+          "kind": "event",
+          "params": [
+            {
+              "ref": 0,
+              "name": "address",
+              "type": {
+                "kind": "string"
+              }
+            }
+          ]
+        },
+        {
+          "ref": 10,
+          "name": "joined",
+          "kind": "event",
+          "params": [
+            {
+              "ref": 0,
+              "name": "phoneNumber",
+              "type": {
+                "kind": "string",
+                "optional": true
+              },
+              "personal": {
+                "subjectType": 6
+              }
+            }
+          ]
+        },
+        {
+          "ref": 11,
+          "name": "orderClosed",
+          "kind": "event"
+        },
+        {
+          "ref": 12,
+          "name": "orderStarted",
+          "kind": "event",
+          "params": [
+            {
+              "ref": 0,
+              "name": "orderId",
+              "type": {
+                "kind": "id",
+                "ref": 3
+              }
+            }
+          ]
+        },
+        {
+          "ref": 13,
+          "name": "signedUp",
+          "kind": "event",
+          "params": [
+            {
+              "ref": 0,
+              "name": "phoneNumber",
+              "type": {
+                "kind": "string",
+                "optional": true
+              },
+              "personal": {
+                "subjectType": 6
+              }
+            }
+          ]
+        },
+        {
+          "ref": 14,
+          "name": "alreadyHasOrder",
+          "kind": "error",
+          "params": [
+            {
+              "ref": 0,
+              "name": "orderId",
+              "type": {
+                "kind": "id",
+                "ref": 3
+              }
+            }
+          ]
+        },
+        {
+          "ref": 15,
+          "name": "alreadyRegistered",
+          "kind": "error"
+        },
+        {
+          "ref": 16,
+          "name": "customerBlocked",
+          "kind": "error"
+        },
+        {
+          "ref": 17,
+          "name": "hasActiveOrder",
+          "kind": "error"
+        },
+        {
+          "ref": 18,
+          "name": "notRegistered",
+          "kind": "error"
+        },
+        {
+          "ref": 19,
+          "name": "phoneTaken",
+          "kind": "error"
+        },
+        {
+          "ref": 20,
+          "name": "FindByPhone",
+          "kind": "query",
+          "public": true,
+          "access": [
+            {
+              "kind": "role",
+              "role": "admin"
+            },
+            {
+              "kind": "role",
+              "role": "support"
+            }
+          ],
+          "params": [
+            {
+              "ref": 0,
+              "name": "phoneNumber",
+              "type": {
+                "kind": "string"
+              },
+              "personal": {
+                "subjectType": 6
+              }
+            }
+          ],
+          "result": {
+            "kind": "list",
+            "elem": {
+              "kind": "record",
+              "ref": 18
+            }
+          },
+          "doc": "Find a customer by phone"
+        },
+        {
+          "ref": 21,
+          "name": "Home",
+          "kind": "query",
+          "public": true,
+          "access": [
+            {
+              "kind": "actor",
+              "actor": 6
+            }
+          ],
+          "result": {
+            "kind": "record",
+            "ref": 20
+          }
+        },
+        {
+          "ref": 22,
+          "name": "Profile",
+          "kind": "query",
+          "public": true,
+          "access": [
+            {
+              "kind": "actor",
+              "actor": 6
+            }
+          ],
+          "result": {
+            "kind": "record",
+            "ref": 17
+          }
+        }
+      ],
+      "callers": [
+        4
+      ]
+    },
+    {
+      "ref": 7,
+      "name": "Ordering.Staff",
+      "kind": "actor",
+      "id": "uuid",
+      "fields": [
+        {
+          "ref": 0,
+          "name": "name",
+          "type": {
+            "kind": "string"
+          },
+          "default": {
+            "kind": "string"
+          }
+        },
+        {
+          "ref": 1,
+          "name": "email",
+          "type": {
+            "kind": "string",
+            "optional": true
+          },
+          "default": {
+            "kind": "none"
+          },
+          "personal": {
+            "subjectType": 7
+          }
+        }
+      ],
+      "methods": [
+        {
+          "ref": 0,
+          "name": "ChangeEmail",
+          "kind": "command",
+          "public": true,
+          "access": [
+            {
+              "kind": "self"
+            }
+          ],
+          "params": [
+            {
+              "ref": 0,
+              "name": "newEmail",
+              "type": {
+                "kind": "string"
+              },
+              "personal": {
+                "subjectType": 7
+              }
+            }
+          ],
+          "doc": "Change the email"
+        },
+        {
+          "ref": 1,
+          "name": "Hire",
+          "kind": "command",
+          "public": true,
+          "access": [
+            {
+              "kind": "role",
+              "role": "admin"
+            }
+          ],
+          "params": [
+            {
+              "ref": 0,
+              "name": "staffName",
+              "type": {
+                "kind": "string"
+              }
+            }
+          ],
+          "doc": "Hire a staff member"
+        },
+        {
+          "ref": 2,
+          "name": "emailChanged",
+          "kind": "event",
+          "params": [
+            {
+              "ref": 0,
+              "name": "newEmail",
+              "type": {
+                "kind": "string",
+                "optional": true
+              },
+              "personal": {
+                "subjectType": 7
+              }
+            }
+          ]
+        },
+        {
+          "ref": 3,
+          "name": "hired",
+          "kind": "event",
+          "params": [
+            {
+              "ref": 0,
+              "name": "staffName",
+              "type": {
+                "kind": "string"
+              }
+            }
+          ]
+        },
+        {
+          "ref": 4,
+          "name": "alreadyHired",
+          "kind": "error"
+        },
+        {
+          "ref": 5,
+          "name": "notStaff",
+          "kind": "error"
+        },
+        {
+          "ref": 6,
+          "name": "Profile",
+          "kind": "query",
+          "public": true,
+          "access": [
+            {
+              "kind": "actor",
+              "actor": 7
+            }
+          ],
+          "result": {
+            "kind": "record",
+            "ref": 26
+          },
+          "doc": "My profile"
+        }
+      ]
+    },
+    {
+      "ref": 8,
+      "name": "Ordering.OrderMart",
+      "kind": "projection",
+      "id": "derived",
+      "idType": 3,
+      "fields": [
+        {
+          "ref": 0,
+          "name": "status",
+          "type": {
+            "kind": "enum",
+            "ref": 34
+          },
+          "default": {
+            "kind": "enum",
+            "text": "searching"
+          }
+        },
+        {
+          "ref": 1,
+          "name": "driverName",
+          "type": {
+            "kind": "string",
+            "optional": true
+          },
+          "default": {
+            "kind": "none"
+          }
+        },
+        {
+          "ref": 2,
+          "name": "plate",
+          "type": {
+            "kind": "string",
+            "optional": true
+          },
+          "default": {
+            "kind": "none"
+          }
+        },
+        {
+          "ref": 3,
+          "name": "placedAt",
+          "type": {
+            "kind": "timestamp"
+          },
+          "default": {
+            "kind": "timestamp",
+            "text": "0001-01-01T00:00:00Z"
+          }
+        }
+      ],
+      "indexes": [
+        {
+          "ref": 0,
+          "name": "byStatus",
+          "keys": [
+            {
+              "field": [
+                0
+              ]
+            },
+            {
+              "field": [
+                3
+              ]
+            }
+          ]
+        }
+      ],
+      "methods": [
+        {
+          "ref": 0,
+          "name": "Board",
+          "kind": "query",
+          "public": true,
+          "access": [
+            {
+              "kind": "role",
+              "role": "dispatcher"
+            }
+          ],
+          "params": [
+            {
+              "ref": 0,
+              "name": "wanted",
+              "type": {
+                "kind": "enum",
+                "ref": 34
+              }
+            },
+            {
+              "ref": 1,
+              "name": "pageReq",
+              "type": {
+                "kind": "pageRequest"
+              }
+            }
+          ],
+          "result": {
+            "kind": "page",
+            "elem": {
+              "kind": "record",
+              "ref": 16
+            }
+          }
+        }
+      ]
+    },
+    {
+      "ref": 9,
+      "name": "Auth.Account",
+      "kind": "value",
+      "fields": [
+        {
+          "ref": 0,
+          "name": "name",
+          "type": {
+            "kind": "string",
+            "optional": true
+          },
+          "default": {
+            "kind": "none"
+          }
+        }
+      ]
+    },
+    {
+      "ref": 10,
+      "name": "Dispatch.Car",
+      "kind": "value",
+      "fields": [
+        {
+          "ref": 0,
+          "name": "plate",
+          "type": {
+            "kind": "string"
+          },
+          "default": {
+            "kind": "string"
+          }
+        },
+        {
+          "ref": 1,
+          "name": "model",
+          "type": {
+            "kind": "string"
+          },
+          "default": {
+            "kind": "string"
+          }
+        },
+        {
+          "ref": 2,
+          "name": "carClass",
+          "type": {
+            "kind": "enum",
+            "ref": 27
+          },
+          "default": {
+            "kind": "enum",
+            "text": "economy"
+          }
+        }
+      ]
+    },
+    {
+      "ref": 11,
+      "name": "Dispatch.DriverInfo",
+      "kind": "value",
+      "fields": [
+        {
+          "ref": 0,
+          "name": "driverId",
+          "type": {
+            "kind": "id",
+            "ref": 5
+          }
+        },
+        {
+          "ref": 1,
+          "name": "name",
+          "type": {
+            "kind": "string"
+          },
+          "default": {
+            "kind": "string"
+          }
+        },
+        {
+          "ref": 2,
+          "name": "plate",
+          "type": {
+            "kind": "string"
+          },
+          "default": {
+            "kind": "string"
+          }
+        }
+      ]
+    },
+    {
+      "ref": 12,
+      "name": "Dispatch.DriverState",
+      "kind": "value",
+      "fields": [
+        {
+          "ref": 0,
+          "name": "status",
+          "type": {
+            "kind": "enum",
+            "ref": 29
+          },
+          "default": {
+            "kind": "enum",
+            "text": "offline"
+          }
+        },
+        {
+          "ref": 1,
+          "name": "currentTrip",
+          "type": {
+            "kind": "id",
+            "ref": 1,
+            "optional": true
+          },
+          "default": {
+            "kind": "none"
+          }
+        }
+      ]
+    },
+    {
+      "ref": 13,
+      "name": "Dispatch.GeoPoint",
+      "kind": "value",
+      "fields": [
+        {
+          "ref": 0,
+          "name": "lat",
+          "type": {
+            "kind": "float"
+          },
+          "default": {
+            "kind": "float",
+            "text": "0"
+          }
+        },
+        {
+          "ref": 1,
+          "name": "lon",
+          "type": {
+            "kind": "float"
+          },
+          "default": {
+            "kind": "float",
+            "text": "0"
+          }
+        }
+      ]
+    },
+    {
+      "ref": 14,
+      "name": "Dispatch.Money",
+      "kind": "value",
+      "fields": [
+        {
+          "ref": 0,
+          "name": "amount",
+          "type": {
+            "kind": "decimal"
+          },
+          "default": {
+            "kind": "decimal",
+            "text": "0"
+          }
+        },
+        {
+          "ref": 1,
+          "name": "currency",
+          "type": {
+            "kind": "enum",
+            "ref": 28
+          },
+          "default": {
+            "kind": "enum",
+            "text": "rub"
+          }
+        }
+      ]
+    },
+    {
+      "ref": 15,
+      "name": "Ordering.AssignedDriver",
+      "kind": "value",
+      "fields": [
+        {
+          "ref": 0,
+          "name": "name",
+          "type": {
+            "kind": "string"
+          },
+          "default": {
+            "kind": "string"
+          }
+        },
+        {
+          "ref": 1,
+          "name": "plate",
+          "type": {
+            "kind": "string"
+          },
+          "default": {
+            "kind": "string"
+          }
+        }
+      ]
+    },
+    {
+      "ref": 16,
+      "name": "Ordering.BoardRow",
+      "kind": "value",
+      "fields": [
+        {
+          "ref": 0,
+          "name": "orderId",
+          "type": {
+            "kind": "id",
+            "ref": 3
+          }
+        },
+        {
+          "ref": 1,
+          "name": "status",
+          "type": {
+            "kind": "enum",
+            "ref": 34
+          },
+          "default": {
+            "kind": "enum",
+            "text": "searching"
+          }
+        },
+        {
+          "ref": 2,
+          "name": "driverName",
+          "type": {
+            "kind": "string",
+            "optional": true
+          },
+          "default": {
+            "kind": "none"
+          }
+        },
+        {
+          "ref": 3,
+          "name": "plate",
+          "type": {
+            "kind": "string",
+            "optional": true
+          },
+          "default": {
+            "kind": "none"
+          }
+        }
+      ]
+    },
+    {
+      "ref": 17,
+      "name": "Ordering.CustomerProfile",
+      "kind": "value",
+      "fields": [
+        {
+          "ref": 0,
+          "name": "phone",
+          "type": {
+            "kind": "string",
+            "optional": true
+          },
+          "default": {
+            "kind": "none"
+          }
+        },
+        {
+          "ref": 1,
+          "name": "blocked",
+          "type": {
+            "kind": "bool"
+          },
+          "default": {
+            "kind": "bool",
+            "text": "false"
+          }
+        }
+      ]
+    },
+    {
+      "ref": 18,
+      "name": "Ordering.CustomerRow",
+      "kind": "value",
+      "fields": [
+        {
+          "ref": 0,
+          "name": "customerId",
+          "type": {
+            "kind": "id",
+            "ref": 6
+          }
+        },
+        {
+          "ref": 1,
+          "name": "phone",
+          "type": {
+            "kind": "string",
+            "optional": true
+          },
+          "default": {
+            "kind": "none"
+          }
+        }
+      ]
+    },
+    {
+      "ref": 19,
+      "name": "Ordering.GeoPoint",
+      "kind": "value",
+      "fields": [
+        {
+          "ref": 0,
+          "name": "lat",
+          "type": {
+            "kind": "float"
+          },
+          "default": {
+            "kind": "float",
+            "text": "0"
+          }
+        },
+        {
+          "ref": 1,
+          "name": "lon",
+          "type": {
+            "kind": "float"
+          },
+          "default": {
+            "kind": "float",
+            "text": "0"
+          }
+        }
+      ]
+    },
+    {
+      "ref": 20,
+      "name": "Ordering.HomeAddress",
+      "kind": "value",
+      "fields": [
+        {
+          "ref": 0,
+          "name": "address",
+          "type": {
+            "kind": "string",
+            "optional": true
+          },
+          "default": {
+            "kind": "none"
+          }
+        }
+      ]
+    },
+    {
+      "ref": 21,
+      "name": "Ordering.Money",
+      "kind": "value",
+      "fields": [
+        {
+          "ref": 0,
+          "name": "amount",
+          "type": {
+            "kind": "decimal"
+          },
+          "default": {
+            "kind": "decimal",
+            "text": "0"
+          }
+        },
+        {
+          "ref": 1,
+          "name": "currency",
+          "type": {
+            "kind": "enum",
+            "ref": 33
+          },
+          "default": {
+            "kind": "enum",
+            "text": "rub"
+          }
+        }
+      ]
+    },
+    {
+      "ref": 22,
+      "name": "Ordering.OrderCard",
+      "kind": "value",
+      "fields": [
+        {
+          "ref": 0,
+          "name": "status",
+          "type": {
+            "kind": "enum",
+            "ref": 34
+          },
+          "default": {
+            "kind": "enum",
+            "text": "searching"
+          }
+        },
+        {
+          "ref": 1,
+          "name": "price",
+          "type": {
+            "kind": "record",
+            "ref": 21
+          },
+          "default": {
+            "kind": "record",
+            "fields": [
+              {
+                "kind": "decimal",
+                "text": "0"
+              },
+              {
+                "kind": "enum",
+                "text": "rub"
+              }
+            ]
+          }
+        },
+        {
+          "ref": 2,
+          "name": "driver",
+          "type": {
+            "kind": "record",
+            "ref": 15,
+            "optional": true
+          },
+          "default": {
+            "kind": "none"
+          }
+        },
+        {
+          "ref": 3,
+          "name": "tip",
+          "type": {
+            "kind": "record",
+            "ref": 21,
+            "optional": true
+          },
+          "default": {
+            "kind": "none"
+          }
+        }
+      ]
+    },
+    {
+      "ref": 23,
+      "name": "Ordering.OrderDetails",
+      "kind": "value",
+      "fields": [
+        {
+          "ref": 0,
+          "name": "orderId",
+          "type": {
+            "kind": "id",
+            "ref": 3
+          }
+        },
+        {
+          "ref": 1,
+          "name": "status",
+          "type": {
+            "kind": "enum",
+            "ref": 34
+          },
+          "default": {
+            "kind": "enum",
+            "text": "searching"
+          }
+        },
+        {
+          "ref": 2,
+          "name": "orderRoute",
+          "type": {
+            "kind": "record",
+            "ref": 25
+          },
+          "default": {
+            "kind": "record",
+            "fields": [
+              {
+                "kind": "record",
+                "fields": [
+                  {
+                    "kind": "float",
+                    "text": "0"
+                  },
+                  {
+                    "kind": "float",
+                    "text": "0"
+                  }
+                ]
+              },
+              {
+                "kind": "record",
+                "fields": [
+                  {
+                    "kind": "float",
+                    "text": "0"
+                  },
+                  {
+                    "kind": "float",
+                    "text": "0"
+                  }
+                ]
+              },
+              {
+                "kind": "float",
+                "text": "0"
+              }
+            ]
+          }
+        },
+        {
+          "ref": 3,
+          "name": "requestedClass",
+          "type": {
+            "kind": "enum",
+            "ref": 32
+          },
+          "default": {
+            "kind": "enum",
+            "text": "economy"
+          }
+        },
+        {
+          "ref": 4,
+          "name": "price",
+          "type": {
+            "kind": "record",
+            "ref": 21
+          },
+          "default": {
+            "kind": "record",
+            "fields": [
+              {
+                "kind": "decimal",
+                "text": "0"
+              },
+              {
+                "kind": "enum",
+                "text": "rub"
+              }
+            ]
+          }
+        },
+        {
+          "ref": 5,
+          "name": "placedAt",
+          "type": {
+            "kind": "timestamp"
+          },
+          "default": {
+            "kind": "timestamp",
+            "text": "0001-01-01T00:00:00Z"
+          }
+        },
+        {
+          "ref": 6,
+          "name": "driverName",
+          "type": {
+            "kind": "string",
+            "optional": true
+          },
+          "default": {
+            "kind": "none"
+          }
+        }
+      ]
+    },
+    {
+      "ref": 24,
+      "name": "Ordering.OrderRow",
+      "kind": "value",
+      "fields": [
+        {
+          "ref": 0,
+          "name": "orderId",
+          "type": {
+            "kind": "id",
+            "ref": 3
+          }
+        },
+        {
+          "ref": 1,
+          "name": "status",
+          "type": {
+            "kind": "enum",
+            "ref": 34
+          },
+          "default": {
+            "kind": "enum",
+            "text": "searching"
+          }
+        },
+        {
+          "ref": 2,
+          "name": "price",
+          "type": {
+            "kind": "record",
+            "ref": 21
+          },
+          "default": {
+            "kind": "record",
+            "fields": [
+              {
+                "kind": "decimal",
+                "text": "0"
+              },
+              {
+                "kind": "enum",
+                "text": "rub"
+              }
+            ]
+          }
+        },
+        {
+          "ref": 3,
+          "name": "placedAt",
+          "type": {
+            "kind": "timestamp"
+          },
+          "default": {
+            "kind": "timestamp",
+            "text": "0001-01-01T00:00:00Z"
+          }
+        }
+      ]
+    },
+    {
+      "ref": 25,
+      "name": "Ordering.Route",
+      "kind": "value",
+      "fields": [
+        {
+          "ref": 0,
+          "name": "from",
+          "type": {
+            "kind": "record",
+            "ref": 19
+          },
+          "default": {
+            "kind": "record",
+            "fields": [
+              {
+                "kind": "float",
+                "text": "0"
+              },
+              {
+                "kind": "float",
+                "text": "0"
+              }
+            ]
+          }
+        },
+        {
+          "ref": 1,
+          "name": "to",
+          "type": {
+            "kind": "record",
+            "ref": 19
+          },
+          "default": {
+            "kind": "record",
+            "fields": [
+              {
+                "kind": "float",
+                "text": "0"
+              },
+              {
+                "kind": "float",
+                "text": "0"
+              }
+            ]
+          }
+        },
+        {
+          "ref": 2,
+          "name": "distanceKm",
+          "type": {
+            "kind": "float"
+          },
+          "default": {
+            "kind": "float",
+            "text": "0"
+          }
+        }
+      ]
+    },
+    {
+      "ref": 26,
+      "name": "Ordering.StaffProfile",
+      "kind": "value",
+      "fields": [
+        {
+          "ref": 0,
+          "name": "name",
+          "type": {
+            "kind": "string"
+          },
+          "default": {
+            "kind": "string"
+          }
+        },
+        {
+          "ref": 1,
+          "name": "email",
+          "type": {
+            "kind": "string",
+            "optional": true
+          },
+          "default": {
+            "kind": "none"
+          }
+        }
+      ]
+    },
+    {
+      "ref": 27,
+      "name": "Dispatch.CarClass",
+      "kind": "enum",
+      "enum": [
+        "economy",
+        "comfort"
+      ]
+    },
+    {
+      "ref": 28,
+      "name": "Dispatch.Currency",
+      "kind": "enum",
+      "enum": [
+        "rub"
+      ]
+    },
+    {
+      "ref": 29,
+      "name": "Dispatch.DriverStatus",
+      "kind": "enum",
+      "enum": [
+        "offline",
+        "free",
+        "offered",
+        "busy"
+      ]
+    },
+    {
+      "ref": 30,
+      "name": "Dispatch.OfferOutcome",
+      "kind": "enum",
+      "enum": [
+        "pending",
+        "accepted",
+        "declined",
+        "expired",
+        "withdrawn"
+      ]
+    },
+    {
+      "ref": 31,
+      "name": "Dispatch.TripStage",
+      "kind": "enum",
+      "enum": [
+        "searching",
+        "offered",
+        "assigned",
+        "completed",
+        "noDrivers",
+        "cancelled"
+      ]
+    },
+    {
+      "ref": 32,
+      "name": "Ordering.CarClass",
+      "kind": "enum",
+      "enum": [
+        "economy",
+        "comfort"
+      ]
+    },
+    {
+      "ref": 33,
+      "name": "Ordering.Currency",
+      "kind": "enum",
+      "enum": [
+        "rub"
+      ]
+    },
+    {
+      "ref": 34,
+      "name": "Ordering.OrderStatus",
+      "kind": "enum",
+      "enum": [
+        "searching",
+        "offered",
+        "assigned",
+        "completed",
+        "paid",
+        "unpaid",
+        "cancelled",
+        "noDrivers"
+      ]
+    },
+    {
+      "ref": 35,
+      "name": "Dispatch.Matching",
+      "kind": "external",
+      "id": "uuid",
+      "fields": [
+        {
+          "ref": 0,
+          "name": "drivers",
+          "type": {
+            "kind": "list",
+            "elem": {
+              "kind": "id",
+              "ref": 5
+            }
+          },
+          "default": {
+            "kind": "list"
+          }
+        },
+        {
+          "ref": 1,
+          "name": "silent",
+          "type": {
+            "kind": "bool"
+          },
+          "default": {
+            "kind": "bool",
+            "text": "false"
+          }
+        }
+      ],
+      "methods": [
+        {
+          "ref": 0,
+          "name": "GoSilent",
+          "kind": "command",
+          "public": true,
+          "access": [
+            {
+              "kind": "any"
+            }
+          ],
+          "doc": "The matching service stops answering"
+        },
+        {
+          "ref": 1,
+          "name": "Setup",
+          "kind": "command",
+          "public": true,
+          "access": [
+            {
+              "kind": "any"
+            }
+          ],
+          "params": [
+            {
+              "ref": 0,
+              "name": "freeDrivers",
+              "type": {
+                "kind": "list",
+                "elem": {
+                  "kind": "id",
+                  "ref": 5
+                }
+              }
+            }
+          ],
+          "doc": "Drivers the matching service offers, in order"
+        },
+        {
+          "ref": 2,
+          "name": "configured",
+          "kind": "event",
+          "params": [
+            {
+              "ref": 0,
+              "name": "freeDrivers",
+              "type": {
+                "kind": "list",
+                "elem": {
+                  "kind": "id",
+                  "ref": 5
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ref": 3,
+          "name": "silenced",
+          "kind": "event"
+        },
+        {
+          "ref": 4,
+          "name": "findDriver",
+          "kind": "request",
+          "params": [
+            {
+              "ref": 0,
+              "name": "tripId",
+              "type": {
+                "kind": "id",
+                "ref": 1
+              }
+            },
+            {
+              "ref": 1,
+              "name": "pickup",
+              "type": {
+                "kind": "record",
+                "ref": 13
+              }
+            },
+            {
+              "ref": 2,
+              "name": "requestedClass",
+              "type": {
+                "kind": "enum",
+                "ref": 27
+              }
+            },
+            {
+              "ref": 3,
+              "name": "exclude",
+              "type": {
+                "kind": "set",
+                "elem": {
+                  "kind": "id",
+                  "ref": 5
+                }
+              }
+            },
+            {
+              "ref": 4,
+              "name": "timeout",
+              "type": {
+                "kind": "timerId"
+              }
+            }
+          ],
+          "timeoutParam": 5,
+          "fake": true
+        }
+      ],
+      "role": "matching"
+    },
+    {
+      "ref": 36,
+      "name": "Ordering.Payments",
+      "kind": "external",
+      "id": "uuid",
+      "fields": [
+        {
+          "ref": 0,
+          "name": "limit",
+          "type": {
+            "kind": "decimal"
+          },
+          "default": {
+            "kind": "decimal",
+            "text": "0"
+          }
+        }
+      ],
+      "methods": [
+        {
+          "ref": 0,
+          "name": "Setup",
+          "kind": "command",
+          "public": true,
+          "access": [
+            {
+              "kind": "any"
+            }
+          ],
+          "params": [
+            {
+              "ref": 0,
+              "name": "limitAmount",
+              "type": {
+                "kind": "decimal"
+              }
+            }
+          ],
+          "doc": "Payments up to limitAmount pass, larger ones are declined"
+        },
+        {
+          "ref": 1,
+          "name": "capture",
+          "kind": "command",
+          "params": [
+            {
+              "ref": 0,
+              "name": "paymentId",
+              "type": {
+                "kind": "id",
+                "ref": 3
+              }
+            }
+          ]
+        },
+        {
+          "ref": 2,
+          "name": "configured",
+          "kind": "event",
+          "params": [
+            {
+              "ref": 0,
+              "name": "limitAmount",
+              "type": {
+                "kind": "decimal"
+              }
+            }
+          ]
+        },
+        {
+          "ref": 3,
+          "name": "charge",
+          "kind": "request",
+          "params": [
+            {
+              "ref": 0,
+              "name": "paymentId",
+              "type": {
+                "kind": "id",
+                "ref": 3
+              }
+            },
+            {
+              "ref": 1,
+              "name": "amount",
+              "type": {
+                "kind": "record",
+                "ref": 21
+              }
+            }
+          ],
+          "fake": true
+        }
+      ],
+      "role": "payments"
+    }
+  ],
+  "roles": [
+    "admin",
+    "authAdmin",
+    "dispatcher",
+    "matching",
+    "payments",
+    "support"
+  ],
+  "features": [
+    {
+      "name": "Ordering.tips",
+      "date": "2026-11-07",
+      "doc": "Tips for the driver after a paid ride"
+    }
+  ]
+}

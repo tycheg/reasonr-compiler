@@ -1,0 +1,5 @@
+aggregate A
+  command b()
+    if x
+      return
+   y()  # want "E0004"

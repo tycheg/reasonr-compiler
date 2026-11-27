@@ -1,0 +1,4 @@
+test "An order is placed"
+  let o = new Order.Id
+  when
+    [o].Place() as admin

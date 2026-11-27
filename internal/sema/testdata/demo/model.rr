@@ -1,0 +1,30 @@
+role admin
+
+actor Customer
+  id uuid
+  name string
+  visits int
+
+  command(self) SignUp(customerName string)
+    signedUp(customerName: customerName)
+
+  command(self) Visit()
+    visited()
+
+  command(self) Guess()
+    guessed(customerName: faker.name())  # want "E0222"
+
+  event signedUp(customerName string)
+    name = customerName
+
+  event visited()
+    visits = visits + 1
+
+  event guessed(customerName string)
+    name = customerName
+
+  query(admin) Visits(customerId Customer.Id) int
+    let total = 0
+    for i in range(3)  # want "E0222"
+      total = total + i
+    return [customerId]?.visits ?? total

@@ -1,0 +1,94 @@
+1:1 let
+1:5 IDENT "a"
+1:7 =
+1:9 INT "0"
+1:10 NEWLINE
+2:1 let
+2:5 IDENT "b"
+2:7 =
+2:9 INT "1_000_000"
+2:18 NEWLINE
+3:1 let
+3:5 IDENT "c"
+3:7 =
+3:9 DECIMAL "10.50"
+3:14 NEWLINE
+4:1 let
+4:5 IDENT "d"
+4:7 =
+4:9 [
+4:10 DURATION "500ms"
+4:15 ,
+4:17 DURATION "30s"
+4:20 ,
+4:22 DURATION "5m"
+4:24 ,
+4:26 DURATION "2h"
+4:28 ,
+4:30 DURATION "1d"
+4:32 ]
+4:33 NEWLINE
+5:1 let
+5:5 IDENT "e"
+5:7 =
+5:9 DATE "date\"2026-10-02\""
+5:25 NEWLINE
+6:1 let
+6:5 IDENT "f"
+6:7 =
+6:9 TIMESTAMP "timestamp\"2026-10-02T12:00:00Z\""
+6:40 NEWLINE
+7:1 let
+7:5 IDENT "g"
+7:7 =
+7:9 STRING "\"text \\\"in quotes\\\" \\\\ \\n \\t \\u{41}\""
+  text "text \"in quotes\" \\ \n \t A"
+7:45 NEWLINE
+8:1 let
+8:5 IDENT "h"
+8:7 =
+8:9 STRING "\"Order {orderId} for {price.amount + 1} €\""
+  text "Order "
+  expr
+    8:17 IDENT "orderId"
+    8:24 EOF
+  text " for "
+  expr
+    8:31 IDENT "price"
+    8:36 .
+    8:37 IDENT "amount"
+    8:44 +
+    8:46 INT "1"
+    8:47 EOF
+  text " €"
+8:51 NEWLINE
+9:1 let
+9:5 IDENT "i"
+9:7 =
+9:9 STRING "\"braces {{ and }}\""
+  text "braces { and }"
+9:27 NEWLINE
+10:1 let
+10:5 IDENT "j"
+10:7 =
+10:9 STRING "\"{name ?? \"—\"}\""
+  expr
+    10:11 IDENT "name"
+    10:16 ??
+    10:19 STRING "\"—\""
+      text "—"
+    10:22 EOF
+10:24 NEWLINE
+11:1 let
+11:5 IDENT "k"
+11:7 =
+11:9 STRING "\"\""
+11:11 NEWLINE
+12:1 let
+12:5 IDENT "l"
+12:7 =
+12:9 INT "1"
+12:10 .
+12:11 IDENT "times"
+12:16 NEWLINE
+13:1 EOF

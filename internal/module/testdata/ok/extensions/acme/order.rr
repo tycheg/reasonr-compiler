@@ -1,0 +1,20 @@
+extend Order
+  costCenter string?
+
+  rule rate(c string) decimal
+    return 2
+
+  on placed
+    costSet(code: "x")
+
+  event costSet(code string)
+    costCenter = code
+
+  on costSet
+    [id].Noted()
+
+  command Noted()
+    return
+
+screen CostCenter(orderId Order.Id)
+  Button [orderId].Noted

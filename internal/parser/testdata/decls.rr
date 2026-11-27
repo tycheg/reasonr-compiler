@@ -1,0 +1,63 @@
+## Roles
+role admin
+
+## Order status
+enum OrderStatus
+  searching     ## looking for a driver
+  offered
+
+value Money
+  amount decimal
+  currency Currency = rub
+  check amount >= 0
+
+  times(k decimal) Money
+    return Money(amount: round(amount * k, 2), currency: currency)
+
+value ShiftKey
+  driverId Driver.Id
+  day date
+
+actor Customer
+  id uuid
+  phone string? personal
+  route Route? personal(customer)
+  fullName string? was name
+  tags map<string, list<int>>
+
+  index byPhone(phone) unique phoneTaken
+  index byStatus(status, car.carClass desc)
+
+  command(self, support) Forget()
+    forget id
+
+  event signedUp(phoneNumber string? personal, promo string = "")
+    phone = phoneNumber
+  event forgotten()
+
+  notification orderPlaced(orderId Order.Id, price Money)
+  error alreadyRegistered
+  error cannotCancel(currentStatus OrderStatus)
+
+  query(Customer) Profile() CustomerProfile
+    return CustomerProfile(phone: none)
+
+  rule perKmRate(requestedClass CarClass) decimal
+    return 30
+
+projection OrderMart
+  id Order.Id
+  status OrderStatus
+
+external(matching) Matching
+  request findDriver(orderId Order.Id, exclude set<Driver.Id>) timeout 30s
+  request ping()
+
+primitive Grid<Row>
+  binds page<Row>
+
+migration fillOrderMart
+  for orderId in all Order
+    [orderId].rebuildMart()
+
+let car1 = Car(plate: "A001AA77", model: "Kia Rio", carClass: economy)

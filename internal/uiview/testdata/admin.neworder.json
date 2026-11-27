@@ -1,0 +1,279 @@
+{
+  "version": 1,
+  "app": "Admin",
+  "screen": "Ordering.AdminNewOrder",
+  "lang": "en",
+  "platform": "web",
+  "title": "New order",
+  "nodes": [
+    {
+      "bind": {
+        "type": "Ordering.Customer",
+        "method": "OrderTaxi",
+        "command": true,
+        "target": {
+          "name": "customer",
+          "type": "Ordering.Customer.Id",
+          "from": "input",
+          "input": true
+        },
+        "args": [
+          {
+            "name": "orderId",
+            "type": "Ordering.Order.Id",
+            "from": "new"
+          },
+          {
+            "name": "orderRoute",
+            "type": "Ordering.Route",
+            "from": "input",
+            "input": true
+          },
+          {
+            "name": "requestedClass",
+            "type": "Ordering.CarClass",
+            "from": "input",
+            "input": true
+          }
+        ]
+      },
+      "children": [
+        {
+          "event": "done",
+          "id": 2,
+          "kind": "on",
+          "to": {
+            "screen": "Ordering.AdminOrder",
+            "args": [
+              {
+                "name": "orderId",
+                "type": "Ordering.Order.Id",
+                "from": "event",
+                "node": 1,
+                "field": "orderId"
+              }
+            ]
+          }
+        },
+        {
+          "auto": true,
+          "children": [
+            {
+              "auto": true,
+              "children": [
+                {
+                  "auto": true,
+                  "field": "lat",
+                  "fieldType": "float",
+                  "id": 5,
+                  "input": true,
+                  "key": "lat",
+                  "kind": "field",
+                  "label": "Lat",
+                  "primitive": "NumberInput",
+                  "text": "Ordering.GeoPoint.lat"
+                },
+                {
+                  "auto": true,
+                  "field": "lon",
+                  "fieldType": "float",
+                  "id": 6,
+                  "input": true,
+                  "key": "lon",
+                  "kind": "field",
+                  "label": "Lon",
+                  "primitive": "NumberInput",
+                  "text": "Ordering.GeoPoint.lon"
+                }
+              ],
+              "field": "from",
+              "fieldType": "Ordering.GeoPoint",
+              "id": 4,
+              "input": true,
+              "key": "from",
+              "kind": "field",
+              "label": "From",
+              "primitive": "Group",
+              "text": "Ordering.Route.from",
+              "types": {
+                "V": "Ordering.GeoPoint"
+              }
+            },
+            {
+              "auto": true,
+              "children": [
+                {
+                  "auto": true,
+                  "field": "lat",
+                  "fieldType": "float",
+                  "id": 8,
+                  "input": true,
+                  "key": "lat",
+                  "kind": "field",
+                  "label": "Lat",
+                  "primitive": "NumberInput",
+                  "text": "Ordering.GeoPoint.lat"
+                },
+                {
+                  "auto": true,
+                  "field": "lon",
+                  "fieldType": "float",
+                  "id": 9,
+                  "input": true,
+                  "key": "lon",
+                  "kind": "field",
+                  "label": "Lon",
+                  "primitive": "NumberInput",
+                  "text": "Ordering.GeoPoint.lon"
+                }
+              ],
+              "field": "to",
+              "fieldType": "Ordering.GeoPoint",
+              "id": 7,
+              "input": true,
+              "key": "to",
+              "kind": "field",
+              "label": "To",
+              "primitive": "Group",
+              "text": "Ordering.Route.to",
+              "types": {
+                "V": "Ordering.GeoPoint"
+              }
+            },
+            {
+              "auto": true,
+              "field": "distanceKm",
+              "fieldType": "float",
+              "id": 10,
+              "input": true,
+              "key": "distanceKm",
+              "kind": "field",
+              "label": "Distance km",
+              "primitive": "NumberInput",
+              "text": "Ordering.Route.distanceKm"
+            }
+          ],
+          "field": "orderRoute",
+          "fieldType": "Ordering.Route",
+          "id": 3,
+          "input": true,
+          "key": "orderRoute",
+          "kind": "field",
+          "label": "Route",
+          "primitive": "Group",
+          "text": "Ordering.Customer.OrderTaxi.orderRoute",
+          "types": {
+            "V": "Ordering.Route"
+          }
+        },
+        {
+          "auto": true,
+          "field": "requestedClass",
+          "fieldType": "Ordering.CarClass",
+          "id": 11,
+          "input": true,
+          "key": "requestedClass",
+          "kind": "field",
+          "label": "Class",
+          "primitive": "Select",
+          "text": "Ordering.Customer.OrderTaxi.requestedClass",
+          "types": {
+            "E": "Ordering.CarClass"
+          }
+        },
+        {
+          "auto": true,
+          "field": "customer",
+          "fieldType": "Ordering.Customer.Id",
+          "id": 12,
+          "input": true,
+          "key": "customer",
+          "kind": "field",
+          "label": "Customer",
+          "params": [
+            {
+              "name": "search",
+              "query": {
+                "type": "Ordering.Customer",
+                "method": "FindByPhone",
+                "result": "list\u003cOrdering.CustomerRow\u003e",
+                "args": [
+                  {
+                    "name": "phoneNumber",
+                    "type": "string",
+                    "from": "provided",
+                    "field": "text"
+                  }
+                ]
+              }
+            },
+            {
+              "name": "key",
+              "field": "customerId"
+            },
+            {
+              "name": "label",
+              "field": "phone"
+            }
+          ],
+          "primitive": "EntityPicker",
+          "text": "Ordering.Customer",
+          "types": {
+            "K": "Ordering.Customer.Id"
+          }
+        }
+      ],
+      "id": 1,
+      "key": "Customer.OrderTaxi",
+      "kind": "primitive",
+      "label": "Order taxi",
+      "place": "Admin.AdminNewOrder:Customer.OrderTaxi",
+      "primitive": "Form"
+    }
+  ],
+  "types": {
+    "Ordering.CarClass": {
+      "values": [
+        "economy",
+        "comfort"
+      ],
+      "labels": {
+        "comfort": "Comfort",
+        "economy": "Economy"
+      }
+    },
+    "Ordering.GeoPoint": {
+      "fields": [
+        {
+          "name": "lat",
+          "type": "float",
+          "label": "Lat"
+        },
+        {
+          "name": "lon",
+          "type": "float",
+          "label": "Lon"
+        }
+      ]
+    },
+    "Ordering.Route": {
+      "fields": [
+        {
+          "name": "from",
+          "type": "Ordering.GeoPoint",
+          "label": "From"
+        },
+        {
+          "name": "to",
+          "type": "Ordering.GeoPoint",
+          "label": "To"
+        },
+        {
+          "name": "distanceKm",
+          "type": "float",
+          "label": "Distance km"
+        }
+      ]
+    }
+  }
+}

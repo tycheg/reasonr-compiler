@@ -1,0 +1,8 @@
+# bank/apps/Bank/app.rr
+
+app(Client) Bank "Bank"
+  language en
+  default Account.Id AccountNumber
+  Menu
+    MyAccounts
+    Profile

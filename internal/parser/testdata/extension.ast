@@ -1,0 +1,46 @@
+File
+  Name: "testdata/extension.rr"
+  Decls:
+    - ExtendDecl
+        Name: Order
+        Members:
+          - FieldDecl
+              Name: costCenter
+              Type: OptionalType
+                Elem: NamedType string
+          - OnDecl
+              Event: placed
+              Body: Block
+                List:
+                  - IfStmt
+                      Cond: BinaryExpr
+                        X: SelectorExpr
+                          X: orderPrice
+                          Sel: amount
+                        Op: >
+                        Y: BasicLit INT 5000
+                      Body: Block
+                        List:
+                          - ExprStmt
+                              X: CallExpr
+                                Fun: orderLimitExceeded
+                                Args: ArgList
+                                  Args:
+                                    - Arg
+                                        Name: limit
+                                        Value: BasicLit INT 5000
+          - RuleDecl
+              Name: perKmRate
+              Params: ParamList
+                List:
+                  - Param
+                      Name: requestedClass
+                      Type: NamedType CarClass
+              Result: NamedType decimal
+              Body: Block
+                List:
+                  - ReturnStmt
+                      Result: BasicLit INT 25
+    - ExcludeDecl
+        Test: BasicLit STRING "A customer orders a taxi"
+        Reason: BasicLit STRING "acme has a 5000 limit"

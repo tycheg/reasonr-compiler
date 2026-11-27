@@ -1,0 +1,45 @@
+role matching
+role payments
+
+external(matching) Matching
+  request findDriver(orderId Order.Id, timeout Timer.Id)
+  request ping(timeout Timer.Id?)
+
+external(matchng) Search  # want "E1201"
+  request find()
+
+external(matching, payments) Twice  # want "E1201"
+  request run()
+
+external Pay
+  request charge(amount int, timeout int)  # want "E1202"
+  request refund(amount int) timeout 30s  # want "E1203"
+
+external(payments) Silent  # want "W1030"
+  request poke()
+
+aggregate Order
+  id uuid
+  timer Timer.Id?
+
+  command(matching) Found()
+    found()
+
+  command place()
+    let t = schedule(at: now + 60s, run: expire())
+    Matching.findDriver(orderId: id, timeout: t)
+    Matching.ping()
+    Search.find()
+    Twice.run()
+    Pay.charge(amount: 1, timeout: 2)
+    Pay.refund(amount: 1)
+    Silent.poke()
+    placed(searchTimer: t)
+
+  command expire()
+    found()
+
+  event found()
+
+  event placed(searchTimer Timer.Id)
+    timer = searchTimer

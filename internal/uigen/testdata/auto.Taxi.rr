@@ -1,0 +1,28 @@
+# The automatic UI of app Taxi (reasonr ui eject Taxi)
+
+app(Customer) Taxi "Taxi"
+  language en
+  platforms web, mobile
+  Menu
+    TaxiCustomer
+    TaxiOrder
+
+screen TaxiCustomer
+  Card Customer.Profile
+    Actions
+      Edit Customer.SignUp
+      Edit Customer.Join
+      Edit Customer.SetHome
+      Edit Customer.OrderTaxi(orderId: new)
+      Button Customer.Forget
+  Card Customer.Home
+
+screen TaxiOrder
+  Table Order.MyOrders
+    on open TaxiOrderCard
+
+screen TaxiOrderCard(orderId Order.Id)
+  Card Order.Card
+    Actions
+      Edit Order.LeaveTip
+      Edit Order.Cancel

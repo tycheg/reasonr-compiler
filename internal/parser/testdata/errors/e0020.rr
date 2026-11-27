@@ -1,0 +1,9 @@
+test "order"
+  let a = 1
+  when
+    [a].b() as x
+  given                 # want "E0020"
+    [a].c() as x
+  let b = 2             # want "E0020"
+  then
+    matches (x: 1)

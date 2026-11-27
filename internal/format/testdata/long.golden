@@ -1,0 +1,43 @@
+aggregate Order
+  command place(
+    customerId Customer.Id,
+    orderRoute Route,
+    requestedClass CarClass,
+    promoCode string?,
+    comment string?,
+    extra int,
+  )
+    placed(
+      customerId: customerId,
+      orderRoute: orderRoute,
+      requestedClass: requestedClass,
+      orderPrice: orderPrice,
+      at: now,
+    )
+    let price = Money(
+      amount: basePrice(orderRoute: orderRoute, requestedClass: requestedClass, promoCode: promoCode),
+      currency: rub,
+    )
+    [driverId].offerOrder(
+      orderId: id,
+      pickup: route.from,
+      orderPrice: price,
+      comment: comment,
+      requestedClass: requestedClass,
+    ) to driver
+    let short = f(a: 1, b: 2)
+    let ids = [
+      firstCandidateDriverId,
+      secondCandidateDriverId,
+      thirdCandidateDriverId,
+      fourthCandidateDriverId,
+      fifthCandidateDriverId,
+    ]
+    let names = [
+      "first": firstCandidateDriverName,
+      "second": secondCandidateDriverName,
+      "third": thirdCandidateDriverName,
+    ]
+    return [Order]
+      where customer == me
+      select OrderRow(orderId: id, status: status, price: price, placedAt: placedAt, driver: driver, comment: comment)

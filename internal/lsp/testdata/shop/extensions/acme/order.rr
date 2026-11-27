@@ -1,0 +1,3 @@
+extend Order
+  on cancelled
+    return

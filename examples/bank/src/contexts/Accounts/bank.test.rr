@@ -1,0 +1,117 @@
+# bank/contexts/Accounts/bank.test.rr
+
+test "All validation errors come at once"
+  let c1 = new Client.Id
+  let a1 = new Account.Id
+  let a2 = new Account.Id
+  given
+    [c1].Join(clientName: "Anna") as c1
+    [a1].Open() as c1
+  when
+    [a1].Transfer(target: a2, sum: -5, comment: "") as c1
+  then
+    error invalidSum(sum: -5)
+    error accountNotFound(accountId: a2)
+
+test "A transfer within the overdraft"
+  let c1 = new Client.Id
+  let c2 = new Client.Id
+  let a1 = new Account.Id
+  let a2 = new Account.Id
+  given
+    [c1].Join(clientName: "Anna") as c1
+    [c2].Join(clientName: "Boris") as c2
+    [a1].Open() as c1
+    [a2].Open() as c2
+    [a1].SetOverdraft(limit: 500) as compliance
+  when
+    [a1].Transfer(target: a2, sum: 200, comment: "for lunch") as c1
+  then
+    notification transferDone(newBalance: -200) to c1
+    Account.Details(accountId: a1) as c1 matches (balance: -200)
+    Account.Details(accountId: a2) as c2 matches (balance: 200)
+
+test "A transfer beyond the overdraft is rejected as a whole"
+  let c1 = new Client.Id
+  let c2 = new Client.Id
+  let a1 = new Account.Id
+  let a2 = new Account.Id
+  given
+    [c1].Join(clientName: "Anna") as c1
+    [c2].Join(clientName: "Boris") as c2
+    [a1].Open() as c1
+    [a2].Open() as c2
+    [a1].SetOverdraft(limit: 100) as compliance
+  when
+    [a1].Transfer(target: a2, sum: 150, comment: "") as c1
+  then
+    error insufficientFunds(available: 100)
+    Account.Details(accountId: a1) as c1 matches (balance: 0)
+
+test "An error of the target cancels the transfer"
+  let c1 = new Client.Id
+  let c2 = new Client.Id
+  let a1 = new Account.Id
+  let a2 = new Account.Id
+  given
+    [c1].Join(clientName: "Anna") as c1
+    [c2].Join(clientName: "Boris") as c2
+    [a1].Open() as c1
+    [a2].Open() as c2
+    [a1].SetOverdraft(limit: 500) as compliance
+    [a2].Freeze(reason: "review") as compliance
+  when
+    [a1].Transfer(target: a2, sum: 100, comment: "") as c1
+  then
+    error accountFrozen(accountId: a2)
+    Account.Details(accountId: a1) as c1 matches (balance: 0)
+
+test "Another client's account is not accessible"
+  let c1 = new Client.Id
+  let c2 = new Client.Id
+  let a1 = new Account.Id
+  let a2 = new Account.Id
+  given
+    [c1].Join(clientName: "Anna") as c1
+    [c2].Join(clientName: "Boris") as c2
+    [a1].Open() as c1
+    [a2].Open() as c2
+  when
+    [a1].Transfer(target: a2, sum: 1, comment: "") as c2
+  then
+    error forbidden
+
+test "Another client's account is not visible"
+  let c1 = new Client.Id
+  let c2 = new Client.Id
+  let a1 = new Account.Id
+  given
+    [c1].Join(clientName: "Anna") as c1
+    [c2].Join(clientName: "Boris") as c2
+    [a1].Open() as c1
+  when
+    Account.Details(accountId: a1) as c2
+  then
+    error accountNotFound(accountId: a1)
+
+test "After forgetting, the client name is unreadable and the accounts stay"
+  let c1 = new Client.Id
+  let a1 = new Account.Id
+  given
+    [c1].Join(clientName: "Anna") as c1
+    [a1].Open() as c1
+  when
+    [c1].Forget() as compliance
+  then
+    Client.Profile() as c1 matches (fullName: none)
+    Account.Details(accountId: a1) as c1 matches (balance: 0)
+
+test "After forgetting, the client gives their name again"
+  let c1 = new Client.Id
+  given
+    [c1].Join(clientName: "Anna") as c1
+    [c1].Forget() as c1
+  when
+    [c1].Rename(clientName: "Anna Smith") as c1
+  then
+    Client.Profile() as c1 matches (fullName: "Anna Smith")

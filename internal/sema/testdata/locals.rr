@@ -1,0 +1,46 @@
+aggregate Order
+  id uuid
+  status string
+  now timestamp  # want "E0108"
+
+  command place(status string, x int, x int)  # want "E0103" "E0104"
+    let y = 1
+    let status = 2  # want "E0103"
+    let me = 3      # want "E0108"
+    if y > 0
+      let z = 1
+      let y = 2  # want "E0104"
+    else
+      let z = 2
+    for item in [1, 2]
+      let item = 3  # want "E0104"
+    let Big = 1     # want "E0106"
+
+  event placed(status string)  # want "E0103"
+    x = 1                      # want "E0201"
+
+  error failed(status string)
+  notification sent(status string)
+
+  on placed
+    let status2 = 1
+
+value Money
+  amount decimal
+
+  times(amount decimal) Money  # want "E0103"
+    return Money(amount: 1)
+
+let shared = 1
+let shared = 2  # want "E0104"
+
+role admin
+
+test "Test"
+  let o = new Order.Id
+  let shared = 3  # want "E0104"
+  let local = 1
+  when
+    time offset +1s
+  then
+    error failed

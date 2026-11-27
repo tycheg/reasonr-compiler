@@ -1,0 +1,61 @@
+app(Staff) Admin "Admin"
+  language en
+  platforms web, mobile
+  default Customer.Id EntityPicker(search: Customer.FindByPhone(phoneNumber: text))
+  Menu
+    AdminOrders
+
+app(dispatcher) Dispatch auto
+
+default enum Tag
+default set<enum> MultiSelect
+
+screen AdminOrders "Orders"
+  Toolbar
+    Link AdminNewOrder
+  Table(size: 50) Order.List
+    Columns
+      placedAt
+      status Tag "Status"
+    RowActions
+      Confirm Order.Cancel if status in [searching, offered]
+    on open AdminOrder
+
+screen AdminOrder(orderId Order.Id) "Order"
+  Card Order.Details
+    customer EntityPicker(search: Customer.FindByPhone(phoneNumber: text), key: customerId)
+    Actions
+      Edit Order.Edit "Edit" if status == searching
+      Form [new Driver.Id].Register
+        on done back
+  Form Customer.OrderTaxi(orderId: new)
+    on done AdminOrder(orderId: orderId)
+
+primitive Table<Row>(size int = 20)
+  binds page<Row>
+  part Filters binds params
+  part Columns binds Row
+  part RowActions binds Row
+  event open(row Row)
+
+primitive Toolbar
+
+primitive EntityPicker<R, K id>(search(text string) list<R>, key field<R, K> = auto, label field<R> = auto)
+  binds input K | set<K>
+
+primitive Edit
+  binds command
+  children binds inputs
+  event done
+
+primitive Menu
+  children binds screens
+
+primitive Link
+  binds screen
+
+texts en
+  Admin "Admin"
+  Order.cannotCancel "Cannot cancel an order with status {currentStatus}"
+  AdminOrder:Order.Edit "Edit"
+  AdminOrders:Toolbar#2 "Tools"

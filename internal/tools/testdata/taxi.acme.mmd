@@ -1,0 +1,234 @@
+flowchart LR
+  Auth_User_Sync["Auth.User.Sync"]:::public
+  Auth_User_synced(["Auth.User.synced"]):::event
+  Dispatch_Driver_Accept["Dispatch.Driver.Accept"]:::public
+  Dispatch_Driver_Decline["Dispatch.Driver.Decline"]:::public
+  Dispatch_Driver_FinishRide["Dispatch.Driver.FinishRide"]:::public
+  Dispatch_Driver_GoOffline["Dispatch.Driver.GoOffline"]:::public
+  Dispatch_Driver_GoOnline["Dispatch.Driver.GoOnline"]:::public
+  Dispatch_Driver_Register["Dispatch.Driver.Register"]:::public
+  Dispatch_Driver_driverRegistered(["Dispatch.Driver.driverRegistered"]):::event
+  Dispatch_Driver_offerAccepted(["Dispatch.Driver.offerAccepted"]):::event
+  Dispatch_Driver_offerDeclined(["Dispatch.Driver.offerDeclined"]):::event
+  Dispatch_Driver_offerRejectedBusy(["Dispatch.Driver.offerRejectedBusy"]):::event
+  Dispatch_Driver_offerTrip["Dispatch.Driver.offerTrip"]:::command
+  Dispatch_Driver_offerWithdrawn(["Dispatch.Driver.offerWithdrawn"]):::event
+  Dispatch_Driver_releaseTrip["Dispatch.Driver.releaseTrip"]:::command
+  Dispatch_Driver_rideFinished(["Dispatch.Driver.rideFinished"]):::event
+  Dispatch_Driver_tripOffered(["Dispatch.Driver.tripOffered"]):::event
+  Dispatch_Driver_wentOffline(["Dispatch.Driver.wentOffline"]):::event
+  Dispatch_Driver_wentOnline(["Dispatch.Driver.wentOnline"]):::event
+  Dispatch_Driver_withdrawOffer["Dispatch.Driver.withdrawOffer"]:::command
+  Dispatch_Matching_GoSilent["Dispatch.Matching.GoSilent"]:::public
+  Dispatch_Matching_Setup["Dispatch.Matching.Setup"]:::public
+  Dispatch_Matching_configured(["Dispatch.Matching.configured"]):::event
+  Dispatch_Matching_findDriver[/"Dispatch.Matching.findDriver"/]:::request
+  Dispatch_Matching_silenced(["Dispatch.Matching.silenced"]):::event
+  Dispatch_Trip_DriverFound["Dispatch.Trip.DriverFound"]:::public
+  Dispatch_Trip_NoDriverFound["Dispatch.Trip.NoDriverFound"]:::public
+  Dispatch_Trip_Offer_close["Dispatch.Trip.Offer.close"]:::command
+  Dispatch_Trip_Offer_closed(["Dispatch.Trip.Offer.closed"]):::event
+  Dispatch_Trip_Offer_open["Dispatch.Trip.Offer.open"]:::command
+  Dispatch_Trip_Offer_opened(["Dispatch.Trip.Offer.opened"]):::event
+  Dispatch_Trip_assignDriver["Dispatch.Trip.assignDriver"]:::command
+  Dispatch_Trip_close["Dispatch.Trip.close"]:::command
+  Dispatch_Trip_closeOffer["Dispatch.Trip.closeOffer"]:::command
+  Dispatch_Trip_dispatchClosed(["Dispatch.Trip.dispatchClosed"]):::event
+  Dispatch_Trip_driverAssigned(["Dispatch.Trip.driverAssigned"]):::event
+  Dispatch_Trip_driverDeclined["Dispatch.Trip.driverDeclined"]:::command
+  Dispatch_Trip_driverSkipped(["Dispatch.Trip.driverSkipped"]):::event
+  Dispatch_Trip_expireOffer["Dispatch.Trip.expireOffer"]:::command
+  Dispatch_Trip_findDriver["Dispatch.Trip.findDriver"]:::command
+  Dispatch_Trip_finishRide["Dispatch.Trip.finishRide"]:::command
+  Dispatch_Trip_giveUp["Dispatch.Trip.giveUp"]:::command
+  Dispatch_Trip_offerSent(["Dispatch.Trip.offerSent"]):::event
+  Dispatch_Trip_open["Dispatch.Trip.open"]:::command
+  Dispatch_Trip_rideCompleted(["Dispatch.Trip.rideCompleted"]):::event
+  Dispatch_Trip_searchAgain["Dispatch.Trip.searchAgain"]:::command
+  Dispatch_Trip_searchFailed(["Dispatch.Trip.searchFailed"]):::event
+  Dispatch_Trip_searchOpened(["Dispatch.Trip.searchOpened"]):::event
+  Dispatch_Trip_searchRetried(["Dispatch.Trip.searchRetried"]):::event
+  Dispatch_Trip_searchStarted(["Dispatch.Trip.searchStarted"]):::event
+  Dispatch_Trip_searchTimedOut["Dispatch.Trip.searchTimedOut"]:::command
+  Dispatch_Trip_searchUpdated(["Dispatch.Trip.searchUpdated"]):::event
+  Dispatch_Trip_tip["Dispatch.Trip.tip"]:::command
+  Dispatch_Trip_update["Dispatch.Trip.update"]:::command
+  Dispatch_Ordering_Order_on_edited{{"Dispatch: Ordering.Order.on edited"}}:::reaction
+  Dispatch_Ordering_Order_on_orderCancelled{{"Dispatch: Ordering.Order.on orderCancelled"}}:::reaction
+  Dispatch_Ordering_Order_on_placed{{"Dispatch: Ordering.Order.on placed"}}:::reaction
+  Dispatch_Ordering_Order_on_tipped{{"Dispatch: Ordering.Order.on tipped"}}:::reaction
+  Ordering_Customer_Forget["Ordering.Customer.Forget"]:::public
+  Ordering_Customer_Join["Ordering.Customer.Join"]:::public
+  Ordering_Customer_OrderTaxi["Ordering.Customer.OrderTaxi"]:::public
+  Ordering_Customer_SetHome["Ordering.Customer.SetHome"]:::public
+  Ordering_Customer_SignUp["Ordering.Customer.SignUp"]:::public
+  Ordering_Customer_blockedForDebt(["Ordering.Customer.blockedForDebt"]):::event
+  Ordering_Customer_forgotten(["Ordering.Customer.forgotten"]):::event
+  Ordering_Customer_homeSet(["Ordering.Customer.homeSet"]):::event
+  Ordering_Customer_joined(["Ordering.Customer.joined"]):::event
+  Ordering_Customer_orderClosed(["Ordering.Customer.orderClosed"]):::event
+  Ordering_Customer_orderFinished["Ordering.Customer.orderFinished"]:::command
+  Ordering_Customer_orderStarted(["Ordering.Customer.orderStarted"]):::event
+  Ordering_Customer_orderUnpaid["Ordering.Customer.orderUnpaid"]:::command
+  Ordering_Customer_signedUp(["Ordering.Customer.signedUp"]):::event
+  Ordering_Order_Cancel["Ordering.Order.Cancel"]:::public
+  Ordering_Order_Edit["Ordering.Order.Edit"]:::public
+  Ordering_Order_LeaveTip["Ordering.Order.LeaveTip"]:::public
+  Ordering_Order_PaymentCaptured["Ordering.Order.PaymentCaptured"]:::public
+  Ordering_Order_PaymentDeclined["Ordering.Order.PaymentDeclined"]:::public
+  Ordering_Order_SetCostCenter["Ordering.Order.SetCostCenter"]:::public
+  Ordering_Order_confirmDriver["Ordering.Order.confirmDriver"]:::command
+  Ordering_Order_costCenterSet(["Ordering.Order.costCenterSet"]):::event
+  Ordering_Order_driverConfirmed(["Ordering.Order.driverConfirmed"]):::event
+  Ordering_Order_edited(["Ordering.Order.edited"]):::event
+  Ordering_Order_failSearch["Ordering.Order.failSearch"]:::command
+  Ordering_Order_finishRide["Ordering.Order.finishRide"]:::command
+  Ordering_Order_markOffered["Ordering.Order.markOffered"]:::command
+  Ordering_Order_offerPending(["Ordering.Order.offerPending"]):::event
+  Ordering_Order_on_placed{{"Ordering.Order.on placed"}}:::reaction
+  Ordering_Order_orderCancelled(["Ordering.Order.orderCancelled"]):::event
+  Ordering_Order_paymentFailed(["Ordering.Order.paymentFailed"]):::event
+  Ordering_Order_paymentReceived(["Ordering.Order.paymentReceived"]):::event
+  Ordering_Order_place["Ordering.Order.place"]:::command
+  Ordering_Order_placed(["Ordering.Order.placed"]):::event
+  Ordering_Order_resumeSearch["Ordering.Order.resumeSearch"]:::command
+  Ordering_Order_rideFinished(["Ordering.Order.rideFinished"]):::event
+  Ordering_Order_searchExhausted(["Ordering.Order.searchExhausted"]):::event
+  Ordering_Order_searchResumed(["Ordering.Order.searchResumed"]):::event
+  Ordering_Order_tipped(["Ordering.Order.tipped"]):::event
+  Ordering_Order_writeMart["Ordering.Order.writeMart"]:::command
+  Ordering_OrderMart[("Ordering.OrderMart")]:::projection
+  Ordering_Payments_Setup["Ordering.Payments.Setup"]:::public
+  Ordering_Payments_capture["Ordering.Payments.capture"]:::command
+  Ordering_Payments_charge[/"Ordering.Payments.charge"/]:::request
+  Ordering_Payments_configured(["Ordering.Payments.configured"]):::event
+  Ordering_Staff_ChangeEmail["Ordering.Staff.ChangeEmail"]:::public
+  Ordering_Staff_Hire["Ordering.Staff.Hire"]:::public
+  Ordering_Staff_emailChanged(["Ordering.Staff.emailChanged"]):::event
+  Ordering_Staff_hired(["Ordering.Staff.hired"]):::event
+  Ordering_Dispatch_Trip_on_driverAssigned{{"Ordering: Dispatch.Trip.on driverAssigned"}}:::reaction
+  Ordering_Dispatch_Trip_on_driverSkipped{{"Ordering: Dispatch.Trip.on driverSkipped"}}:::reaction
+  Ordering_Dispatch_Trip_on_offerSent{{"Ordering: Dispatch.Trip.on offerSent"}}:::reaction
+  Ordering_Dispatch_Trip_on_rideCompleted{{"Ordering: Dispatch.Trip.on rideCompleted"}}:::reaction
+  Ordering_Dispatch_Trip_on_searchFailed{{"Ordering: Dispatch.Trip.on searchFailed"}}:::reaction
+  Auth_User_Sync --> Auth_User_synced
+  Dispatch_Driver_Accept --> Dispatch_Driver_offerAccepted
+  Dispatch_Driver_Accept --> Dispatch_Trip_assignDriver
+  Dispatch_Driver_Decline --> Dispatch_Driver_offerDeclined
+  Dispatch_Driver_Decline --> Dispatch_Trip_driverDeclined
+  Dispatch_Driver_FinishRide --> Dispatch_Driver_rideFinished
+  Dispatch_Driver_FinishRide --> Dispatch_Trip_finishRide
+  Dispatch_Driver_GoOffline --> Dispatch_Driver_wentOffline
+  Dispatch_Driver_GoOnline --> Dispatch_Driver_wentOnline
+  Dispatch_Driver_Register --> Dispatch_Driver_driverRegistered
+  Dispatch_Driver_offerTrip --> Dispatch_Driver_offerRejectedBusy
+  Dispatch_Driver_offerTrip --> Dispatch_Driver_tripOffered
+  Dispatch_Driver_offerTrip --> Dispatch_Trip_driverDeclined
+  Dispatch_Driver_releaseTrip --> Dispatch_Driver_rideFinished
+  Dispatch_Driver_withdrawOffer --> Dispatch_Driver_offerWithdrawn
+  Dispatch_Matching_GoSilent --> Dispatch_Matching_silenced
+  Dispatch_Matching_Setup --> Dispatch_Matching_configured
+  Dispatch_Matching_findDriver -. fake .-> Dispatch_Trip_DriverFound
+  Dispatch_Matching_findDriver -. fake .-> Dispatch_Trip_NoDriverFound
+  Dispatch_Trip_DriverFound --> Dispatch_Driver_offerTrip
+  Dispatch_Trip_DriverFound --> Dispatch_Trip_Offer_open
+  Dispatch_Trip_DriverFound -. timer .-> Dispatch_Trip_expireOffer
+  Dispatch_Trip_DriverFound --> Dispatch_Trip_offerSent
+  Dispatch_Trip_NoDriverFound --> Dispatch_Trip_giveUp
+  Dispatch_Trip_Offer_close --> Dispatch_Trip_Offer_closed
+  Dispatch_Trip_Offer_open --> Dispatch_Trip_Offer_opened
+  Dispatch_Trip_assignDriver --> Dispatch_Trip_closeOffer
+  Dispatch_Trip_assignDriver --> Dispatch_Trip_driverAssigned
+  Dispatch_Trip_close --> Dispatch_Driver_releaseTrip
+  Dispatch_Trip_close --> Dispatch_Driver_withdrawOffer
+  Dispatch_Trip_close --> Dispatch_Trip_closeOffer
+  Dispatch_Trip_close --> Dispatch_Trip_dispatchClosed
+  Dispatch_Trip_closeOffer --> Dispatch_Trip_Offer_close
+  Dispatch_Trip_driverAssigned -.-> Ordering_Dispatch_Trip_on_driverAssigned
+  Dispatch_Trip_driverDeclined --> Dispatch_Trip_closeOffer
+  Dispatch_Trip_driverDeclined --> Dispatch_Trip_searchAgain
+  Dispatch_Trip_driverSkipped -.-> Ordering_Dispatch_Trip_on_driverSkipped
+  Dispatch_Trip_expireOffer --> Dispatch_Driver_withdrawOffer
+  Dispatch_Trip_expireOffer --> Dispatch_Trip_closeOffer
+  Dispatch_Trip_expireOffer --> Dispatch_Trip_searchAgain
+  Dispatch_Trip_findDriver --> Dispatch_Matching_findDriver
+  Dispatch_Trip_findDriver --> Dispatch_Trip_searchStarted
+  Dispatch_Trip_findDriver -. timer .-> Dispatch_Trip_searchTimedOut
+  Dispatch_Trip_finishRide --> Dispatch_Trip_rideCompleted
+  Dispatch_Trip_giveUp --> Dispatch_Trip_searchFailed
+  Dispatch_Trip_offerSent -.-> Ordering_Dispatch_Trip_on_offerSent
+  Dispatch_Trip_open --> Dispatch_Trip_findDriver
+  Dispatch_Trip_open --> Dispatch_Trip_searchOpened
+  Dispatch_Trip_rideCompleted -.-> Ordering_Dispatch_Trip_on_rideCompleted
+  Dispatch_Trip_searchAgain --> Dispatch_Trip_driverSkipped
+  Dispatch_Trip_searchAgain --> Dispatch_Trip_findDriver
+  Dispatch_Trip_searchFailed -.-> Ordering_Dispatch_Trip_on_searchFailed
+  Dispatch_Trip_searchTimedOut --> Dispatch_Trip_findDriver
+  Dispatch_Trip_searchTimedOut --> Dispatch_Trip_giveUp
+  Dispatch_Trip_searchTimedOut --> Dispatch_Trip_searchRetried
+  Dispatch_Trip_update --> Dispatch_Trip_searchUpdated
+  Dispatch_Ordering_Order_on_edited --> Dispatch_Trip_update
+  Dispatch_Ordering_Order_on_orderCancelled --> Dispatch_Trip_close
+  Dispatch_Ordering_Order_on_placed --> Dispatch_Trip_open
+  Dispatch_Ordering_Order_on_tipped --> Dispatch_Trip_tip
+  Ordering_Customer_Forget --> Ordering_Customer_forgotten
+  Ordering_Customer_Join --> Ordering_Customer_joined
+  Ordering_Customer_OrderTaxi --> Ordering_Customer_orderStarted
+  Ordering_Customer_OrderTaxi --> Ordering_Order_place
+  Ordering_Customer_SetHome --> Ordering_Customer_homeSet
+  Ordering_Customer_SignUp --> Ordering_Customer_signedUp
+  Ordering_Customer_orderFinished --> Ordering_Customer_orderClosed
+  Ordering_Customer_orderUnpaid --> Ordering_Customer_blockedForDebt
+  Ordering_Order_Cancel --> Ordering_Customer_orderFinished
+  Ordering_Order_Cancel --> Ordering_Order_orderCancelled
+  Ordering_Order_Cancel --> Ordering_Order_writeMart
+  Ordering_Order_Edit --> Ordering_Order_edited
+  Ordering_Order_Edit --> Ordering_Order_writeMart
+  Ordering_Order_LeaveTip -- tips --> Ordering_Order_tipped
+  Ordering_Order_PaymentCaptured --> Ordering_Customer_orderFinished
+  Ordering_Order_PaymentCaptured --> Ordering_Order_paymentReceived
+  Ordering_Order_PaymentCaptured --> Ordering_Order_writeMart
+  Ordering_Order_PaymentDeclined --> Ordering_Customer_orderUnpaid
+  Ordering_Order_PaymentDeclined --> Ordering_Order_paymentFailed
+  Ordering_Order_PaymentDeclined --> Ordering_Order_writeMart
+  Ordering_Order_SetCostCenter --> Ordering_Order_costCenterSet
+  Ordering_Order_confirmDriver --> Ordering_Order_driverConfirmed
+  Ordering_Order_confirmDriver --> Ordering_Order_writeMart
+  Ordering_Order_edited -.-> Dispatch_Ordering_Order_on_edited
+  Ordering_Order_failSearch --> Ordering_Customer_orderFinished
+  Ordering_Order_failSearch --> Ordering_Order_searchExhausted
+  Ordering_Order_failSearch --> Ordering_Order_writeMart
+  Ordering_Order_finishRide --> Ordering_Order_rideFinished
+  Ordering_Order_finishRide --> Ordering_Order_writeMart
+  Ordering_Order_finishRide --> Ordering_Payments_charge
+  Ordering_Order_markOffered --> Ordering_Order_offerPending
+  Ordering_Order_markOffered --> Ordering_Order_writeMart
+  Ordering_Order_orderCancelled -.-> Dispatch_Ordering_Order_on_orderCancelled
+  Ordering_Order_place --> Ordering_Order_placed
+  Ordering_Order_place --> Ordering_Order_writeMart
+  Ordering_Order_placed -.-> Dispatch_Ordering_Order_on_placed
+  Ordering_Order_placed -.-> Ordering_Order_on_placed
+  Ordering_Order_resumeSearch --> Ordering_Order_searchResumed
+  Ordering_Order_resumeSearch --> Ordering_Order_writeMart
+  Ordering_Order_tipped -.-> Dispatch_Ordering_Order_on_tipped
+  Ordering_Order_writeMart --> Ordering_OrderMart
+  Ordering_Payments_Setup --> Ordering_Payments_configured
+  Ordering_Payments_capture -. fake .-> Ordering_Order_PaymentCaptured
+  Ordering_Payments_charge -. fake .-> Ordering_Order_PaymentDeclined
+  Ordering_Payments_charge -. timer .-> Ordering_Payments_capture
+  Ordering_Staff_ChangeEmail --> Ordering_Staff_emailChanged
+  Ordering_Staff_Hire --> Ordering_Staff_hired
+  Ordering_Dispatch_Trip_on_driverAssigned --> Ordering_Order_confirmDriver
+  Ordering_Dispatch_Trip_on_driverSkipped --> Ordering_Order_resumeSearch
+  Ordering_Dispatch_Trip_on_offerSent --> Ordering_Order_markOffered
+  Ordering_Dispatch_Trip_on_rideCompleted --> Ordering_Order_finishRide
+  Ordering_Dispatch_Trip_on_searchFailed --> Ordering_Order_failSearch
+  classDef command fill:#a7c7e7,stroke:#4a6f94
+  classDef public fill:#a7c7e7,stroke:#1f3f66,stroke-width:3px
+  classDef event fill:#ffb347,stroke:#b36b00
+  classDef reaction fill:#c8a2c8,stroke:#7a4f7a
+  classDef request fill:#f4a6c6,stroke:#a3456e
+  classDef projection fill:#b5e7a0,stroke:#4f8a3a
+  classDef app fill:#fff3b0,stroke:#9c8a1f
+  classDef screen fill:#e8e8e8,stroke:#666666
+  classDef context fill:#fdfdfd,stroke:#333333,stroke-width:2px

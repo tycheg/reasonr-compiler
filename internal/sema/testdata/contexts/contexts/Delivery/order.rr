@@ -1,0 +1,28 @@
+enum Speed
+  normal
+
+aggregate Order
+  id uuid
+  shipped bool
+  cost Money?
+
+  command schedule(price Money, speed Speed)
+    scheduled(price: price)
+
+  command(admin) Ship()
+    shippedNow()
+
+  event scheduled(price Money)
+    cost = price
+
+  event shippedNow()
+    shipped = true
+
+value Money
+  amount decimal
+
+actor Courier
+  id uuid
+
+actor Clerk
+  id uuid

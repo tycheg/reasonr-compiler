@@ -1,0 +1,19 @@
+# bank/contexts/Accounts/bank.demo.rr
+# Demo data (RFC §27.5): a month of transfers — clients, accounts with an
+# overdraft, transfers between them.
+# reasonrd demo load "A month of transfers" --tenant demo --config engine.yaml
+
+test "A month of transfers"
+  given
+    time offset -30d
+    for i in range(10)
+      let c = new Client.Id
+      let main = new Account.Id
+      let savings = new Account.Id
+      [c].Join(clientName: faker.name()) as c
+      [main].Open() as c
+      [savings].Open() as c
+      [main].SetOverdraft(limit: faker.decimal(3000, 5000)) as compliance
+      for day in range(faker.int(3, 6))
+        [main].Transfer(target: savings, sum: faker.decimal(10, 500), comment: faker.text(3)) as c
+        time offset +1d

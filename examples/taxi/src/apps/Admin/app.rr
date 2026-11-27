@@ -1,0 +1,10 @@
+# taxi/apps/Admin/app.rr
+
+app(Staff, admin, support) Admin "Admin"
+  language en
+  platforms web
+  default Customer.Id EntityPicker(search: Customer.FindByPhone(phoneNumber: text))
+  Menu
+    AdminOrders
+    NewDriver
+    AdminProfile

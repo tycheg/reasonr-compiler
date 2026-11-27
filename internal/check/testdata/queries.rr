@@ -1,0 +1,95 @@
+role admin
+
+value Row
+  orderId Order.Id
+
+actor Customer
+  id uuid
+  phone string? personal
+
+  index byPhone(phone desc)  # want "E0905"
+
+  query(admin) Sorted(pageReq PageRequest) page<Row>
+    return [Customer]
+      sort phone  # want "E0905"
+      page pageReq
+      select Row(orderId: Order.Id(id))  # want "E0216"
+
+  query(admin) ByPhone(p string, pageReq PageRequest) page<Row>
+    return [Customer]
+      where phone == p
+      page pageReq
+      select Row(orderId: Order.Id(id))  # want "E0216"
+
+aggregate Order
+  id uuid
+  customer Customer.Id?
+  status string
+  kind string
+  total int
+  placedAt timestamp
+
+  index byCustomer(customer, placedAt desc)
+  index byStatus(status)
+
+  query(admin) Mine(c Customer.Id, pageReq PageRequest) page<Row>
+    return [Order]
+      where customer == c
+      sort placedAt desc
+      page pageReq
+      select Row(orderId: id)
+
+  query(admin) Reversed(c Customer.Id, pageReq PageRequest) page<Row>
+    return [Order]
+      where customer == c
+      sort placedAt
+      page pageReq
+      select Row(orderId: id)
+
+  query(admin) NoIndex(pageReq PageRequest) page<Row>
+    return [Order]
+      where total == 1  # want "E0504"
+      page pageReq
+      select Row(orderId: id)
+
+  query(admin) Or(pageReq PageRequest) page<Row>
+    return [Order]
+      where status == "a" or status == "b"  # want "E0501"
+      page pageReq
+      select Row(orderId: id)
+
+  query(admin) Ne(pageReq PageRequest) page<Row>
+    return [Order]
+      where status != "a"  # want "E0503"
+      page pageReq
+      select Row(orderId: id)
+
+  query(admin) Fields(pageReq PageRequest) page<Row>
+    return [Order]
+      where status == kind  # want "E0501"
+      page pageReq
+      select Row(orderId: id)
+
+  query(admin) Dep(pageReq PageRequest) page<Row>
+    return [Order]
+      where total == total + 1  # want "E0502"
+      page pageReq
+      select Row(orderId: id)
+
+  query(admin) Unbounded() list<Row>
+    return [Order]  # want "E0505"
+      where status == "a"
+      select Row(orderId: id)
+
+  query(admin) Big() list<Row>
+    return [Order]
+      where status == "a"
+      limit 500  # want "E0506"
+      select Row(orderId: id)
+
+  query(admin) Bad() int  # want "E0509"
+    return 1
+
+  query(admin) Foreign(c Customer.Id) Row
+    let r = [c]                        # want "E0510"
+    return Row(orderId: new Order.Id)  # want "E0304"

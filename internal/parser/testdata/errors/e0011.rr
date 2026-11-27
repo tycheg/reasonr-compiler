@@ -1,0 +1,5 @@
+aggregate A
+  command b()
+    status == searching   # want "E0011"
+    x + 1                 # want "E0011"
+    ok()

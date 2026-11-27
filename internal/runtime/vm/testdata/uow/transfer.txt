@@ -1,0 +1,8 @@
+entity Accounts.Account 00000000-0000-0000-0000-000000000001 existed=true version=1
+  #0 event Accounts.Account.withdrawn(amount: 120, target: 00000000-0000-0000-0000-000000000002, note: for lunch)
+  state Account(owner: 00000000-0000-0000-0000-000000000001, balance: -20, overdraft: 50, frozen: false)
+entity Accounts.Account 00000000-0000-0000-0000-000000000002 existed=true version=1
+  #1 event Accounts.Account.deposited(amount: 120, source: 00000000-0000-0000-0000-000000000001)
+  state Account(owner: 00000000-0000-0000-0000-000000000002, balance: 130, overdraft: 0, frozen: false)
+notify Accounts.Account.transferDone(newBalance: -20) to initiator
+request Accounts.Antifraud.score(accountId: 00000000-0000-0000-0000-000000000001, target: 00000000-0000-0000-0000-000000000002, sum: 120) key 3b2fdfcf-1131-8853-b038-7aea6ac62e1f

@@ -1,0 +1,36 @@
+# bank/contexts/Accounts/antifraud.test.rr
+
+test "Antifraud freezes the account after a large transfer"
+  let c1 = new Client.Id
+  let c2 = new Client.Id
+  let a1 = new Account.Id
+  let a2 = new Account.Id
+  given
+    Antifraud.Setup(limitAmount: 1000)
+    [c1].Join(clientName: "Anna") as c1
+    [c2].Join(clientName: "Boris") as c2
+    [a1].Open() as c1
+    [a2].Open() as c2
+    [a1].SetOverdraft(limit: 5000) as compliance
+  when
+    [a1].Transfer(target: a2, sum: 2000, comment: "for a car") as c1
+  then
+    request Antifraud.score(accountId: a1, target: a2, sum: 2000)
+    Account.Details(accountId: a1) as c1 matches (balance: -2000, frozen: true)
+
+test "A transfer within the antifraud limit does not freeze the account"
+  let c1 = new Client.Id
+  let c2 = new Client.Id
+  let a1 = new Account.Id
+  let a2 = new Account.Id
+  given
+    Antifraud.Setup(limitAmount: 1000)
+    [c1].Join(clientName: "Anna") as c1
+    [c2].Join(clientName: "Boris") as c2
+    [a1].Open() as c1
+    [a2].Open() as c2
+    [a1].SetOverdraft(limit: 5000) as compliance
+  when
+    [a1].Transfer(target: a2, sum: 300, comment: "") as c1
+  then
+    Account.Details(accountId: a1) as c1 matches (balance: -300, frozen: false)

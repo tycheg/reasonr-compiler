@@ -1,0 +1,20 @@
+aggregate Order
+  id uuid
+
+  command a()  # want "E0401"
+    b()
+
+  command b()
+    a()
+
+  command self()  # want "E0401"
+    self()
+
+  command timer()  # want "E0401"
+    let t = schedule(at: now, run: timer())
+    placed()
+
+  event placed()
+
+  on placed
+    timer()

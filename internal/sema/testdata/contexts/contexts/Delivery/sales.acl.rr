@@ -1,0 +1,19 @@
+acl Sales
+  on Sales.Order.placed
+    let o = [id]  # want "E1407"
+    [Order.Id(id)].schedule(price: Money(amount: total.amount), speed: Speed(speed))  # want "E1418"
+    [id].recalc()  # want "E1407"
+    let m = Sales.OrderMart.Id(id)  # want "E1407"
+    Sales.OrderMart(id: m, status: "x")  # want "E1407"
+    let s = Sales.Order.Status(orderId: id)  # want "E1407"
+
+  on Order.placed  # want "E1416"
+    Courier.Id(id)
+
+  on Billing.Invoice.billed  # want "E1416"
+    [Order.Id(id)].Ship()
+
+  actor Sales.Order as Courier  # want "E1417"
+
+aggregate Inline  # want "E1413"
+  id uuid

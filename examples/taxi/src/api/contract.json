@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "publish": [
+    "Auth.User.*",
+    "Dispatch.Driver.*",
+    "Ordering.Customer.*",
+    "Ordering.Order.*",
+    "Ordering.OrderMart.*"
+  ]
+}

@@ -1,0 +1,4 @@
+# taxi/contexts/Dispatch/matching.rr
+
+external(matching) Matching
+  request findDriver(tripId Trip.Id, pickup GeoPoint, requestedClass CarClass, exclude set<Driver.Id>, timeout Timer.Id)

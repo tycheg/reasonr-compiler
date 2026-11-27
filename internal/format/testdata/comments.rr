@@ -1,0 +1,57 @@
+# A comment at the start of the file
+
+
+## Role documentation
+role admin   # trailing
+role support # another trailing one, aligned in a group with the previous
+## Order
+aggregate Order   # after the heading
+  # before the first member
+
+  status Status            # the column is kept
+  price Money # the group aligns to the rightmost column
+  driver Driver.Id?
+
+  ## A command with documentation
+  command Cancel(reason string)   # after the command heading
+    # before the first statement
+    if status == closed   # after the condition
+      return   # trailing on return
+      # at the end of the if body
+    # before else, at the if level
+    else   # after else
+      closed(reason: reason)
+    notify(
+      # before an argument
+      a: 1,   # after an argument
+      b: 2,
+      # after the last argument
+    )
+    let l = [
+      1, # first
+      2,
+    ]
+    return [Order]   # after the search
+      # before a section
+      where status == active   # after where
+      sort placedAt desc
+      # at the end of the search
+    # at the end of the command body
+
+  # at the end of the entity
+
+# Between declarations
+enum Status
+  active   ## value documentation
+  closed
+  # at the end of the enum
+test "Test"   # after the test name
+  given   # after given
+    # before a step
+    [c1].SignUp() as c1   # after a step
+  when
+    [c1].Order() as c1
+  then
+    error failed   # after a check
+# At the end of the file
+   # indented at the end of the file

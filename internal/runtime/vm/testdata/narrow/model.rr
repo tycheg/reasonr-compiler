@@ -1,0 +1,32 @@
+# Narrowing optional values after if x is not none: fields, parameters,
+# variables and value object fields.
+
+role admin
+
+value Label
+  text string?
+
+aggregate Box
+  id uuid
+  note string?
+  size int?
+  label Label?
+
+  command(admin) Check(extra string?)
+    if note is not none
+      tooBig(text: "x" + note)
+    if size is not none
+      tooBig(text: "n" + string(size + 1))
+    let copy = note
+    if copy is not none
+      tooBig(text: "c" + copy)
+    if extra is not none
+      tooBig(text: "e" + extra)
+    if label is not none
+      if label.text is not none
+        tooBig(text: "l" + label.text)
+    let t = label?.text
+    if t is not none
+      tooBig(text: "t" + t)
+
+  error tooBig(text string)

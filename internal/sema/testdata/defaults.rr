@@ -1,0 +1,30 @@
+enum Status
+  active
+
+value Money
+  amount decimal
+  check amount >= 0
+
+value Positive
+  amount decimal
+  check amount > 0
+
+value WithID
+  order Order.Id
+
+aggregate Order
+  id uuid
+  a Order.Id  # want "E0210"
+  b Timer.Id  # want "E0210"
+  c Money
+  d Positive  # want "E0211"
+  e WithID    # want "E0211"
+  f Positive?
+  g Positive = Positive(amount: 1)
+  h int = 1 + 2
+  i Status = active
+  j string = "x".upper()  # want "E0212"
+  k int = "x"             # want "E0202"
+
+  command place(x int = 1, y string = now)  # want "E0304"
+    return

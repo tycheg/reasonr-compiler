@@ -1,0 +1,46 @@
+== (base)
+  Entity Order
+    ID id
+    Field status
+    Rule rate (1 instr.)
+    Command Place
+    Event placed
+  Projection OrderMart
+    ID id
+    Field status
+  Screen OrderPage
+  Test "An order is placed"
+  Test "Second test"
+== acme
+  Entity Order
+    ID id
+    Field status
+  + Rule rate (1 instr.)
+    Command Place
+    Event placed
+  + Field costCenter
+  + On placed
+  + Event costSet
+  + On costSet
+  + Command Noted
+  Projection OrderMart
+    ID id
+    Field status
+  Screen OrderPage
+  Test "An order is placed"
++ Screen CostCenter
++ Test "Cost center"
+exclude "Second test"
+== beta
+  Entity Order
+    ID id
+    Field status
+    Rule rate (1 instr.)
+    Command Place
+    Event placed
+  Projection OrderMart
+    ID id
+    Field status
+  Screen OrderPage
+  Test "An order is placed"
+  Test "Second test"

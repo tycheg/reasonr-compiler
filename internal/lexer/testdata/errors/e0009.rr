@@ -1,0 +1,3 @@
+let a = "\q"          # want "E0009"
+let b = "\u{110000}"  # want "E0009"
+let c = "\u{}"        # want "E0009"

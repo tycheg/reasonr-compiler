@@ -1,0 +1,9 @@
+# taxi/apps/Join/app.rr
+
+app(Auth.User) Join "Taxi with an account"
+  language en
+  Menu
+    JoinTaxi
+    TaxiAccount
+    Home
+    MyAccount

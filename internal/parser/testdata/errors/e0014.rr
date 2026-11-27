@@ -1,0 +1,4 @@
+aggregate A
+  command b()
+    o.status = 1        # want "E0014"
+    [x] = 2             # want "E0014"

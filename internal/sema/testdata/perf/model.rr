@@ -1,0 +1,14 @@
+role admin
+
+actor Customer
+  id uuid
+  visits int
+
+  command(self) Visit()
+    visited()
+
+  event visited()
+    visits = visits + 1
+
+  query(Customer) Visits() int
+    return [me]?.visits ?? 0

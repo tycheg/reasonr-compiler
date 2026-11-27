@@ -1,0 +1,647 @@
+consts
+  k0 decimal 0
+  k1 int 140
+  k2 bool true
+  k3 int 0
+  k4 int 1
+  k5 string "suspicious transfer"
+  k6 decimal 1000
+  k7 string "Anna"
+  k8 string "Boris"
+  k9 decimal 5000
+  k10 decimal 2000
+  k11 string "for a car"
+  k12 decimal -2000
+  k13 decimal 300
+  k14 string ""
+  k15 decimal -300
+  k16 bool false
+  k17 duration -2592000000000000
+  k18 int 10
+  k19 decimal 3000
+  k20 int 3
+  k21 int 6
+  k22 decimal 10
+  k23 decimal 500
+  k24 duration 86400000000000
+  k25 decimal -5
+  k26 decimal 200
+  k27 string "for lunch"
+  k28 decimal -200
+  k29 decimal 100
+  k30 decimal 150
+  k31 string "review"
+  k32 decimal 1
+  k33 string none
+  k34 string "Anna Smith"
+
+func command Accounts.Client.Join(clientName string)
+  regs: r0 clientName string, r1 id Accounts.Client.Id, r2 bool
+     0  id             r1
+        # contexts/Accounts/bank.rr:19
+     1  ref.exists     r2, r1, Accounts.Client
+     2  br.false       r2, 5
+        # contexts/Accounts/bank.rr:20
+     3  error          Accounts.Client.alreadyJoined()
+        # contexts/Accounts/bank.rr:21
+     4  ret
+        # contexts/Accounts/bank.rr:22
+     5  event          Accounts.Client.joined(clientName: r0) → Accounts.Client.joined
+     6  ret
+
+func command Accounts.Client.Rename(clientName string)
+  regs: r0 clientName string, r1 id Accounts.Client.Id, r2 bool
+     0  id             r1
+        # contexts/Accounts/bank.rr:26
+     1  ref.exists     r2, r1, Accounts.Client
+     2  br.false       r2, 5
+        # contexts/Accounts/bank.rr:29
+     3  event          Accounts.Client.renamed(clientName: r0) → Accounts.Client.renamed
+     4  ret
+        # contexts/Accounts/bank.rr:27
+     5  error          Accounts.Client.notJoined()
+        # contexts/Accounts/bank.rr:28
+     6  ret
+
+func command Accounts.Client.Forget()
+  regs: r0 id Accounts.Client.Id, r1 bool
+     0  id             r0
+        # contexts/Accounts/bank.rr:33
+     1  ref.exists     r1, r0, Accounts.Client
+     2  br.false       r1, 6
+        # contexts/Accounts/bank.rr:36
+     3  forget         r0, Accounts.Client
+        # contexts/Accounts/bank.rr:37
+     4  event          Accounts.Client.forgotten()
+     5  ret
+        # contexts/Accounts/bank.rr:34
+     6  error          Accounts.Client.notJoined()
+        # contexts/Accounts/bank.rr:35
+     7  ret
+
+func apply Accounts.Client.joined(clientName string?)
+  regs: r0 clientName string?
+        # contexts/Accounts/bank.rr:40
+     0  set            fullName, r0
+     1  ret
+
+func apply Accounts.Client.renamed(clientName string?)
+  regs: r0 clientName string?
+        # contexts/Accounts/bank.rr:43
+     0  set            fullName, r0
+     1  ret
+
+func query Accounts.Client.Profile() Accounts.ClientProfile
+  regs: r0 me Accounts.Client.Id, r1 c Accounts.Client?, r2 bool, r3 string?, r4 Accounts.ClientProfile
+     0  me             r0
+        # contexts/Accounts/bank.rr:51
+     1  rec.load       r1, r0, Accounts.Client
+        # contexts/Accounts/bank.rr:52
+     2  opt.isnone     r2, r1
+     3  br.false       r2, 6
+        # contexts/Accounts/bank.rr:53
+     4  error          Accounts.Client.notJoined()
+        # contexts/Accounts/bank.rr:54
+     5  ret
+        # contexts/Accounts/bank.rr:55
+     6  rec.get        r3, r1, fullName
+     7  val.new        r4, Accounts.ClientProfile(fullName: r3)
+     8  ret.val        r4
+
+func command Accounts.Account.Open()
+  regs: r0 id Accounts.Account.Id, r1 me Accounts.Client.Id
+     0  id             r0
+     1  me             r1
+        # contexts/Accounts/bank.rr:68
+     2  event          Accounts.Account.accountCreated(ownerId: r1) → Accounts.Account.accountCreated
+        # contexts/Accounts/bank.rr:69
+     3  notify         Accounts.Account.accountOpened(accountId: r0) to none
+     4  ret
+
+func command Accounts.Account.Transfer(target Accounts.Account.Id, sum decimal, comment string)
+  regs: r0 target Accounts.Account.Id, r1 sum decimal, r2 comment string, r3 id Accounts.Account.Id, r4 bool, r5 int, r6 decimal, r7 decimal, r8 decimal, r9 decimal, r10 decimal, r11 decimal
+  consts: r12 = k0, r13 = k1
+     0  id             r3
+        # contexts/Accounts/bank.rr:73
+     1  le.dec         r4, r1, r12
+     2  br.false       r4, 4
+        # contexts/Accounts/bank.rr:74
+     3  error          Accounts.Account.invalidSum(sum: r1)
+        # contexts/Accounts/bank.rr:75
+     4  eq.id          r4, r0, r3
+     5  br.false       r4, 7
+        # contexts/Accounts/bank.rr:76
+     6  error          Accounts.Account.sameAccount()
+        # contexts/Accounts/bank.rr:77
+     7  ref.exists     r4, r0, Accounts.Account
+     8  br.true        r4, 10
+        # contexts/Accounts/bank.rr:78
+     9  error          Accounts.Account.accountNotFound(accountId: r0)
+        # contexts/Accounts/bank.rr:79
+    10  field          r4, frozen
+    11  br.false       r4, 13
+        # contexts/Accounts/bank.rr:80
+    12  error          Accounts.Account.accountFrozen(accountId: r3)
+        # contexts/Accounts/bank.rr:81
+    13  intrinsic      r5, str.length(r2)
+    14  gt.i32         r4, r5, r13
+    15  br.false       r4, 17
+        # contexts/Accounts/bank.rr:82
+    16  error          Accounts.Account.commentTooLong(max: r13)
+        # contexts/Accounts/bank.rr:83
+    17  haserrors      r4
+    18  br.false       r4, 20
+        # contexts/Accounts/bank.rr:84
+    19  ret
+        # contexts/Accounts/bank.rr:86
+    20  event          Accounts.Account.withdrawn(amount: r1, target: r0, note: r2) → Accounts.Account.withdrawn
+        # contexts/Accounts/bank.rr:87
+    21  after.field    r6, balance
+    22  field          r7, overdraft
+    23  neg.dec        r8, r7
+    24  lt.dec         r4, r6, r8
+    25  br.false       r4, 31
+        # contexts/Accounts/bank.rr:88
+    26  field          r9, balance
+    27  field          r10, overdraft
+    28  add.dec        r11, r9, r10
+    29  error          Accounts.Account.insufficientFunds(available: r11)
+        # contexts/Accounts/bank.rr:89
+    30  ret
+        # contexts/Accounts/bank.rr:91
+    31  cmd            [r0].Accounts.Account.deposit(amount: r1, source: r3) → Accounts.Account.deposit
+        # contexts/Accounts/bank.rr:92
+    32  request        Accounts.Antifraud.score(accountId: r3, target: r0, sum: r1)
+        # contexts/Accounts/bank.rr:93
+    33  after.field    r8, balance
+    34  notify         Accounts.Account.transferDone(newBalance: r8) to none
+    35  ret
+
+func command Accounts.Account.deposit(amount decimal, source Accounts.Account.Id)
+  regs: r0 amount decimal, r1 source Accounts.Account.Id, r2 id Accounts.Account.Id, r3 bool
+     0  id             r2
+        # contexts/Accounts/bank.rr:96
+     1  field          r3, frozen
+     2  br.false       r3, 5
+        # contexts/Accounts/bank.rr:97
+     3  error          Accounts.Account.accountFrozen(accountId: r2)
+        # contexts/Accounts/bank.rr:98
+     4  ret
+        # contexts/Accounts/bank.rr:99
+     5  event          Accounts.Account.deposited(amount: r0, source: r1) → Accounts.Account.deposited
+     6  ret
+
+func command Accounts.Account.Freeze(reason string)
+  regs: r0 reason string
+        # contexts/Accounts/bank.rr:102
+     0  event          Accounts.Account.frozenBy(reason: r0) → Accounts.Account.frozenBy
+     1  ret
+
+func command Accounts.Account.SetOverdraft(limit decimal)
+  regs: r0 limit decimal, r1 bool
+  consts: r2 = k0
+        # contexts/Accounts/bank.rr:106
+     0  lt.dec         r1, r0, r2
+     1  br.false       r1, 4
+        # contexts/Accounts/bank.rr:107
+     2  error          Accounts.Account.invalidSum(sum: r0)
+        # contexts/Accounts/bank.rr:108
+     3  ret
+        # contexts/Accounts/bank.rr:109
+     4  event          Accounts.Account.overdraftSet(limit: r0) → Accounts.Account.overdraftSet
+     5  ret
+
+func apply Accounts.Account.accountCreated(ownerId Accounts.Client.Id)
+  regs: r0 ownerId Accounts.Client.Id
+        # contexts/Accounts/bank.rr:112
+     0  set            owner, r0
+     1  ret
+
+func apply Accounts.Account.withdrawn(amount decimal, target Accounts.Account.Id, note string)
+  regs: r0 amount decimal, r1 target Accounts.Account.Id, r2 note string, r3 decimal, r4 decimal
+        # contexts/Accounts/bank.rr:115
+     0  field          r3, balance
+     1  sub.dec        r4, r3, r0
+     2  set            balance, r4
+     3  ret
+
+func apply Accounts.Account.deposited(amount decimal, source Accounts.Account.Id)
+  regs: r0 amount decimal, r1 source Accounts.Account.Id, r2 decimal, r3 decimal
+        # contexts/Accounts/bank.rr:118
+     0  field          r2, balance
+     1  add.dec        r3, r2, r0
+     2  set            balance, r3
+     3  ret
+
+func apply Accounts.Account.frozenBy(reason string)
+  regs: r0 reason string
+  consts: r1 = k2
+        # contexts/Accounts/bank.rr:121
+     0  set            frozen, r1
+     1  ret
+
+func apply Accounts.Account.overdraftSet(limit decimal)
+  regs: r0 limit decimal
+        # contexts/Accounts/bank.rr:124
+     0  set            overdraft, r0
+     1  ret
+
+func query Accounts.Account.MyAccounts(pageReq PageRequest) page<Accounts.AccountRow>
+  regs: r0 pageReq PageRequest, r1 me Accounts.Client.Id, r2 page<Accounts.Account>, r3 list<Accounts.Account>, r4 list<Accounts.AccountRow>, r5 int, r6 int, r7 bool, r8 Accounts.Account, r9 Accounts.Account.Id, r10 decimal, r11 bool, r12 Accounts.AccountRow, r13 page<Accounts.AccountRow>
+  consts: r14 = k3, r15 = k4
+     0  me             r1
+        # contexts/Accounts/bank.rr:137
+     1  find           r2, Accounts.Account by byOwner where owner == r1 page r0
+     2  intrinsic      r3, page.items(r2)
+     3  coll.list      r4, []
+     4  coll.len       r5, r3
+     5  move           r6, r14
+     6  loop.guard
+     7  lt.i32         r7, r6, r5
+     8  br.false       r7, 17
+     9  coll.get       r8, r3, r6
+    10  rec.id         r9, r8
+    11  rec.get        r10, r8, balance
+    12  rec.get        r11, r8, frozen
+    13  val.new        r12, Accounts.AccountRow(accountId: r9, balance: r10, frozen: r11)
+    14  coll.append    r4, r4, r12
+    15  add.i32        r6, r6, r15
+    16  jmp            6
+    17  page.with      r13, r2, r4
+    18  ret.val        r13
+
+func query Accounts.Account.Details(accountId Accounts.Account.Id) Accounts.AccountRow
+  regs: r0 accountId Accounts.Account.Id, r1 me Accounts.Client.Id, r2 a Accounts.Account?, r3 bool, r4 Accounts.Client.Id?, r5 bool, r6 decimal, r7 Accounts.AccountRow
+     0  me             r1
+        # contexts/Accounts/bank.rr:143
+     1  rec.load       r2, r0, Accounts.Account
+        # contexts/Accounts/bank.rr:144
+     2  opt.isnone     r3, r2
+     3  br.true        r3, 7
+     4  rec.get        r4, r2, owner
+     5  ne.id          r5, r4, r1
+     6  br.false       r5, 9
+        # contexts/Accounts/bank.rr:145
+     7  error          Accounts.Account.accountNotFound(accountId: r0)
+        # contexts/Accounts/bank.rr:146
+     8  ret
+        # contexts/Accounts/bank.rr:147
+     9  rec.get        r6, r2, balance
+    10  rec.get        r5, r2, frozen
+    11  val.new        r7, Accounts.AccountRow(accountId: r0, balance: r6, frozen: r5)
+    12  ret.val        r7
+
+func command Accounts.Antifraud.Setup(limitAmount decimal)
+  regs: r0 limitAmount decimal
+        # contexts/Accounts/antifraud.fake.rr:8
+     0  event          Accounts.Antifraud.configured(limitAmount: r0) → Accounts.Antifraud.configured
+     1  ret
+
+func apply Accounts.Antifraud.configured(limitAmount decimal)
+  regs: r0 limitAmount decimal
+        # contexts/Accounts/antifraud.fake.rr:11
+     0  set            limit, r0
+     1  ret
+
+func command Accounts.Antifraud.score(accountId Accounts.Account.Id, target Accounts.Account.Id, sum decimal)
+  regs: r0 accountId Accounts.Account.Id, r1 target Accounts.Account.Id, r2 sum decimal, r3 decimal, r4 bool
+  consts: r5 = k5
+        # contexts/Accounts/antifraud.fake.rr:14
+     0  field          r3, limit
+     1  gt.dec         r4, r2, r3
+     2  br.false       r4, 4
+        # contexts/Accounts/antifraud.fake.rr:15
+     3  callout        [r0].Accounts.Account.Freeze(reason: r5)
+     4  ret
+
+func test Antifraud freezes the account after a large transfer
+  regs: r0 c1 Accounts.Client.Id, r1 c2 Accounts.Client.Id, r2 a1 Accounts.Account.Id, r3 a2 Accounts.Account.Id, r4 Accounts.AccountRow
+  consts: r5 = k6, r6 = k7, r7 = k8, r8 = k9, r9 = k10, r10 = k11, r11 = k12, r12 = k2
+        # contexts/Accounts/antifraud.test.rr:4
+     0  newid          r0, Accounts.Client
+        # contexts/Accounts/antifraud.test.rr:5
+     1  newid          r1, Accounts.Client
+        # contexts/Accounts/antifraud.test.rr:6
+     2  newid          r2, Accounts.Account
+        # contexts/Accounts/antifraud.test.rr:7
+     3  newid          r3, Accounts.Account
+        # contexts/Accounts/antifraud.test.rr:9
+     4  test.cmd       Accounts.Antifraud.Setup(limitAmount: r5)
+        # contexts/Accounts/antifraud.test.rr:10
+     5  test.cmd       [r0].Accounts.Client.Join(clientName: r6) as r0
+        # contexts/Accounts/antifraud.test.rr:11
+     6  test.cmd       [r1].Accounts.Client.Join(clientName: r7) as r1
+        # contexts/Accounts/antifraud.test.rr:12
+     7  test.cmd       [r2].Accounts.Account.Open() as r0
+        # contexts/Accounts/antifraud.test.rr:13
+     8  test.cmd       [r3].Accounts.Account.Open() as r1
+        # contexts/Accounts/antifraud.test.rr:14
+     9  test.cmd       [r2].Accounts.Account.SetOverdraft(limit: r8) as compliance
+        # contexts/Accounts/antifraud.test.rr:15
+    10  test.when
+        # contexts/Accounts/antifraud.test.rr:16
+    11  test.cmd       [r2].Accounts.Account.Transfer(target: r3, sum: r9, comment: r10) as r0
+        # contexts/Accounts/antifraud.test.rr:18
+    12  expect.request Accounts.Antifraud.score(accountId: r2, target: r3, sum: r9)
+        # contexts/Accounts/antifraud.test.rr:19
+    13  test.query     r4, Accounts.Account.Details(accountId: r2) as r0
+    14  expect.matches r4 matches Accounts.AccountRow(balance: r11, frozen: r12)
+    15  ret
+
+func test A transfer within the antifraud limit does not freeze the account
+  regs: r0 c1 Accounts.Client.Id, r1 c2 Accounts.Client.Id, r2 a1 Accounts.Account.Id, r3 a2 Accounts.Account.Id, r4 Accounts.AccountRow
+  consts: r5 = k6, r6 = k7, r7 = k8, r8 = k9, r9 = k13, r10 = k14, r11 = k15, r12 = k16
+        # contexts/Accounts/antifraud.test.rr:22
+     0  newid          r0, Accounts.Client
+        # contexts/Accounts/antifraud.test.rr:23
+     1  newid          r1, Accounts.Client
+        # contexts/Accounts/antifraud.test.rr:24
+     2  newid          r2, Accounts.Account
+        # contexts/Accounts/antifraud.test.rr:25
+     3  newid          r3, Accounts.Account
+        # contexts/Accounts/antifraud.test.rr:27
+     4  test.cmd       Accounts.Antifraud.Setup(limitAmount: r5)
+        # contexts/Accounts/antifraud.test.rr:28
+     5  test.cmd       [r0].Accounts.Client.Join(clientName: r6) as r0
+        # contexts/Accounts/antifraud.test.rr:29
+     6  test.cmd       [r1].Accounts.Client.Join(clientName: r7) as r1
+        # contexts/Accounts/antifraud.test.rr:30
+     7  test.cmd       [r2].Accounts.Account.Open() as r0
+        # contexts/Accounts/antifraud.test.rr:31
+     8  test.cmd       [r3].Accounts.Account.Open() as r1
+        # contexts/Accounts/antifraud.test.rr:32
+     9  test.cmd       [r2].Accounts.Account.SetOverdraft(limit: r8) as compliance
+        # contexts/Accounts/antifraud.test.rr:33
+    10  test.when
+        # contexts/Accounts/antifraud.test.rr:34
+    11  test.cmd       [r2].Accounts.Account.Transfer(target: r3, sum: r9, comment: r10) as r0
+        # contexts/Accounts/antifraud.test.rr:36
+    12  test.query     r4, Accounts.Account.Details(accountId: r2) as r0
+    13  expect.matches r4 matches Accounts.AccountRow(balance: r11, frozen: r12)
+    14  ret
+
+func test A month of transfers
+  regs: r0 list<int>, r1 int, r2 int, r3 bool, r4 i int, r5 c Accounts.Client.Id, r6 main Accounts.Account.Id, r7 savings Accounts.Account.Id, r8 string, r9 decimal, r10 int, r11 list<int>, r12 int, r13 int, r14 bool, r15 day int
+  consts: r16 = k17, r17 = k18, r18 = k3, r19 = k19, r20 = k9, r21 = k20, r22 = k21, r23 = k22, r24 = k23, r25 = k24, r26 = k4
+        # contexts/Accounts/bank.demo.rr:8
+     0  test.time      r16
+        # contexts/Accounts/bank.demo.rr:9
+     1  intrinsic      r0, range(r17)
+     2  coll.len       r1, r0
+     3  move           r2, r18
+     4  loop.guard
+     5  lt.i32         r3, r2, r1
+     6  br.false       r3, 33
+     7  coll.get       r4, r0, r2
+        # contexts/Accounts/bank.demo.rr:10
+     8  newid          r5, Accounts.Client
+        # contexts/Accounts/bank.demo.rr:11
+     9  newid          r6, Accounts.Account
+        # contexts/Accounts/bank.demo.rr:12
+    10  newid          r7, Accounts.Account
+        # contexts/Accounts/bank.demo.rr:13
+    11  intrinsic      r8, faker.name()
+    12  test.cmd       [r5].Accounts.Client.Join(clientName: r8) as r5
+        # contexts/Accounts/bank.demo.rr:14
+    13  test.cmd       [r6].Accounts.Account.Open() as r5
+        # contexts/Accounts/bank.demo.rr:15
+    14  test.cmd       [r7].Accounts.Account.Open() as r5
+        # contexts/Accounts/bank.demo.rr:16
+    15  intrinsic      r9, faker.decimal(r19, r20)
+    16  test.cmd       [r6].Accounts.Account.SetOverdraft(limit: r9) as compliance
+        # contexts/Accounts/bank.demo.rr:17
+    17  intrinsic      r10, faker.int(r21, r22)
+    18  intrinsic      r11, range(r10)
+    19  coll.len       r12, r11
+    20  move           r13, r18
+    21  loop.guard
+    22  lt.i32         r14, r13, r12
+    23  br.false       r14, 31
+    24  coll.get       r15, r11, r13
+        # contexts/Accounts/bank.demo.rr:18
+    25  intrinsic      r9, faker.decimal(r23, r24)
+    26  intrinsic      r8, faker.text(r21)
+    27  test.cmd       [r6].Accounts.Account.Transfer(target: r7, sum: r9, comment: r8) as r5
+        # contexts/Accounts/bank.demo.rr:19
+    28  test.time      r25
+    29  add.i32        r13, r13, r26
+    30  jmp            21
+    31  add.i32        r2, r2, r26
+    32  jmp            4
+    33  test.when
+    34  ret
+
+func test All validation errors come at once
+  regs: r0 c1 Accounts.Client.Id, r1 a1 Accounts.Account.Id, r2 a2 Accounts.Account.Id
+  consts: r3 = k7, r4 = k25, r5 = k14
+        # contexts/Accounts/bank.test.rr:4
+     0  newid          r0, Accounts.Client
+        # contexts/Accounts/bank.test.rr:5
+     1  newid          r1, Accounts.Account
+        # contexts/Accounts/bank.test.rr:6
+     2  newid          r2, Accounts.Account
+        # contexts/Accounts/bank.test.rr:8
+     3  test.cmd       [r0].Accounts.Client.Join(clientName: r3) as r0
+        # contexts/Accounts/bank.test.rr:9
+     4  test.cmd       [r1].Accounts.Account.Open() as r0
+        # contexts/Accounts/bank.test.rr:10
+     5  test.when
+        # contexts/Accounts/bank.test.rr:11
+     6  test.cmd       [r1].Accounts.Account.Transfer(target: r2, sum: r4, comment: r5) as r0
+        # contexts/Accounts/bank.test.rr:13
+     7  expect.error   Accounts.Account.invalidSum(sum: r4)
+        # contexts/Accounts/bank.test.rr:14
+     8  expect.error   Accounts.Account.accountNotFound(accountId: r2)
+     9  ret
+
+func test A transfer within the overdraft
+  regs: r0 c1 Accounts.Client.Id, r1 c2 Accounts.Client.Id, r2 a1 Accounts.Account.Id, r3 a2 Accounts.Account.Id, r4 Accounts.AccountRow, r5 Accounts.AccountRow
+  consts: r6 = k7, r7 = k8, r8 = k23, r9 = k26, r10 = k27, r11 = k28
+        # contexts/Accounts/bank.test.rr:17
+     0  newid          r0, Accounts.Client
+        # contexts/Accounts/bank.test.rr:18
+     1  newid          r1, Accounts.Client
+        # contexts/Accounts/bank.test.rr:19
+     2  newid          r2, Accounts.Account
+        # contexts/Accounts/bank.test.rr:20
+     3  newid          r3, Accounts.Account
+        # contexts/Accounts/bank.test.rr:22
+     4  test.cmd       [r0].Accounts.Client.Join(clientName: r6) as r0
+        # contexts/Accounts/bank.test.rr:23
+     5  test.cmd       [r1].Accounts.Client.Join(clientName: r7) as r1
+        # contexts/Accounts/bank.test.rr:24
+     6  test.cmd       [r2].Accounts.Account.Open() as r0
+        # contexts/Accounts/bank.test.rr:25
+     7  test.cmd       [r3].Accounts.Account.Open() as r1
+        # contexts/Accounts/bank.test.rr:26
+     8  test.cmd       [r2].Accounts.Account.SetOverdraft(limit: r8) as compliance
+        # contexts/Accounts/bank.test.rr:27
+     9  test.when
+        # contexts/Accounts/bank.test.rr:28
+    10  test.cmd       [r2].Accounts.Account.Transfer(target: r3, sum: r9, comment: r10) as r0
+        # contexts/Accounts/bank.test.rr:30
+    11  expect.notify  Accounts.Account.transferDone(newBalance: r11) to r0
+        # contexts/Accounts/bank.test.rr:31
+    12  test.query     r4, Accounts.Account.Details(accountId: r2) as r0
+    13  expect.matches r4 matches Accounts.AccountRow(balance: r11)
+        # contexts/Accounts/bank.test.rr:32
+    14  test.query     r5, Accounts.Account.Details(accountId: r3) as r1
+    15  expect.matches r5 matches Accounts.AccountRow(balance: r9)
+    16  ret
+
+func test A transfer beyond the overdraft is rejected as a whole
+  regs: r0 c1 Accounts.Client.Id, r1 c2 Accounts.Client.Id, r2 a1 Accounts.Account.Id, r3 a2 Accounts.Account.Id, r4 Accounts.AccountRow
+  consts: r5 = k7, r6 = k8, r7 = k29, r8 = k30, r9 = k14, r10 = k0
+        # contexts/Accounts/bank.test.rr:35
+     0  newid          r0, Accounts.Client
+        # contexts/Accounts/bank.test.rr:36
+     1  newid          r1, Accounts.Client
+        # contexts/Accounts/bank.test.rr:37
+     2  newid          r2, Accounts.Account
+        # contexts/Accounts/bank.test.rr:38
+     3  newid          r3, Accounts.Account
+        # contexts/Accounts/bank.test.rr:40
+     4  test.cmd       [r0].Accounts.Client.Join(clientName: r5) as r0
+        # contexts/Accounts/bank.test.rr:41
+     5  test.cmd       [r1].Accounts.Client.Join(clientName: r6) as r1
+        # contexts/Accounts/bank.test.rr:42
+     6  test.cmd       [r2].Accounts.Account.Open() as r0
+        # contexts/Accounts/bank.test.rr:43
+     7  test.cmd       [r3].Accounts.Account.Open() as r1
+        # contexts/Accounts/bank.test.rr:44
+     8  test.cmd       [r2].Accounts.Account.SetOverdraft(limit: r7) as compliance
+        # contexts/Accounts/bank.test.rr:45
+     9  test.when
+        # contexts/Accounts/bank.test.rr:46
+    10  test.cmd       [r2].Accounts.Account.Transfer(target: r3, sum: r8, comment: r9) as r0
+        # contexts/Accounts/bank.test.rr:48
+    11  expect.error   Accounts.Account.insufficientFunds(available: r7)
+        # contexts/Accounts/bank.test.rr:49
+    12  test.query     r4, Accounts.Account.Details(accountId: r2) as r0
+    13  expect.matches r4 matches Accounts.AccountRow(balance: r10)
+    14  ret
+
+func test An error of the target cancels the transfer
+  regs: r0 c1 Accounts.Client.Id, r1 c2 Accounts.Client.Id, r2 a1 Accounts.Account.Id, r3 a2 Accounts.Account.Id, r4 Accounts.AccountRow
+  consts: r5 = k7, r6 = k8, r7 = k23, r8 = k31, r9 = k29, r10 = k14, r11 = k0
+        # contexts/Accounts/bank.test.rr:52
+     0  newid          r0, Accounts.Client
+        # contexts/Accounts/bank.test.rr:53
+     1  newid          r1, Accounts.Client
+        # contexts/Accounts/bank.test.rr:54
+     2  newid          r2, Accounts.Account
+        # contexts/Accounts/bank.test.rr:55
+     3  newid          r3, Accounts.Account
+        # contexts/Accounts/bank.test.rr:57
+     4  test.cmd       [r0].Accounts.Client.Join(clientName: r5) as r0
+        # contexts/Accounts/bank.test.rr:58
+     5  test.cmd       [r1].Accounts.Client.Join(clientName: r6) as r1
+        # contexts/Accounts/bank.test.rr:59
+     6  test.cmd       [r2].Accounts.Account.Open() as r0
+        # contexts/Accounts/bank.test.rr:60
+     7  test.cmd       [r3].Accounts.Account.Open() as r1
+        # contexts/Accounts/bank.test.rr:61
+     8  test.cmd       [r2].Accounts.Account.SetOverdraft(limit: r7) as compliance
+        # contexts/Accounts/bank.test.rr:62
+     9  test.cmd       [r3].Accounts.Account.Freeze(reason: r8) as compliance
+        # contexts/Accounts/bank.test.rr:63
+    10  test.when
+        # contexts/Accounts/bank.test.rr:64
+    11  test.cmd       [r2].Accounts.Account.Transfer(target: r3, sum: r9, comment: r10) as r0
+        # contexts/Accounts/bank.test.rr:66
+    12  expect.error   Accounts.Account.accountFrozen(accountId: r3)
+        # contexts/Accounts/bank.test.rr:67
+    13  test.query     r4, Accounts.Account.Details(accountId: r2) as r0
+    14  expect.matches r4 matches Accounts.AccountRow(balance: r11)
+    15  ret
+
+func test Another client's account is not accessible
+  regs: r0 c1 Accounts.Client.Id, r1 c2 Accounts.Client.Id, r2 a1 Accounts.Account.Id, r3 a2 Accounts.Account.Id
+  consts: r4 = k7, r5 = k8, r6 = k32, r7 = k14
+        # contexts/Accounts/bank.test.rr:70
+     0  newid          r0, Accounts.Client
+        # contexts/Accounts/bank.test.rr:71
+     1  newid          r1, Accounts.Client
+        # contexts/Accounts/bank.test.rr:72
+     2  newid          r2, Accounts.Account
+        # contexts/Accounts/bank.test.rr:73
+     3  newid          r3, Accounts.Account
+        # contexts/Accounts/bank.test.rr:75
+     4  test.cmd       [r0].Accounts.Client.Join(clientName: r4) as r0
+        # contexts/Accounts/bank.test.rr:76
+     5  test.cmd       [r1].Accounts.Client.Join(clientName: r5) as r1
+        # contexts/Accounts/bank.test.rr:77
+     6  test.cmd       [r2].Accounts.Account.Open() as r0
+        # contexts/Accounts/bank.test.rr:78
+     7  test.cmd       [r3].Accounts.Account.Open() as r1
+        # contexts/Accounts/bank.test.rr:79
+     8  test.when
+        # contexts/Accounts/bank.test.rr:80
+     9  test.cmd       [r2].Accounts.Account.Transfer(target: r3, sum: r6, comment: r7) as r1
+        # contexts/Accounts/bank.test.rr:82
+    10  expect.error   forbidden()
+    11  ret
+
+func test Another client's account is not visible
+  regs: r0 c1 Accounts.Client.Id, r1 c2 Accounts.Client.Id, r2 a1 Accounts.Account.Id, r3 Accounts.AccountRow
+  consts: r4 = k7, r5 = k8
+        # contexts/Accounts/bank.test.rr:85
+     0  newid          r0, Accounts.Client
+        # contexts/Accounts/bank.test.rr:86
+     1  newid          r1, Accounts.Client
+        # contexts/Accounts/bank.test.rr:87
+     2  newid          r2, Accounts.Account
+        # contexts/Accounts/bank.test.rr:89
+     3  test.cmd       [r0].Accounts.Client.Join(clientName: r4) as r0
+        # contexts/Accounts/bank.test.rr:90
+     4  test.cmd       [r1].Accounts.Client.Join(clientName: r5) as r1
+        # contexts/Accounts/bank.test.rr:91
+     5  test.cmd       [r2].Accounts.Account.Open() as r0
+        # contexts/Accounts/bank.test.rr:92
+     6  test.when
+        # contexts/Accounts/bank.test.rr:93
+     7  test.query     r3, Accounts.Account.Details(accountId: r2) as r1
+        # contexts/Accounts/bank.test.rr:95
+     8  expect.error   Accounts.Account.accountNotFound(accountId: r2)
+     9  ret
+
+func test After forgetting, the client name is unreadable and the accounts stay
+  regs: r0 c1 Accounts.Client.Id, r1 a1 Accounts.Account.Id, r2 Accounts.ClientProfile, r3 Accounts.AccountRow
+  consts: r4 = k7, r5 = k33, r6 = k0
+        # contexts/Accounts/bank.test.rr:98
+     0  newid          r0, Accounts.Client
+        # contexts/Accounts/bank.test.rr:99
+     1  newid          r1, Accounts.Account
+        # contexts/Accounts/bank.test.rr:101
+     2  test.cmd       [r0].Accounts.Client.Join(clientName: r4) as r0
+        # contexts/Accounts/bank.test.rr:102
+     3  test.cmd       [r1].Accounts.Account.Open() as r0
+        # contexts/Accounts/bank.test.rr:103
+     4  test.when
+        # contexts/Accounts/bank.test.rr:104
+     5  test.cmd       [r0].Accounts.Client.Forget() as compliance
+        # contexts/Accounts/bank.test.rr:106
+     6  test.query     r2, Accounts.Client.Profile() as r0
+     7  expect.matches r2 matches Accounts.ClientProfile(fullName: r5)
+        # contexts/Accounts/bank.test.rr:107
+     8  test.query     r3, Accounts.Account.Details(accountId: r1) as r0
+     9  expect.matches r3 matches Accounts.AccountRow(balance: r6)
+    10  ret
+
+func test After forgetting, the client gives their name again
+  regs: r0 c1 Accounts.Client.Id, r1 Accounts.ClientProfile
+  consts: r2 = k7, r3 = k34
+        # contexts/Accounts/bank.test.rr:110
+     0  newid          r0, Accounts.Client
+        # contexts/Accounts/bank.test.rr:112
+     1  test.cmd       [r0].Accounts.Client.Join(clientName: r2) as r0
+        # contexts/Accounts/bank.test.rr:113
+     2  test.cmd       [r0].Accounts.Client.Forget() as r0
+        # contexts/Accounts/bank.test.rr:114
+     3  test.when
+        # contexts/Accounts/bank.test.rr:115
+     4  test.cmd       [r0].Accounts.Client.Rename(clientName: r3) as r0
+        # contexts/Accounts/bank.test.rr:117
+     5  test.query     r1, Accounts.Client.Profile() as r0
+     6  expect.matches r1 matches Accounts.ClientProfile(fullName: r3)
+     7  ret

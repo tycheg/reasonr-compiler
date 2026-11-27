@@ -1,0 +1,11 @@
+## Documentation
+aggregate Order
+  id uuid
+
+  # a comment does not affect indentation
+      # even with a different indentation
+  command place()
+    if [id]
+      return
+  status OrderStatus
+role admin

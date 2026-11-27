@@ -1,0 +1,43 @@
+role admin
+
+enum Color
+  red
+  green
+  blue
+
+value Tag
+  label string
+
+aggregate Item
+  id uuid
+  title string
+  count int
+  note string?
+  color Color
+  legacy string
+  renamed int
+  tag Tag
+
+  index byTitle(title)
+  index byCount(count)
+
+  command(admin) Make(t string)
+    made(t: t)
+
+  command(admin) Drop()
+    dropped()
+
+  command(admin) Move(a int, b int)
+    moved(x: a, y: b)
+
+  event made(t string)
+    title = t
+
+  event dropped()
+
+  event moved(x int, y int)
+    count = x + y
+
+aggregate Gone
+  id uuid
+  n int

@@ -1,0 +1,12 @@
+let a = 0
+let b = 1_000_000
+let c = 10.50
+let d = [500ms, 30s, 5m, 2h, 1d]
+let e = date"2026-10-02"
+let f = timestamp"2026-10-02T12:00:00Z"
+let g = "text \"in quotes\" \\ \n \t \u{41}"
+let h = "Order {orderId} for {price.amount + 1} €"
+let i = "braces {{ and }}"
+let j = "{name ?? "—"}"
+let k = ""
+let l = 1.times

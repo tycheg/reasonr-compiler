@@ -1,0 +1,21 @@
+let center = GeoPoint(lat: 55.75, lon: 37.62)
+
+test "A driver accepts an offer"
+  let c1 = new Customer.Id
+  given
+    [c1].SignUp(phoneNumber: "+79990000000") as c1
+    time passes 20s
+  when
+    [d1].Accept() as d1
+  then
+    notification driverOnTheWay(orderId: o1) to c1
+    error plateTaken
+    error cannotCancel(currentStatus: paid)
+    request Matching.findDriver(orderId: o2, exclude: [d1])
+    Order.Card(orderId: o1) as c1 matches (status: assigned)
+
+test "Query"
+  when
+    Order.Card(orderId: o1) as c2
+  then
+    matches (status: searching)

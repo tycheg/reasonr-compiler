@@ -1,0 +1,19 @@
+1:1 command
+1:9 IDENT "a"
+1:10 (
+1:11 )
+1:12 NEWLINE
+2:3 INDENT
+2:3 IDENT "foo"
+2:6 (
+2:7 IDENT "x"
+2:8 :
+2:10 INT "1"
+2:11 NEWLINE
+3:3 let
+3:7 IDENT "y"
+3:9 =
+3:11 INT "2"
+3:12 NEWLINE
+4:1 DEDENT
+4:1 EOF

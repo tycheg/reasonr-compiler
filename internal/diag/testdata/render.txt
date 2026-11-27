@@ -1,0 +1,9 @@
+taxi/customer.rr:3:45: error E0902: personal data flows into an unprotected place
+    3 |     orderStarted(orderId: orderId, contact: phone)
+      |                                             ^^^^^
+   = "phone" is personal (subject Customer)
+   = hint: declare the parameter as "contact string? personal"
+taxi/customer.rr:4:2: warning W1002: unreachable code after "return"
+    4 |   return
+      |   ^^^^^^
+   = hint: remove the line

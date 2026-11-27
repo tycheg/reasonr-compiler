@@ -1,0 +1,90 @@
+# taxi/contexts/Ordering/types.rr
+
+role admin
+role support
+role dispatcher
+role matching
+role payments
+
+## Tips for the driver after a paid ride
+feature tips "2026-11-07"
+
+enum OrderStatus
+  searching
+  offered
+  assigned
+  completed
+  paid
+  unpaid
+  cancelled
+  noDrivers
+
+enum CarClass
+  economy
+  comfort
+
+enum Currency
+  rub
+
+value Money
+  amount decimal
+  currency Currency
+  check amount >= 0
+
+value GeoPoint
+  lat float
+  lon float
+  check lat >= -90 and lat <= 90
+  check lon >= -180 and lon <= 180
+
+value Route
+  from GeoPoint
+  to GeoPoint
+  distanceKm float
+
+value OrderRow
+  orderId Order.Id
+  status OrderStatus
+  price Money
+  placedAt timestamp
+
+value OrderCard
+  status OrderStatus
+  price Money
+  driver AssignedDriver?
+  tip Money?
+
+value AssignedDriver
+  name string
+  plate string
+
+value BoardRow
+  orderId Order.Id
+  status OrderStatus
+  driverName string?
+  plate string?
+
+value CustomerProfile
+  phone string?
+  blocked bool
+
+value HomeAddress
+  address string?
+
+value StaffProfile
+  name string
+  email string?
+
+## Fields are named like the parameters of Order.Edit, so the edit form fills itself
+value OrderDetails
+  orderId Order.Id
+  status OrderStatus
+  orderRoute Route
+  requestedClass CarClass
+  price Money
+  placedAt timestamp
+  driverName string?
+
+value CustomerRow
+  customerId Customer.Id
+  phone string?

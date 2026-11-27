@@ -1,0 +1,96 @@
+# taxi/contexts/Ordering/ui.test.rr
+# Actions and queries that have places in the apps (§22): with
+# reasonrd test --driver web they go through the interface (§27.3).
+
+let car = Car(plate: "K004KK77", model: "Kia Rio", carClass: economy)
+let here = GeoPoint(lat: 55.75, lon: 37.62)
+let hop = Route(from: here, to: here, distanceKm: 2)
+
+test "A driver goes online"
+  let d1 = new Driver.Id
+  given
+    [d1].Register(driverName: "John", driverCar: car) as admin
+  when
+    [d1].GoOnline() as d1
+  then
+    Driver.MyState() as d1 matches (status: free)
+
+test "A driver goes offline"
+  let d1 = new Driver.Id
+  given
+    [d1].Register(driverName: "John", driverCar: car) as admin
+    [d1].GoOnline() as d1
+  when
+    [d1].GoOffline() as d1
+  then
+    Driver.MyState() as d1 matches (status: offline)
+
+test "A driver declines an offer"
+  let c1 = new Customer.Id
+  let d1 = new Driver.Id
+  let o1 = new Order.Id
+  given
+    [c1].SignUp(phoneNumber: "+79990000020") as c1
+    [d1].Register(driverName: "John", driverCar: car) as admin
+    [d1].GoOnline() as d1
+    [c1].OrderTaxi(orderId: o1, orderRoute: hop, requestedClass: economy) as c1
+    [Trip.Id(o1)].DriverFound(driverId: d1) as matching
+  when
+    [d1].Decline() as d1
+  then
+    request Matching.findDriver(tripId: Trip.Id(o1), exclude: [d1])
+    Driver.MyState() as d1 matches (status: free)
+
+test "A passenger cancels their order"
+  let c1 = new Customer.Id
+  let o1 = new Order.Id
+  given
+    [c1].SignUp(phoneNumber: "+79990000021") as c1
+    [c1].OrderTaxi(orderId: o1, orderRoute: hop, requestedClass: economy) as c1
+  when
+    [o1].Cancel(reason: "changed my mind") as c1
+  then
+    Order.Card(orderId: o1) as c1 matches (status: cancelled)
+
+test "A passenger opens their orders"
+  let c1 = new Customer.Id
+  let o1 = new Order.Id
+  given
+    [c1].SignUp(phoneNumber: "+79990000022") as c1
+    [c1].OrderTaxi(orderId: o1, orderRoute: hop, requestedClass: economy) as c1
+  when
+    Order.MyOrders() as c1
+  then
+    Order.Card(orderId: o1) as c1 matches (status: searching)
+
+test "Staff open the orders being matched"
+  let c1 = new Customer.Id
+  let o1 = new Order.Id
+  given
+    [c1].SignUp(phoneNumber: "+79990000023") as c1
+    [c1].OrderTaxi(orderId: o1, orderRoute: hop, requestedClass: economy) as c1
+  when
+    Order.List() as admin
+  then
+    Order.Details(orderId: o1) as admin matches (status: searching)
+
+test "The dispatcher opens the order board"
+  let c1 = new Customer.Id
+  let o1 = new Order.Id
+  given
+    [c1].SignUp(phoneNumber: "+79990000024") as c1
+    [c1].OrderTaxi(orderId: o1, orderRoute: hop, requestedClass: economy) as c1
+  when
+    OrderMart.Board(wanted: searching) as dispatcher
+  then
+    Order.Details(orderId: o1) as admin matches (status: searching)
+
+test "The dispatcher opens the free drivers"
+  let d1 = new Driver.Id
+  given
+    [d1].Register(driverName: "John", driverCar: car) as admin
+    [d1].GoOnline() as d1
+  when
+    Driver.FreeDrivers(wantedClass: economy) as dispatcher
+  then
+    Driver.MyState() as d1 matches (status: free)

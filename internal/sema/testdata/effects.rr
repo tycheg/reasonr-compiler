@@ -1,0 +1,41 @@
+role admin
+
+aggregate Order
+  id uuid
+  status string
+
+  command place()
+    status = "x"  # want "E0301"
+    placed()
+
+  event placed()
+    status = "y"
+    placed2()  # want "E0302"
+
+  event placed2()
+    status = now  # want "E0304"
+
+  query Card() string
+    place()  # want "E0303"
+    return status2()
+
+  rule status2() string
+    let t = now  # want "E0304"
+    return "a"
+
+  query Other() string
+    let x = hasErrors
+    return Order.Card()
+
+  command callsQuery()
+    let x = Order.Card()  # want "E0303"
+
+  command meCheck()
+    let m = me  # want "E0304"
+
+value Money
+  amount decimal
+
+  bad() decimal
+    let r = now  # want "E0304"
+    return amount

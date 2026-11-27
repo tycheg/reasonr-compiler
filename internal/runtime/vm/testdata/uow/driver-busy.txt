@@ -1,0 +1,21 @@
+entity Dispatch.Trip 00000000-0000-0000-0000-000000000002 existed=true version=1
+  #0 event Dispatch.Trip.Offer.opened(id: 1, offeredTo: 00000000-0000-0000-0000-000000000002)
+  #1 event Dispatch.Trip.offerSent(driverId: 00000000-0000-0000-0000-000000000002, timer: ee000000-0000-0000-0000-000000000002)
+  #3 event Dispatch.Trip.Offer.closed(id: 1, result: declined)
+  #4 event Dispatch.Trip.driverSkipped(driverId: 00000000-0000-0000-0000-000000000002)
+  #5 event Dispatch.Trip.searchStarted(timer: ee000000-0000-0000-0000-000000000003)
+  state Trip(stage: searching, pickup: GeoPoint(lat: 55.75, lon: 37.62), carClass: economy, fare: Money(amount: 190, currency: rub), driver: none, candidate: none, searchTimer: ee000000-0000-0000-0000-000000000003, offerTimer: none, searchRetries: 0, Offer: [1: Offer(driver: 00000000-0000-0000-0000-000000000002, outcome: declined)])
+entity Dispatch.Driver 00000000-0000-0000-0000-000000000002 existed=true version=1
+  #2 event Dispatch.Driver.offerRejectedBusy(tripId: 00000000-0000-0000-0000-000000000002)
+  state Driver(name: Peter, car: Car(plate: B002BB77, model: Kia Rio, carClass: economy), status: busy, currentTrip: 00000000-0000-0000-0000-000000000009)
+entity Ordering.Order 00000000-0000-0000-0000-000000000002 existed=true version=1
+  #6 event Ordering.Order.offerPending()
+  #8 event Ordering.Order.searchResumed()
+  state Order(status: searching, customer: 00000000-0000-0000-0000-000000000001, route: Route(from: GeoPoint(lat: 55.75, lon: 37.62), to: GeoPoint(lat: 55.8, lon: 37.6), distanceKm: 3), carClass: economy, price: Money(amount: 190, currency: rub), driverName: none, driverPlate: none, placedAt: 0001-01-01T00:00:00Z, tip: none)
+#7 projection upsert Ordering.OrderMart 00000000-0000-0000-0000-000000000002 {status: offered, driverName: none, plate: none, placedAt: 0001-01-01T00:00:00Z}
+#9 projection upsert Ordering.OrderMart 00000000-0000-0000-0000-000000000002 {status: searching, driverName: none, plate: none, placedAt: 0001-01-01T00:00:00Z}
+timer delete 00000000-0000-0000-0000-000000000007
+timer ee000000-0000-0000-0000-000000000002 at 2026-10-04T12:00:20Z: [00000000-0000-0000-0000-000000000002].Dispatch.Trip.expireOffer(driverId: 00000000-0000-0000-0000-000000000002)
+timer delete ee000000-0000-0000-0000-000000000002
+timer ee000000-0000-0000-0000-000000000003 at 2026-10-04T12:01:00Z: [00000000-0000-0000-0000-000000000002].Dispatch.Trip.searchTimedOut()
+request Dispatch.Matching.findDriver(tripId: 00000000-0000-0000-0000-000000000002, pickup: GeoPoint(lat: 55.75, lon: 37.62), requestedClass: economy, exclude: [00000000-0000-0000-0000-000000000002], timeout: ee000000-0000-0000-0000-000000000003) key 662984d4-8cb0-8e4e-81cb-042ad8ab2502

@@ -1,0 +1,35 @@
+# taxi/contexts/Ordering/admin.rr
+# Admin app screens (apps/Admin)
+
+screen AdminOrders "Orders"
+  Toolbar
+    Link AdminNewOrder
+  Table Order.List                               # no Filters written: the wanted filter is automatic
+    Columns
+      placedAt
+      status
+      price
+    RowActions
+      Confirm Order.Cancel if status in [searching, offered, assigned]   # the target is the row's orderId
+    on open AdminOrder                                                   # AdminOrder(orderId) ← the row
+
+screen AdminOrder(orderId Order.Id) "Order"
+  Card Order.Details                             # orderId ← the screen parameter
+    status
+    price
+    orderRoute
+    requestedClass
+    placedAt
+    driverName
+    Actions
+      Edit Order.Edit "Edit" if status == searching                               # orderRoute, requestedClass ← card fields
+      Confirm Order.Cancel "Cancel" if status in [searching, offered, assigned]   # reason is a confirmation field
+
+screen AdminNewOrder "New order"
+  Form Customer.OrderTaxi(orderId: new)          # the customer target is a form field, the app's EntityPicker
+    on done AdminOrder                           # AdminOrder(orderId) ← the form values
+
+screen AdminProfile "Profile"
+  Card Staff.Profile
+    Actions
+      Edit Staff.ChangeEmail(newEmail: email) "Change email"   # the names differ, so the link is explicit

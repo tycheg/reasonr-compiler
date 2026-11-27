@@ -1,0 +1,14 @@
+entity Box 00000000-0000-0000-0000-000000000001 existed=true version=1
+  #0 event Box.filled(count: 11, label: Box small of 11 pcs.a, wide: true)
+  state Box(kind: small, items: [a, Box small of 11 pcs.a], tags: [], counts: [a: 2], owner: 00000000-0000-0000-0000-000000000001, timer: 00000000-0000-0000-0000-000000000003, origin: Point(x: 0, y: 0), note: none, size: 11)
+entity Keeper 00000000-0000-0000-0000-000000000001 existed=true version=1
+  #1 event Keeper.pinged(boxId: 00000000-0000-0000-0000-000000000001)
+  state Keeper(name: Keeper)
+entity Box ee000000-0000-0000-0000-000000000002 existed=false version=0
+  #2 event Box.created(keeper: 00000000-0000-0000-0000-000000000001, boxKind: small)
+  #4 event Box.timerSet(newTimer: ee000000-0000-0000-0000-000000000003)
+  state Box(kind: small, items: [], tags: [new], counts: [start: 1], owner: 00000000-0000-0000-0000-000000000001, timer: ee000000-0000-0000-0000-000000000003, origin: Point(x: 0, y: 0), note: none, size: 0)
+#3 projection upsert BoxView ee000000-0000-0000-0000-000000000002 {kind: small, size: 0}
+timer ee000000-0000-0000-0000-000000000003 at 2026-10-04T12:01:00Z: [ee000000-0000-0000-0000-000000000002].Box.expire()
+notify Box.boxReady(boxId: 00000000-0000-0000-0000-000000000001) to 00000000-0000-0000-0000-000000000001
+request Store.save(boxId: ee000000-0000-0000-0000-000000000002) key f1efa8e1-3796-8003-b9ae-8bf16d16972f

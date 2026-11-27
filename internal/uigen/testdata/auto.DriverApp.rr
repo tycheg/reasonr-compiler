@@ -1,0 +1,15 @@
+# The automatic UI of app DriverApp (reasonr ui eject DriverApp)
+
+app(Driver) DriverApp "Driver"
+  platforms mobile
+  Menu
+    DriverAppDriver
+
+screen DriverAppDriver
+  Card Driver.MyState
+    Actions
+      Button Driver.GoOnline
+      Button Driver.GoOffline
+      Button Driver.Accept
+      Button Driver.Decline
+      Button Driver.FinishRide

@@ -1,0 +1,22 @@
+# taxi/contexts/Ordering/dispatch.acl.rr
+# Dispatch matching and ride progress in the order's terms. The trip has the
+# same uuid as the order.
+
+acl Dispatch
+  ## An offer is sent to a driver
+  on Dispatch.Trip.offerSent
+    [Order.Id(id)].markOffered()
+
+  ## The driver declined or did not answer; matching goes on
+  on Dispatch.Trip.driverSkipped
+    [Order.Id(id)].resumeSearch()
+
+  on Dispatch.Trip.driverAssigned
+    [Order.Id(id)].confirmDriver(assignedName: assignedName, assignedPlate: assignedPlate)
+
+  on Dispatch.Trip.searchFailed
+    [Order.Id(id)].failSearch()
+
+  ## The ride is over: charge the payment
+  on Dispatch.Trip.rideCompleted
+    [Order.Id(id)].finishRide()

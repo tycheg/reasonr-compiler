@@ -1,0 +1,5 @@
+entity Box 00000000-0000-0000-0000-000000000001 existed=true version=1
+  #1 event Box.expired(at: 2026-10-04T12:00:00Z, delay: 0s)
+  state Box(kind: small, items: [a], tags: [], counts: [a: 2], owner: 00000000-0000-0000-0000-000000000001, timer: none, origin: Point(x: 0, y: 0), note: none, size: 0)
+#0 projection delete BoxView 00000000-0000-0000-0000-000000000001
+timer delete 00000000-0000-0000-0000-000000000003

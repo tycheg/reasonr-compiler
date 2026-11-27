@@ -1,0 +1,19 @@
+aggregate A
+  command c(x int)
+    if x >              # want "E0012"
+      ok()
+  command d()
+    let request = 1     # want "E0012"
+    let x = new Order   # want "E0012"
+    foo(a: 1) bar       # want "E0012"
+    ok()
+  query q() int
+    return [Order]
+      where x == 1
+      group x           # want "E0012"
+      limit 10
+      select 1
+  ??                    # want "E0012"
+  status Status
+garbage here            # want "E0012"
+role admin

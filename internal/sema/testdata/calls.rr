@@ -1,0 +1,21 @@
+aggregate Order
+  id uuid
+
+  command place(x int, y string?, z int = 1)
+    placed(1)           # want "E0010"
+    placed(x: 1, x: 2)  # want "E0205"
+    placed()            # want "E0203"
+    placed(x: 1, w: 2)  # want "E0204"
+    let r = round(1.5)  # want "E0214"
+    let s = round(1.5, 2)
+    let m = max(1, 2.5)  # want "E0202"
+    let t = schedule(at: now, run: place(x: 1))
+    let u = schedule(at: now, run: placed(x: 1))  # want "E0402"
+    let v = placed(x: 1)                          # want "E0214"
+    rate()                                        # want "E0213"
+    placed(x: 1) to id                            # want "E0214"
+
+  event placed(x int)
+
+  rule rate() int
+    return 1

@@ -1,0 +1,7 @@
+# taxi/apps/DriverApp/app.rr
+
+app(Driver) DriverApp "Driver"
+  language en
+  platforms mobile
+  Menu
+    Shift

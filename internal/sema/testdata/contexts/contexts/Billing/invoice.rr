@@ -1,0 +1,17 @@
+role clerk
+
+aggregate Invoice
+  id uuid
+  order Sales.Order.Id?  # want "E1407"
+
+  command(clerk) Bill(orderId Order.Id)  # want "E0107"
+    billed()
+
+  event billed()
+
+  on Sales.Order.placed  # want "E1415"
+    billed()
+
+acl Sales  # want "E1412"
+  on Sales.Order.placed
+    return

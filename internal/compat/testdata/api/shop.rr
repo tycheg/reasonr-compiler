@@ -1,0 +1,31 @@
+role admin
+
+enum Status
+  open
+  closed
+
+value Card  # want "E1104" "E1104"
+  state Status
+  sum decimal
+
+aggregate Order  # want "E1104"
+  id uuid
+  status Status
+
+  ## Parameter reason renamed without was
+  command(admin) Cancel(cancelReason string)  # want "E1104"
+    cancelled(why: cancelReason)
+
+  ## A new required parameter
+  command(admin) Pay(amount decimal, currency string)  # want "E1105"
+    paid(amount: amount)
+
+  ## The parameter type changed
+  command(admin) Tip(amount string)  # want "E1106"
+    paid(amount: 1)
+
+  event cancelled(why string)
+  event paid(amount decimal)
+
+  query(admin) Info(orderId Order.Id) Card
+    return Card(state: open, sum: 0)

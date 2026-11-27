@@ -1,0 +1,1 @@
+error Box.tooMany(limit: 1)

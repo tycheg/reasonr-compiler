@@ -1,0 +1,169 @@
+role admin
+
+value Row
+  orderId Order.Id
+  parentId Order.Id
+  title string
+
+value OrderView
+  orderId Order.Id
+  title string
+  tags map<string, string>
+
+actor Customer
+  id uuid
+  name string
+
+  index byName(name)
+
+  command(self) Rename(newName string)
+    renamed(newName: newName)
+
+  command(self) Touch()
+    return
+
+  command touch()
+    return
+
+  event renamed(newName string)
+    name = newName
+
+  query(admin) Find(text string) list<CustomerRow>
+    return [Customer]
+      where name == text
+      limit 10
+      select CustomerRow(customerId: id, title: name)
+
+  query(admin) FindBoth(text string, extra int) list<CustomerRow>
+    return [Customer]
+      where name == text
+      limit 10
+      select CustomerRow(customerId: id, title: name)
+
+value CustomerRow
+  customerId Customer.Id
+  title string
+
+actor Driver
+  id uuid
+
+  query(Driver) State() DriverView
+    return DriverView(online: true)
+
+value DriverView
+  online bool
+
+aggregate Order
+  id uuid
+  customer Customer.Id?
+  title string
+
+  index byCustomer(customer)
+
+  command(customer, admin) Cancel(reason string)
+    return
+
+  command(admin) Assign(customerId Customer.Id)
+    return
+
+  command(admin) Retitle(newTitle string, code Order.Id)
+    return
+
+  query(Customer, admin) Mine(pageReq PageRequest) page<Row>
+    return [Order]
+      where customer == me
+      page pageReq
+      select Row(orderId: id, parentId: id, title: title)
+
+  query(Customer, admin) View(orderId Order.Id) OrderView
+    return OrderView(orderId: orderId, title: "", tags: [:])
+
+app(Customer) Shop "Shop"
+  language en
+  platforms web, desktop  # want "E0715"
+  Menu
+    Orders
+    Detail       # want "E0710"
+    Profile
+    Shared
+
+app(Driver) Cab
+  language en
+  language de  # want "E0715"
+  Menu
+    Shared
+
+app(admin) Back
+  Menu
+    Assigns
+    Picks
+
+app(admin) Auto auto
+  Menu  # want "E0715"
+
+screen Orders "Orders"
+  Table(rows: 50) Order.Mine  # want "E0716"
+    Columns
+      title
+      orderNo  # want "E0704"
+    RowActions
+      Confirm Order.Cancel  # want "E0705"
+      Confirm [orderId].Cancel
+      Edit Order.Mine  # want "E0703"
+      Button Customer.touch  # want "E0703"
+      Textt  # want "E0704"
+    on open Detail
+    on click Detail  # want "E0709"
+  Card Order.Mine  # want "E0702"
+  Toolbar Order.Mine  # want "E0702"
+  Table  # want "E0702"
+  Text  # want "E0702"
+  title  # want "E0704"
+  on open Detail  # want "E0709"
+  Link Detail  # want "E0710"
+  Link Nowhere  # want "E0703"
+
+screen Detail(orderId Order.Id) "Order"
+  Card Order.View
+    title
+    tags  # want "E0707"
+    Actions
+      Button Order.Cancel  # want "E0708"
+      Confirm Order.Cancel(reason: title)
+        reason
+      Edit Order.Cancel
+        reason
+        title  # want "E0704"
+      Edit Order.Retitle(newTitle: title)  # want "E0707"
+  Card Order.View(orderId: 1)  # want "E0202" "E0707"
+
+screen Wrong(orderId string)  # want "W1302"
+  Card Order.View  # want "E0706" "E0707"
+
+screen Profile
+  Button Customer.Touch
+  Edit Customer.Rename
+    newName TextInput
+  Edit Customer.Rename
+    newName Text  # want "E0702"
+  Edit Customer.Rename
+    newName Tag  # want "E0702"
+  Card Driver.State  # want "W1301"
+
+screen Shared
+  Button Customer.Touch  # want "E0711" "W1301"
+
+screen Assigns
+  Form [new Order.Id].Assign  # want "E0707"
+
+screen Picks
+  Form [new Order.Id].Assign
+    customerId EntityPicker(search: Customer.Find)
+  Form [new Order.Id].Assign
+    customerId EntityPicker(search: Customer.FindBoth)  # want "E0708"
+  Form [new Order.Id].Assign
+    customerId EntityPicker(search: Customer.Find, key: title)  # want "E0716"
+  Form [new Order.Id].Assign
+    customerId EntityPicker  # want "E0716"
+  Form [new Order.Id].Assign
+    customerId EntityPicker(search: Order.Mine)  # want "E0716"

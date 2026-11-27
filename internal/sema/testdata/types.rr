@@ -1,0 +1,44 @@
+aggregate Order
+  id uuid
+  a Strng           # want "E0107"
+  b list            # want "E0109"
+  c list<int, int>  # want "E0109"
+  d int<string>     # want "E0109"
+  e Pay             # want "E0107"
+  f sequence        # want "E0107"
+  g Customer.Id     # want "E0107"
+  h Money.Id        # want "E0107"
+  i map<string, Money>
+  j Order.Id?
+  k Timer.Id?
+  l page<Money>  # want "E0211"
+  m Order        # want "E0211"
+
+aggregate NoID  # want "E0110"
+  x int
+
+aggregate Derived
+  id Order.Id  # want "E0111"
+
+projection OrderMart
+  id Order.Id
+  x int
+
+projection Nested
+  id OrderMart.Id  # want "E0111"
+
+aggregate Twice
+  id uuid
+  id string  # want "E0102"
+
+aggregate Composite
+  id Money
+
+aggregate BadID
+  id list<int>  # want "E0111"
+
+value Money
+  amount decimal
+
+external Pay
+  request charge()

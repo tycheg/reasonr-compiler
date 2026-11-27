@@ -1,0 +1,159 @@
+{
+  "name": "reasonr",
+  "displayName": "ReasonR",
+  "description": "The ReasonR business logic language: highlighting, diagnostics, formatting, hover and completion",
+  "version": "0.1.2",
+  "publisher": "tycheg",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tycheg/reasonr"
+  },
+  "engines": {
+    "vscode": "^1.82.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Formatters"
+  ],
+  "main": "./out/extension.js",
+  "activationEvents": [],
+  "contributes": {
+    "languages": [
+      {
+        "id": "reasonr",
+        "aliases": [
+          "ReasonR"
+        ],
+        "extensions": [
+          ".rr"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "reasonr",
+        "scopeName": "source.reasonr",
+        "path": "./syntaxes/reasonr.tmLanguage.json"
+      }
+    ],
+    "commands": [
+      {
+        "command": "reasonr.format",
+        "title": "Format",
+        "category": "ReasonR"
+      },
+      {
+        "command": "reasonr.explain",
+        "title": "Explain command",
+        "category": "ReasonR"
+      },
+      {
+        "command": "reasonr.restart",
+        "title": "Restart language server",
+        "category": "ReasonR"
+      }
+    ],
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "reasonr.format",
+          "when": "editorLangId == reasonr"
+        },
+        {
+          "command": "reasonr.explain",
+          "when": "editorLangId == reasonr"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "reasonr.explain",
+          "when": "editorLangId == reasonr",
+          "group": "navigation@9"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "ReasonR",
+      "properties": {
+        "reasonr.server.path": {
+          "type": "string",
+          "default": "reasonr",
+          "description": "The path to the reasonr compiler: the server starts with the command \"reasonr lsp\"."
+        }
+      }
+    },
+    "semanticTokenTypes": [
+      {
+        "id": "error",
+        "superType": "type",
+        "description": "An error (error)"
+      },
+      {
+        "id": "notification",
+        "superType": "event",
+        "description": "A notification (notification)"
+      },
+      {
+        "id": "feature",
+        "superType": "variable",
+        "description": "A feature flag (feature)"
+      }
+    ],
+    "semanticTokenModifiers": [
+      {
+        "id": "public",
+        "description": "A public command or query"
+      },
+      {
+        "id": "private",
+        "description": "A private command or query"
+      },
+      {
+        "id": "personal",
+        "description": "Personal data"
+      }
+    ],
+    "semanticTokenScopes": [
+      {
+        "language": "reasonr",
+        "scopes": {
+          "error": [
+            "entity.name.type.error.reasonr"
+          ],
+          "notification": [
+            "entity.name.function.notification.reasonr"
+          ],
+          "method.public": [
+            "entity.name.function.command.public.reasonr"
+          ],
+          "property.personal": [
+            "variable.other.property.personal.reasonr"
+          ],
+          "feature": [
+            "variable.other.constant.feature.reasonr"
+          ]
+        }
+      }
+    ]
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "package": "vsce package",
+    "vscode:prepublish": "npm run compile",
+    "test": "node test/grammar.test.js"
+  },
+  "dependencies": {
+    "vscode-languageclient": "^9.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "~1.82.0",
+    "typescript": "^5.4.0",
+    "vscode-oniguruma": "^2.0.1",
+    "vscode-textmate": "^9.0.0",
+    "@vscode/vsce": "^3.0.0"
+  }
+}

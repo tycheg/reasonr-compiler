@@ -1,0 +1,53 @@
+aggregate Account
+  id sequence
+
+  command(owner) Transfer(target Account.Id, sum decimal, comment string)
+    if sum <= 0
+      invalidSum(sum: sum)
+    else if not [target]
+      accountNotFound(accountId: target)
+    else
+      ok()
+    let perKm decimal = 30
+    let total = price.times(2)
+    total = total.times(0.9)
+    withdrawn(amount: sum)
+    if after.balance < -overdraft
+      insufficientFunds(available: balance + overdraft)
+      return
+    [target].deposit(amount: sum, source: id)
+    [driver]?.releaseOrder(orderId: id)
+    driverOnTheWay(orderId: id) to customer
+    OrderMart(id: OrderMart.Id(id), status: assigned)
+    Matching.findDriver(orderId: id, exclude: declinedBy)
+    let timer = schedule(at: now + 20s, run: expireOffer(driverId: d))
+    delete offerTimer
+    delete [martId]
+    for x in items
+      if x == 3
+        break
+      continue
+    while n > 0
+      n = n - 1
+    let label = "Order {id} — {price.amount ?? 0} € {{x}}"
+    let m = ["a": 1, "b": 2]
+    let e = [:]
+    let l = [a, b,]
+    let d = date"2026-10-02"
+    let ts = timestamp"2026-10-02T12:00:00Z"
+    if status not in [searching, offered] and o is not none or x is none
+      return
+
+  query(Client) MyAccounts(pageReq PageRequest) page<AccountRow>
+    return [Account]
+      where owner == me and balance > 0
+      sort balance desc, id
+      page pageReq
+      select AccountRow(accountId: id, balance: balance)
+
+  query top() list<AccountRow>
+    let rows = [Account]
+      where owner == me
+      limit 10
+      select AccountRow(accountId: id, balance: balance)
+    return rows

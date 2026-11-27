@@ -1,0 +1,25 @@
+## A route stop: its own identity inside the order
+entity Order.Stop
+  id sequence
+  label string
+  arrived bool
+
+  index byLabel(label)  # want "E1421"
+
+  command add(text string)
+    added(text: text)
+
+  command arrive()
+    arrivedNow()
+
+  command(admin) Visit()  # want "E1421"
+    arrivedNow()
+
+  query(admin) Info() string  # want "E1421"
+    return ""
+
+  event added(text string)
+    label = text
+
+  event arrivedNow()
+    arrived = true

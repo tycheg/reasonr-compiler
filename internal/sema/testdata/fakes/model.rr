@@ -1,0 +1,41 @@
+role matching
+role support
+
+external(matching) Matching
+  request findDriver(orderId Order.Id, timeout Timer.Id)
+  request ping()
+
+aggregate Order
+  id uuid
+  status int
+
+  command(matching) Found(driver int)
+    found(driver: driver)
+
+  command(support) Close()
+    found(driver: 0)
+
+  command touch()
+    found(driver: 1)
+
+  command place()
+    let t = schedule(at: now + 60s, run: touch())
+    Matching.findDriver(orderId: id, timeout: t)
+    Matching.ping()
+    Board(id: Board.Id(id), n: 1)
+    placed()
+
+  event found(driver int)
+    status = driver
+
+  event placed()
+
+  query(support) Card(orderId Order.Id) int
+    let o = [orderId]
+    if o is none
+      return 0
+    return o.status
+
+projection Board
+  id Order.Id
+  n int

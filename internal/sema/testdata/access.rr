@@ -1,0 +1,47 @@
+role admin
+role customer
+
+actor Customer
+  id uuid
+
+  command(self, admin) SignUp()
+    signedUp()
+
+  command(Customer) Touch()
+    signedUp()
+
+  event signedUp()
+
+aggregate Order
+  id uuid
+  customer Customer.Id?
+  status string
+
+  command(self) Cancel()  # want "E0601"
+    return
+
+  command(status) Close()  # want "E0602"
+    return
+
+  command(customer) Pay()  # want "E0603"
+    return
+
+  command(admn) Refund()  # want "E0604"
+    return
+
+  query(customer) Card() int  # want "E0606"
+    return 1
+
+  query(Customer, admin) Mine() int
+    return 1
+
+app(self) Page  # want "E0601"
+  Menu
+    Other
+
+app(Customer, admin) Main
+  Menu
+    Other
+
+screen Other
+  Toolbar

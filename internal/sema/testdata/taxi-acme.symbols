@@ -1,0 +1,332 @@
+actor Dispatch.Driver (id uuid)
+  name string
+  car Dispatch.Car
+  status Dispatch.DriverStatus
+  currentTrip Dispatch.Trip.Id?
+  index byStatus
+  index byPlate
+  command Register(driverName string, driverCar Dispatch.Car) [role admin]
+  command GoOnline() [self self]
+  command GoOffline() [self self]
+  command offerTrip(tripId Dispatch.Trip.Id, pickup Dispatch.GeoPoint, fare Dispatch.Money)
+  command Accept() [self self]
+  command Decline() [self self]
+  command withdrawOffer(tripId Dispatch.Trip.Id)
+  command FinishRide() [self self]
+  command releaseTrip(tripId Dispatch.Trip.Id)
+  event driverRegistered(driverName string, driverCar Dispatch.Car)
+  event wentOnline()
+  event wentOffline()
+  event tripOffered(tripId Dispatch.Trip.Id)
+  event offerAccepted()
+  event offerRejectedBusy(tripId Dispatch.Trip.Id)
+  event offerDeclined()
+  event offerWithdrawn()
+  event rideFinished()
+  notification newOffer(tripId Dispatch.Trip.Id, pickup Dispatch.GeoPoint, fare Dispatch.Money)
+  notification offerCancelled(tripId Dispatch.Trip.Id)
+  error alreadyRegistered()
+  error notRegistered()
+  error alreadyOnline()
+  error cannotGoOffline(currentStatus Dispatch.DriverStatus)
+  error noActiveOffer()
+  error noActiveRide()
+  error plateTaken()
+  error driverNotFound()
+  query MyState() Dispatch.DriverState [actor Driver]
+  query FreeDrivers(wantedClass Dispatch.CarClass, pageReq PageRequest) page<Dispatch.DriverInfo> [role dispatcher]
+  query info(driverId Dispatch.Driver.Id) Dispatch.DriverInfo
+external Dispatch.Matching (id uuid)
+  drivers list<Dispatch.Driver.Id>
+  silent bool
+  request findDriver(tripId Dispatch.Trip.Id, pickup Dispatch.GeoPoint, requestedClass Dispatch.CarClass, exclude set<Dispatch.Driver.Id>, timeout Timer.Id)
+  command Setup(freeDrivers list<Dispatch.Driver.Id>)
+  command GoSilent()
+  event configured(freeDrivers list<Dispatch.Driver.Id>)
+  event silenced()
+entity Dispatch.Trip.Offer (id bigint)
+  driver Dispatch.Driver.Id?
+  outcome Dispatch.OfferOutcome
+  command open(offeredTo Dispatch.Driver.Id)
+  command close(result Dispatch.OfferOutcome)
+  event opened(offeredTo Dispatch.Driver.Id)
+  event closed(result Dispatch.OfferOutcome)
+enum Dispatch.TripStage
+  searching
+  offered
+  assigned
+  completed
+  noDrivers
+  cancelled
+entity Dispatch.Trip (id uuid)
+  stage Dispatch.TripStage
+  pickup Dispatch.GeoPoint
+  carClass Dispatch.CarClass
+  fare Dispatch.Money
+  driver Dispatch.Driver.Id?
+  candidate Dispatch.Driver.Id?
+  searchTimer Timer.Id?
+  offerTimer Timer.Id?
+  searchRetries int
+  command open(pickupPoint Dispatch.GeoPoint, requestedClass Dispatch.CarClass, price Dispatch.Money)
+  command update(pickupPoint Dispatch.GeoPoint, requestedClass Dispatch.CarClass, price Dispatch.Money)
+  command close()
+  command tip(amount Dispatch.Money)
+  command findDriver()
+  command DriverFound(driverId Dispatch.Driver.Id) [role matching]
+  command NoDriverFound() [role matching]
+  command searchTimedOut()
+  command giveUp()
+  command searchAgain(skipped Dispatch.Driver.Id)
+  command expireOffer(driverId Dispatch.Driver.Id)
+  command driverDeclined(driverId Dispatch.Driver.Id)
+  command closeOffer(result Dispatch.OfferOutcome)
+  command assignDriver(driverId Dispatch.Driver.Id, assignedName string, assignedPlate string)
+  command finishRide(driverId Dispatch.Driver.Id)
+  event searchOpened(pickupPoint Dispatch.GeoPoint, requestedClass Dispatch.CarClass, tripFare Dispatch.Money)
+  event searchUpdated(pickupPoint Dispatch.GeoPoint, requestedClass Dispatch.CarClass, tripFare Dispatch.Money)
+  event searchStarted(timer Timer.Id)
+  event searchRetried()
+  event offerSent(driverId Dispatch.Driver.Id, timer Timer.Id)
+  event driverSkipped(driverId Dispatch.Driver.Id)
+  event driverAssigned(driverId Dispatch.Driver.Id, assignedName string, assignedPlate string)
+  event rideCompleted(at timestamp)
+  event searchFailed(at timestamp)
+  event dispatchClosed()
+  notification rideCancelled(tripId Dispatch.Trip.Id)
+  notification tipReceived(tripId Dispatch.Trip.Id, amount Dispatch.Money)
+  error offerNoLongerValid()
+  error rideNotActive()
+enum Dispatch.DriverStatus
+  offline
+  free
+  offered
+  busy
+enum Dispatch.OfferOutcome
+  pending
+  accepted
+  declined
+  expired
+  withdrawn
+enum Dispatch.CarClass
+  economy
+  comfort
+enum Dispatch.Currency
+  rub
+value Dispatch.Money
+  amount decimal
+  currency Dispatch.Currency
+value Dispatch.GeoPoint
+  lat float
+  lon float
+value Dispatch.Car
+  plate string
+  model string
+  carClass Dispatch.CarClass
+value Dispatch.DriverInfo
+  driverId Dispatch.Driver.Id
+  name string
+  plate string
+value Dispatch.DriverState
+  status Dispatch.DriverStatus
+  currentTrip Dispatch.Trip.Id?
+screen Dispatch.Shift
+screen Dispatch.FreeDrivers
+screen Dispatch.NewDriver
+screen Ordering.AdminOrders
+screen Ordering.AdminOrder
+screen Ordering.AdminNewOrder
+screen Ordering.AdminProfile
+projection Ordering.OrderMart (id Ordering.Order.Id)
+  status Ordering.OrderStatus
+  driverName string?
+  plate string?
+  placedAt timestamp
+  index byStatus
+  query Board(wanted Ordering.OrderStatus, pageReq PageRequest) page<Ordering.BoardRow> [role dispatcher]
+external Ordering.Payments (id uuid)
+  limit decimal
+  request charge(paymentId Ordering.Order.Id, amount Ordering.Money)
+  command Setup(limitAmount decimal)
+  event configured(limitAmount decimal)
+  command capture(paymentId Ordering.Order.Id)
+actor Ordering.Customer (id uuid)
+  phone string? personal
+  blocked bool
+  activeOrder Ordering.Order.Id?
+  homeAddress string?
+  index byPhone
+  command SignUp(phoneNumber string) [self self]
+  command Join(phoneNumber string) [self self]
+  command SetHome(address string) [self self]
+  command OrderTaxi(orderId Ordering.Order.Id, orderRoute Ordering.Route, requestedClass Ordering.CarClass) [self self, role admin, role support]
+  command Forget() [self self, role support]
+  command orderFinished(orderId Ordering.Order.Id)
+  command orderUnpaid(orderId Ordering.Order.Id)
+  event signedUp(phoneNumber string?)
+  event joined(phoneNumber string?)
+  event homeSet(address string)
+  event orderStarted(orderId Ordering.Order.Id)
+  event orderClosed()
+  event blockedForDebt(orderId Ordering.Order.Id)
+  event forgotten()
+  error alreadyRegistered()
+  error notRegistered()
+  error customerBlocked()
+  error alreadyHasOrder(orderId Ordering.Order.Id)
+  error hasActiveOrder()
+  error phoneTaken()
+  query Profile() Ordering.CustomerProfile [actor Customer]
+  query Home() Ordering.HomeAddress [actor Customer]
+  query FindByPhone(phoneNumber string) list<Ordering.CustomerRow> [role admin, role support]
+entity Ordering.Order (id uuid)
+  status Ordering.OrderStatus
+  customer Ordering.Customer.Id?
+  route Ordering.Route
+  carClass Ordering.CarClass
+  price Ordering.Money
+  driverName string?
+  driverPlate string?
+  placedAt timestamp
+  tip Ordering.Money?
+  costCenter string?
+  index byCustomer
+  index byStatus
+  rule perKmRate(requestedClass Ordering.CarClass) decimal
+  command place(customerId Ordering.Customer.Id, orderRoute Ordering.Route, requestedClass Ordering.CarClass)
+  command PaymentCaptured(transactionId string) [role payments]
+  command PaymentDeclined(reason string) [role payments]
+  command LeaveTip(amount Ordering.Money) [field customer]
+  command Edit(orderRoute Ordering.Route, requestedClass Ordering.CarClass) [role admin, role support]
+  command Cancel(reason string) [field customer, role support, role admin]
+  command writeMart()
+  command markOffered()
+  command resumeSearch()
+  command confirmDriver(assignedName string, assignedPlate string)
+  command failSearch()
+  command finishRide()
+  event placed(customerId Ordering.Customer.Id, orderRoute Ordering.Route, requestedClass Ordering.CarClass, orderPrice Ordering.Money, at timestamp)
+  event offerPending()
+  event searchResumed()
+  event driverConfirmed(assignedName string, assignedPlate string)
+  event searchExhausted()
+  event rideFinished()
+  event paymentReceived(transactionId string)
+  event paymentFailed(reason string)
+  event tipped(amount Ordering.Money)
+  event edited(orderRoute Ordering.Route, requestedClass Ordering.CarClass, orderPrice Ordering.Money)
+  event orderCancelled(reason string, at timestamp)
+  notification orderPlaced(orderId Ordering.Order.Id, price Ordering.Money)
+  notification driverOnTheWay(orderId Ordering.Order.Id)
+  notification noDriversAvailable(orderId Ordering.Order.Id)
+  notification receipt(orderId Ordering.Order.Id, amount Ordering.Money)
+  notification paymentProblem(orderId Ordering.Order.Id, reason string)
+  error orderAlreadyExists()
+  error cannotCancel(currentStatus Ordering.OrderStatus)
+  error cannotEdit(currentStatus Ordering.OrderStatus)
+  error orderNotFound()
+  error tipsDisabled()
+  error cannotTip(currentStatus Ordering.OrderStatus)
+  query MyOrders(pageReq PageRequest) page<Ordering.OrderRow> [actor Customer]
+  query Card(orderId Ordering.Order.Id) Ordering.OrderCard [actor Customer]
+  query List(wanted Ordering.OrderStatus, pageReq PageRequest) page<Ordering.OrderRow> [role admin, role support]
+  query Details(orderId Ordering.Order.Id) Ordering.OrderDetails [role admin, role support]
+  command SetCostCenter(code string) [field customer]
+  event costCenterSet(code string)
+  error invalidCostCenter()
+  error orderLimitExceeded(limit decimal)
+actor Ordering.Staff (id uuid)
+  name string
+  email string? personal
+  command Hire(staffName string) [role admin]
+  command ChangeEmail(newEmail string) [self self]
+  event hired(staffName string)
+  event emailChanged(newEmail string?)
+  error alreadyHired()
+  error notStaff()
+  query Profile() Ordering.StaffProfile [actor Staff]
+enum Ordering.OrderStatus
+  searching
+  offered
+  assigned
+  completed
+  paid
+  unpaid
+  cancelled
+  noDrivers
+enum Ordering.CarClass
+  economy
+  comfort
+enum Ordering.Currency
+  rub
+value Ordering.Money
+  amount decimal
+  currency Ordering.Currency
+value Ordering.GeoPoint
+  lat float
+  lon float
+value Ordering.Route
+  from Ordering.GeoPoint
+  to Ordering.GeoPoint
+  distanceKm float
+value Ordering.OrderRow
+  orderId Ordering.Order.Id
+  status Ordering.OrderStatus
+  price Ordering.Money
+  placedAt timestamp
+value Ordering.OrderCard
+  status Ordering.OrderStatus
+  price Ordering.Money
+  driver Ordering.AssignedDriver?
+  tip Ordering.Money?
+value Ordering.AssignedDriver
+  name string
+  plate string
+value Ordering.BoardRow
+  orderId Ordering.Order.Id
+  status Ordering.OrderStatus
+  driverName string?
+  plate string?
+value Ordering.CustomerProfile
+  phone string?
+  blocked bool
+value Ordering.HomeAddress
+  address string?
+value Ordering.StaffProfile
+  name string
+  email string?
+value Ordering.OrderDetails
+  orderId Ordering.Order.Id
+  status Ordering.OrderStatus
+  orderRoute Ordering.Route
+  requestedClass Ordering.CarClass
+  price Ordering.Money
+  placedAt timestamp
+  driverName string?
+value Ordering.CustomerRow
+  customerId Ordering.Customer.Id
+  phone string?
+screen Ordering.NewOrder
+screen Ordering.MyOrders
+screen Ordering.MyOrder
+screen Ordering.Profile
+screen Ordering.JoinTaxi
+screen Ordering.TaxiAccount
+screen Ordering.Home
+screen Ordering.Board
+app Admin
+app Dispatch
+app DriverApp
+app Join
+app Taxi
+screen Auth.MyAccount
+actor Auth.User (id uuid)
+  name string?
+  command Sync(userName string) [self self]
+  event synced(userName string)
+  error notSynced()
+  query Me() Auth.Account [actor User]
+value Auth.Account
+  name string?
+app Account
+roles admin, authAdmin, dispatcher, matching, payments, support

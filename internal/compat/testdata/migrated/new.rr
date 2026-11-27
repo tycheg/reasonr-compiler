@@ -1,0 +1,10 @@
+aggregate Item
+  id uuid
+  count string
+
+  command recount()
+    return
+
+migration recountItems
+  for item in all Item
+    [item].recount()

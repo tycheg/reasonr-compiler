@@ -1,0 +1,41 @@
+# taxi/contexts/Ordering/moscow.demo.rr
+# Demo data (RFC §27.5): a week of taxi rides in Moscow — orders in every
+# status. The scenario calls the matching and payment answers itself with
+# their roles.
+# reasonrd demo load "A week of rides in Moscow" --tenant demo --config engine.yaml
+
+let moscow = GeoPoint(lat: 55.75, lon: 37.62)
+
+test "A week of rides in Moscow"
+  given
+    time offset -7d
+    for day in range(7)
+      for k in range(12)
+        let c = new Customer.Id
+        let o = new Order.Id
+        [c].SignUp(phoneNumber: faker.phone()) as c
+        [c].OrderTaxi(
+          orderId: o,
+          orderRoute: Route(from: moscow, to: moscow, distanceKm: faker.float(1, 30)),
+          requestedClass: economy,
+        ) as c
+        if faker.chance(0.75)
+          let d = new Driver.Id
+          [d].Register(
+            driverName: faker.name(),
+            driverCar: Car(
+              plate: faker.pattern("?###??77"),
+              model: faker.pick(["Kia Rio", "Lada Vesta", "Hyundai Solaris"]),
+              carClass: economy,
+            ),
+          ) as admin
+          [d].GoOnline() as d
+          [Trip.Id(o)].DriverFound(driverId: d) as matching
+          [d].Accept() as d
+          if faker.chance(0.8)
+            [d].FinishRide() as d
+            [o].PaymentCaptured(transactionId: faker.pattern("tx-########")) as payments
+        else if faker.chance(0.5)
+          [o].Cancel(reason: faker.pick(["changed my mind", "the wait is too long", "plans changed"])) as c
+        time offset +40m
+      time offset +16h

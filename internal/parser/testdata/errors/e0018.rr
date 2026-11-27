@@ -1,0 +1,19 @@
+aggregate A
+  query q() list<R>
+    return [A]
+      where x == 1
+      where y == 2      # want "E0018"
+      limit 10
+      select R()
+
+app(a) V
+  language en
+  language de
+
+test "t"
+  when
+    [a].b() as x
+  when                  # want "E0018"
+    [a].c() as x
+  then
+    matches (x: 1)

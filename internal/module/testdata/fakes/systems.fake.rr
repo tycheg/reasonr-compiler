@@ -1,0 +1,14 @@
+fake Matching
+  calls int
+
+fake Matching  # want "E0101"
+  other int
+
+fake Silent  # want "E1206"
+  calls int
+
+fake Ghost  # want "E1206"
+  calls int
+
+aggregate Order  # want "E1205"
+  id uuid

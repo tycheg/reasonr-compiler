@@ -1,0 +1,315 @@
+== acme
+  Entity Driver
+    ID id
+    Field name
+    Field car
+    Field status
+    Field currentTrip
+    Index byStatus
+    Index byPlate
+    Command Register
+    Command GoOnline
+    Command GoOffline
+    Command offerTrip
+    Command Accept
+    Command Decline
+    Command withdrawOffer
+    Command FinishRide
+    Command releaseTrip
+    Event driverRegistered
+    Event wentOnline
+    Event wentOffline
+    Event tripOffered
+    Event offerAccepted
+    Event offerRejectedBusy
+    Event offerDeclined
+    Event offerWithdrawn
+    Event rideFinished
+    Notification newOffer
+    Notification offerCancelled
+    Error alreadyRegistered
+    Error notRegistered
+    Error alreadyOnline
+    Error cannotGoOffline
+    Error noActiveOffer
+    Error noActiveRide
+    Error plateTaken
+    Error driverNotFound
+    Query MyState
+    Query FreeDrivers
+    Query info
+  External Matching
+  ACL Ordering
+  Texts
+  Entity Offer
+    ID id
+    Field driver
+    Field outcome
+    Command open
+    Command close
+    Event opened
+    Event closed
+  Enum TripStage
+  Entity Trip
+    ID id
+    Field stage
+    Field pickup
+    Field carClass
+    Field fare
+    Field driver
+    Field candidate
+    Field searchTimer
+    Field offerTimer
+    Field searchRetries
+    Command open
+    Command update
+    Command close
+    Command tip
+    Command findDriver
+    Command DriverFound
+    Command NoDriverFound
+    Command searchTimedOut
+    Command giveUp
+    Command searchAgain
+    Command expireOffer
+    Command driverDeclined
+    Command closeOffer
+    Command assignDriver
+    Command finishRide
+    Event searchOpened
+    Event searchUpdated
+    Event searchStarted
+    Event searchRetried
+    Event offerSent
+    Event driverSkipped
+    Event driverAssigned
+    Event rideCompleted
+    Event searchFailed
+    Event dispatchClosed
+    Notification rideCancelled
+    Notification tipReceived
+    Error offerNoLongerValid
+    Error rideNotActive
+  Enum DriverStatus
+  Enum OfferOutcome
+  Enum CarClass
+  Enum Currency
+  Value Money
+  Value GeoPoint
+  Value Car
+  Value DriverInfo
+  Value DriverState
+  Screen Shift
+  Screen FreeDrivers
+  Screen NewDriver
+  Test "A Keycloak user becomes a customer"
+  Test "The customer's home address from the account"
+  Test "A user updates their name in the account"
+  Screen AdminOrders
+  Screen AdminOrder
+  Screen AdminNewOrder
+  Screen AdminProfile
+  Let
+  Test "Staff change the route and class of an order being matched"
+  Test "An order with an assigned driver does not change"
+  Test "Staff place an order for a customer"
+  Test "An administrator cancels an order"
+  Test "A customer cannot look up other customers by phone"
+  Test "A staff member changes their email"
+  ACL Auth
+  Projection OrderMart
+    ID id
+    Field status
+    Field driverName
+    Field plate
+    Field placedAt
+    Index byStatus
+    Query Board
+  External Payments
+  Entity Customer
+    ID id
+    Field phone
+    Field blocked
+    Field activeOrder
+    Field homeAddress
+    Index byPhone
+    Command SignUp
+    Command Join
+    Command SetHome
+    Command OrderTaxi
+    Command Forget
+    Command orderFinished
+    Command orderUnpaid
+    Event signedUp
+    Event joined
+    Event homeSet
+    Event orderStarted
+    Event orderClosed
+    Event blockedForDebt
+    Event forgotten
+    Error alreadyRegistered
+    Error notRegistered
+    Error customerBlocked
+    Error alreadyHasOrder
+    Error hasActiveOrder
+    Error phoneTaken
+    Query Profile
+    Query Home
+    Query FindByPhone
+  ACL Dispatch
+  Let
+  Test "A week of rides in Moscow"
+  Entity Order
+    ID id
+    Field status
+    Field customer
+    Field route
+    Field carClass
+    Field price
+    Field driverName
+    Field driverPlate
+    Field placedAt
+    Field tip
+    Index byCustomer
+    Index byStatus
+  + Rule perKmRate (1 instr.)
+    Command place
+    Command PaymentCaptured
+    Command PaymentDeclined
+    Command LeaveTip
+    Command Edit
+    Command Cancel
+    Command writeMart
+    Command markOffered
+    Command resumeSearch
+    Command confirmDriver
+    Command failSearch
+    Command finishRide
+    Event placed
+    Event offerPending
+    Event searchResumed
+    Event driverConfirmed
+    Event searchExhausted
+    Event rideFinished
+    Event paymentReceived
+    Event paymentFailed
+    Event tipped
+    Event edited
+    Event orderCancelled
+    Notification orderPlaced
+    Notification driverOnTheWay
+    Notification noDriversAvailable
+    Notification receipt
+    Notification paymentProblem
+    Error orderAlreadyExists
+    Error cannotCancel
+    Error cannotEdit
+    Error orderNotFound
+    Error tipsDisabled
+    Error cannotTip
+    Query MyOrders
+    Query Card
+    Query List
+    Query Details
+  + Field costCenter
+  + Command SetCostCenter
+  + Event costCenterSet
+  + On placed
+  + Error invalidCostCenter
+  + Error orderLimitExceeded
+  Let
+  Let
+  Let
+  Test "The driver accepts the offer and the order is assigned"
+  Test "A busy driver: the order goes to the next driver"
+  Test "A search without an answer restarts"
+  Test "The car plate is unique"
+  Test "After forgetting personal data the phone is unreadable"
+  Test "Another customer may take a forgotten customer's number"
+  Test "Forgetting with an active order erases nothing"
+  Test "Another customer's order is not visible"
+  Let
+  Let
+  Test "Peak hour"
+  Let
+  Let
+  Let
+  Let
+  Test "A ride on fakes: matching, the ride, payment"
+  Test "A customer tips the driver"
+  Test "No tips before payment"
+  Test "A payment over the limit is declined"
+  Test "No free drivers"
+  Test "The first driver is busy: the fake offers the next one"
+  Test "The matching service is silent: no drivers after three attempts"
+  Test "Cancelling an order while matching is silent"
+  Entity Staff
+    ID id
+    Field name
+    Field email
+    Command Hire
+    Command ChangeEmail
+    Event hired
+    Event emailChanged
+    Error alreadyHired
+    Error notStaff
+    Query Profile
+  Texts
+  Role admin
+  Role support
+  Role dispatcher
+  Role matching
+  Role payments
+  Feature tips
+  Enum OrderStatus
+  Enum CarClass
+  Enum Currency
+  Value Money
+  Value GeoPoint
+  Value Route
+  Value OrderRow
+  Value OrderCard
+  Value AssignedDriver
+  Value BoardRow
+  Value CustomerProfile
+  Value HomeAddress
+  Value StaffProfile
+  Value OrderDetails
+  Value CustomerRow
+  Screen NewOrder
+  Screen MyOrders
+  Screen MyOrder
+  Screen Profile
+  Screen JoinTaxi
+  Screen TaxiAccount
+  Screen Home
+  Screen Board
+  Let
+  Let
+  Let
+  Test "A driver goes online"
+  Test "A driver goes offline"
+  Test "A driver declines an offer"
+  Test "A passenger cancels their order"
+  Test "A passenger opens their orders"
+  Test "Staff open the orders being matched"
+  Test "The dispatcher opens the order board"
+  Test "The dispatcher opens the free drivers"
+  App Admin
+  App Dispatch
+  App DriverApp
+  App Join
+  App Taxi
+  Screen MyAccount
+  Role authAdmin
+  Entity User
+    ID id
+    Field name
+    Command Sync
+    Event synced
+    Error notSynced
+    Query Me
+  Value Account
+  App Account
++ Let
++ Test "An empty cost center is rejected"

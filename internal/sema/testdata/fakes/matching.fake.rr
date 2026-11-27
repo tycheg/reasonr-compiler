@@ -1,0 +1,27 @@
+fake Matching
+  count int
+  secret string? personal  # want "E1209"
+
+  command Setup()
+    configured()
+
+  event configured()
+    count = 1
+
+  request findDriver(orderId Order.Id)
+    [orderId].Found(driver: count)
+    [orderId].Close()  # want "E1208"
+    [orderId].touch()  # want "E1208"
+    [orderId]?.Found(driver: 1)  # want "E1209"
+    if [orderId]  # want "E1209"
+      return
+    Matching.ping()  # want "E1209"
+    Board(id: Board.Id(orderId), n: 1)  # want "E1209"
+    let x = id  # want "E1209"
+    configured()
+
+  request ping(extra int)  # want "E1207"
+    configured()
+
+  request unknown()  # want "E1207"
+    configured()

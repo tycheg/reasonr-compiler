@@ -1,0 +1,797 @@
+{
+  "types": [
+    {
+      "ref": 1,
+      "name": "Box",
+      "kind": "entity",
+      "id": "uuid",
+      "fields": [
+        {
+          "ref": 0,
+          "name": "kind",
+          "type": {
+            "kind": "enum",
+            "ref": 7
+          },
+          "default": {
+            "kind": "enum",
+            "text": "small"
+          }
+        },
+        {
+          "ref": 1,
+          "name": "items",
+          "type": {
+            "kind": "list",
+            "elem": {
+              "kind": "string"
+            }
+          },
+          "default": {
+            "kind": "list"
+          }
+        },
+        {
+          "ref": 2,
+          "name": "tags",
+          "type": {
+            "kind": "set",
+            "elem": {
+              "kind": "string"
+            }
+          },
+          "default": {
+            "kind": "set"
+          }
+        },
+        {
+          "ref": 3,
+          "name": "counts",
+          "type": {
+            "kind": "map",
+            "elem": {
+              "kind": "int"
+            },
+            "key": {
+              "kind": "string"
+            }
+          },
+          "default": {
+            "kind": "map"
+          }
+        },
+        {
+          "ref": 4,
+          "name": "owner",
+          "type": {
+            "kind": "id",
+            "ref": 2,
+            "optional": true
+          },
+          "default": {
+            "kind": "none"
+          }
+        },
+        {
+          "ref": 5,
+          "name": "timer",
+          "type": {
+            "kind": "timerId",
+            "optional": true
+          },
+          "default": {
+            "kind": "none"
+          }
+        },
+        {
+          "ref": 6,
+          "name": "origin",
+          "type": {
+            "kind": "record",
+            "ref": 6
+          },
+          "default": {
+            "kind": "record",
+            "fields": [
+              {
+                "kind": "int",
+                "text": "0"
+              },
+              {
+                "kind": "int",
+                "text": "0"
+              }
+            ]
+          }
+        },
+        {
+          "ref": 7,
+          "name": "note",
+          "type": {
+            "kind": "string",
+            "optional": true
+          },
+          "default": {
+            "kind": "none"
+          }
+        },
+        {
+          "ref": 8,
+          "name": "size",
+          "type": {
+            "kind": "int"
+          },
+          "default": {
+            "kind": "int",
+            "text": "0"
+          }
+        }
+      ],
+      "methods": [
+        {
+          "ref": 0,
+          "name": "Create",
+          "kind": "command",
+          "public": true,
+          "access": [
+            {
+              "kind": "role",
+              "role": "admin"
+            }
+          ],
+          "params": [
+            {
+              "ref": 0,
+              "name": "keeper",
+              "type": {
+                "kind": "id",
+                "ref": 2
+              }
+            },
+            {
+              "ref": 1,
+              "name": "boxKind",
+              "type": {
+                "kind": "enum",
+                "ref": 7
+              },
+              "default": {
+                "kind": "enum",
+                "text": "small"
+              }
+            }
+          ]
+        },
+        {
+          "ref": 1,
+          "name": "Fill",
+          "kind": "command",
+          "public": true,
+          "access": [
+            {
+              "kind": "role",
+              "role": "admin"
+            }
+          ],
+          "params": [
+            {
+              "ref": 0,
+              "name": "names",
+              "type": {
+                "kind": "list",
+                "elem": {
+                  "kind": "string"
+                }
+              }
+            },
+            {
+              "ref": 1,
+              "name": "limit",
+              "type": {
+                "kind": "int"
+              },
+              "default": {
+                "kind": "int",
+                "text": "10"
+              }
+            }
+          ]
+        },
+        {
+          "ref": 2,
+          "name": "expire",
+          "kind": "command"
+        },
+        {
+          "ref": 3,
+          "name": "touch",
+          "kind": "command"
+        },
+        {
+          "ref": 4,
+          "name": "created",
+          "kind": "event",
+          "params": [
+            {
+              "ref": 0,
+              "name": "keeper",
+              "type": {
+                "kind": "id",
+                "ref": 2
+              }
+            },
+            {
+              "ref": 1,
+              "name": "boxKind",
+              "type": {
+                "kind": "enum",
+                "ref": 7
+              }
+            }
+          ]
+        },
+        {
+          "ref": 5,
+          "name": "expired",
+          "kind": "event",
+          "params": [
+            {
+              "ref": 0,
+              "name": "at",
+              "type": {
+                "kind": "timestamp"
+              }
+            },
+            {
+              "ref": 1,
+              "name": "delay",
+              "type": {
+                "kind": "duration"
+              }
+            }
+          ]
+        },
+        {
+          "ref": 6,
+          "name": "filled",
+          "kind": "event",
+          "params": [
+            {
+              "ref": 0,
+              "name": "count",
+              "type": {
+                "kind": "int"
+              }
+            },
+            {
+              "ref": 1,
+              "name": "label",
+              "type": {
+                "kind": "string"
+              }
+            },
+            {
+              "ref": 2,
+              "name": "wide",
+              "type": {
+                "kind": "bool"
+              }
+            }
+          ]
+        },
+        {
+          "ref": 7,
+          "name": "timerSet",
+          "kind": "event",
+          "params": [
+            {
+              "ref": 0,
+              "name": "newTimer",
+              "type": {
+                "kind": "timerId"
+              }
+            }
+          ]
+        },
+        {
+          "ref": 8,
+          "name": "touched",
+          "kind": "event"
+        },
+        {
+          "ref": 9,
+          "name": "boxReady",
+          "kind": "notification",
+          "params": [
+            {
+              "ref": 0,
+              "name": "boxId",
+              "type": {
+                "kind": "id",
+                "ref": 1
+              }
+            }
+          ]
+        },
+        {
+          "ref": 10,
+          "name": "alreadyExists",
+          "kind": "error"
+        },
+        {
+          "ref": 11,
+          "name": "tooMany",
+          "kind": "error",
+          "params": [
+            {
+              "ref": 0,
+              "name": "limit",
+              "type": {
+                "kind": "int"
+              }
+            }
+          ]
+        },
+        {
+          "ref": 12,
+          "name": "Stats",
+          "kind": "query",
+          "public": true,
+          "access": [
+            {
+              "kind": "role",
+              "role": "admin"
+            }
+          ],
+          "params": [
+            {
+              "ref": 0,
+              "name": "wanted",
+              "type": {
+                "kind": "enum",
+                "ref": 7
+              }
+            }
+          ],
+          "result": {
+            "kind": "record",
+            "ref": 5
+          }
+        },
+        {
+          "ref": 13,
+          "name": "capacity",
+          "kind": "rule",
+          "params": [
+            {
+              "ref": 0,
+              "name": "k",
+              "type": {
+                "kind": "enum",
+                "ref": 7
+              }
+            }
+          ],
+          "result": {
+            "kind": "int"
+          }
+        }
+      ]
+    },
+    {
+      "ref": 2,
+      "name": "Keeper",
+      "kind": "actor",
+      "id": "uuid",
+      "fields": [
+        {
+          "ref": 0,
+          "name": "name",
+          "type": {
+            "kind": "string",
+            "optional": true
+          },
+          "default": {
+            "kind": "none"
+          },
+          "personal": {
+            "subjectType": 2
+          }
+        }
+      ],
+      "methods": [
+        {
+          "ref": 0,
+          "name": "Join",
+          "kind": "command",
+          "public": true,
+          "access": [
+            {
+              "kind": "self"
+            }
+          ],
+          "params": [
+            {
+              "ref": 0,
+              "name": "keeperName",
+              "type": {
+                "kind": "string"
+              },
+              "personal": {
+                "subjectType": 2
+              }
+            }
+          ]
+        },
+        {
+          "ref": 1,
+          "name": "Leave",
+          "kind": "command",
+          "public": true,
+          "access": [
+            {
+              "kind": "self"
+            }
+          ],
+          "destructive": true
+        },
+        {
+          "ref": 2,
+          "name": "ping",
+          "kind": "command",
+          "params": [
+            {
+              "ref": 0,
+              "name": "boxId",
+              "type": {
+                "kind": "id",
+                "ref": 1
+              }
+            }
+          ]
+        },
+        {
+          "ref": 3,
+          "name": "joined",
+          "kind": "event",
+          "params": [
+            {
+              "ref": 0,
+              "name": "keeperName",
+              "type": {
+                "kind": "string",
+                "optional": true
+              },
+              "personal": {
+                "subjectType": 2
+              }
+            }
+          ]
+        },
+        {
+          "ref": 4,
+          "name": "left",
+          "kind": "event"
+        },
+        {
+          "ref": 5,
+          "name": "pinged",
+          "kind": "event",
+          "params": [
+            {
+              "ref": 0,
+              "name": "boxId",
+              "type": {
+                "kind": "id",
+                "ref": 1
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "ref": 3,
+      "name": "BoxView",
+      "kind": "projection",
+      "id": "derived",
+      "idType": 1,
+      "fields": [
+        {
+          "ref": 0,
+          "name": "kind",
+          "type": {
+            "kind": "enum",
+            "ref": 7
+          },
+          "default": {
+            "kind": "enum",
+            "text": "small"
+          }
+        },
+        {
+          "ref": 1,
+          "name": "size",
+          "type": {
+            "kind": "int"
+          },
+          "default": {
+            "kind": "int",
+            "text": "0"
+          }
+        },
+        {
+          "ref": 2,
+          "name": "owner",
+          "type": {
+            "kind": "id",
+            "ref": 2,
+            "optional": true
+          },
+          "default": {
+            "kind": "none"
+          }
+        }
+      ],
+      "indexes": [
+        {
+          "ref": 0,
+          "name": "byKind",
+          "keys": [
+            {
+              "field": [
+                0
+              ]
+            },
+            {
+              "field": [
+                1
+              ]
+            }
+          ]
+        },
+        {
+          "ref": 1,
+          "name": "byOwner",
+          "keys": [
+            {
+              "field": [
+                2
+              ]
+            }
+          ]
+        }
+      ],
+      "methods": [
+        {
+          "ref": 0,
+          "name": "Orphans",
+          "kind": "query",
+          "public": true,
+          "access": [
+            {
+              "kind": "role",
+              "role": "admin"
+            }
+          ],
+          "result": {
+            "kind": "list",
+            "elem": {
+              "kind": "record",
+              "ref": 4
+            }
+          }
+        },
+        {
+          "ref": 1,
+          "name": "Small",
+          "kind": "query",
+          "public": true,
+          "access": [
+            {
+              "kind": "role",
+              "role": "admin"
+            }
+          ],
+          "params": [
+            {
+              "ref": 0,
+              "name": "top",
+              "type": {
+                "kind": "int"
+              }
+            }
+          ],
+          "result": {
+            "kind": "list",
+            "elem": {
+              "kind": "record",
+              "ref": 4
+            }
+          }
+        },
+        {
+          "ref": 2,
+          "name": "Total",
+          "kind": "query",
+          "public": true,
+          "access": [
+            {
+              "kind": "role",
+              "role": "admin"
+            }
+          ],
+          "params": [
+            {
+              "ref": 0,
+              "name": "wanted",
+              "type": {
+                "kind": "enum",
+                "ref": 7
+              }
+            }
+          ],
+          "result": {
+            "kind": "record",
+            "ref": 5
+          }
+        }
+      ]
+    },
+    {
+      "ref": 4,
+      "name": "BoxRow",
+      "kind": "value",
+      "fields": [
+        {
+          "ref": 0,
+          "name": "boxId",
+          "type": {
+            "kind": "id",
+            "ref": 1
+          }
+        },
+        {
+          "ref": 1,
+          "name": "size",
+          "type": {
+            "kind": "int"
+          },
+          "default": {
+            "kind": "int",
+            "text": "0"
+          }
+        }
+      ]
+    },
+    {
+      "ref": 5,
+      "name": "BoxStats",
+      "kind": "value",
+      "fields": [
+        {
+          "ref": 0,
+          "name": "total",
+          "type": {
+            "kind": "int"
+          },
+          "default": {
+            "kind": "int",
+            "text": "0"
+          }
+        }
+      ]
+    },
+    {
+      "ref": 6,
+      "name": "Point",
+      "kind": "value",
+      "fields": [
+        {
+          "ref": 0,
+          "name": "x",
+          "type": {
+            "kind": "int"
+          },
+          "default": {
+            "kind": "int",
+            "text": "0"
+          }
+        },
+        {
+          "ref": 1,
+          "name": "y",
+          "type": {
+            "kind": "int"
+          },
+          "default": {
+            "kind": "int",
+            "text": "0"
+          }
+        }
+      ],
+      "methods": [
+        {
+          "ref": 0,
+          "name": "shifted",
+          "kind": "method",
+          "params": [
+            {
+              "ref": 0,
+              "name": "dx",
+              "type": {
+                "kind": "int"
+              }
+            }
+          ],
+          "result": {
+            "kind": "record",
+            "ref": 6
+          }
+        },
+        {
+          "ref": 1,
+          "name": "sum",
+          "kind": "method",
+          "result": {
+            "kind": "int"
+          }
+        },
+        {
+          "ref": 2,
+          "name": "total",
+          "kind": "method",
+          "params": [
+            {
+              "ref": 0,
+              "name": "dx",
+              "type": {
+                "kind": "int"
+              }
+            }
+          ],
+          "result": {
+            "kind": "int"
+          }
+        }
+      ]
+    },
+    {
+      "ref": 7,
+      "name": "Kind",
+      "kind": "enum",
+      "enum": [
+        "small",
+        "big"
+      ]
+    },
+    {
+      "ref": 8,
+      "name": "Store",
+      "kind": "external",
+      "methods": [
+        {
+          "ref": 0,
+          "name": "save",
+          "kind": "request",
+          "params": [
+            {
+              "ref": 0,
+              "name": "boxId",
+              "type": {
+                "kind": "id",
+                "ref": 1
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "roles": [
+    "admin"
+  ],
+  "migrations": [
+    "retouch"
+  ]
+}

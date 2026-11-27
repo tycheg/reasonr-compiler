@@ -1,0 +1,28 @@
+# taxi/contexts/Ordering/peak.perf.rr
+# A performance test (RFC §27.6): the peak hour — customers sign up, order a
+# taxi and look at the order card while drivers are online.
+# reasonrd perf load --rate 300/s --config engine.yaml
+
+let peakPoint = GeoPoint(lat: 55.75, lon: 37.62)
+let peakRide = Route(from: peakPoint, to: peakPoint, distanceKm: 5)
+
+test "Peak hour"
+  given
+    for i in range(50)
+      let d = new Driver.Id
+      [d].Register(
+        driverName: faker.name(),
+        driverCar: Car(plate: faker.pattern("?###??77"), model: "Kia Rio", carClass: economy),
+      ) as admin
+      [d].GoOnline() as d
+  when
+    let c = new Customer.Id
+    let o = new Order.Id
+    [c].SignUp(phoneNumber: faker.phone()) as c
+    [c].OrderTaxi(orderId: o, orderRoute: peakRide, requestedClass: economy) as c
+    Order.Card(orderId: o) as c
+  then
+    stats.p95 < 100ms
+    stats.of(Customer.OrderTaxi).p99 < 300ms
+    stats.errors == 0
+    stats.p95 * 10 <= baseline.p95 * 11

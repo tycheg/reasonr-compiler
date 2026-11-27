@@ -1,0 +1,489 @@
+func command Accounts.Client.Join(clientName string) access=[self]
+  slots: r0 clientName string, r1 id Accounts.Client.Id, r2 bool
+  b0:
+    r1 = id
+    r2 = ref.exists Accounts.Client r1
+    br r2, b1, b2
+  b1:
+    error Accounts.Client.alreadyJoined()
+    ret
+  b2:
+    event Accounts.Client.joined(clientName: r0)
+    ret
+
+func command Accounts.Client.Rename(clientName string) access=[self]
+  slots: r0 clientName string, r1 id Accounts.Client.Id, r2 bool
+  b0:
+    r1 = id
+    r2 = ref.exists Accounts.Client r1
+    br r2, b1, b2
+  b1:
+    event Accounts.Client.renamed(clientName: r0)
+    ret
+  b2:
+    error Accounts.Client.notJoined()
+    ret
+
+func command Accounts.Client.Forget() access=[self, role compliance]
+  slots: r0 id Accounts.Client.Id, r1 bool
+  b0:
+    r0 = id
+    r1 = ref.exists Accounts.Client r0
+    br r1, b1, b2
+  b1:
+    forget Accounts.Client r0
+    event Accounts.Client.forgotten()
+    ret
+  b2:
+    error Accounts.Client.notJoined()
+    ret
+
+func apply Accounts.Client.joined(clientName string?)
+  slots: r0 clientName string?
+  b0:
+    set fullName, r0
+    ret
+
+func apply Accounts.Client.renamed(clientName string?)
+  slots: r0 clientName string?
+  b0:
+    set fullName, r0
+    ret
+
+func query Accounts.Client.Profile() Accounts.ClientProfile access=[actor Accounts.Client]
+  slots: r0 me Accounts.Client.Id, r1 c Accounts.Client?, r2 bool, r3 string?, r4 Accounts.ClientProfile
+  b0:
+    r0 = me
+    r1 = rec.load Accounts.Client r0
+    r2 = opt.isnone r1
+    br r2, b1, b2
+  b1:
+    error Accounts.Client.notJoined()
+    ret
+  b2:
+    r3 = rec.get r1, fullName
+    r4 = val.new Accounts.ClientProfile(fullName: r3)
+    ret.val r4
+
+func command Accounts.Account.Open() access=[actor Accounts.Client]
+  slots: r0 id Accounts.Account.Id, r1 me Accounts.Client.Id
+  b0:
+    r0 = id
+    r1 = me
+    event Accounts.Account.accountCreated(ownerId: r1)
+    notify Accounts.Account.accountOpened(accountId: r0)
+    ret
+
+func command Accounts.Account.Transfer(target Accounts.Account.Id, sum decimal, comment string) access=[field owner]
+  slots: r0 target Accounts.Account.Id, r1 sum decimal, r2 comment string, r3 id Accounts.Account.Id, r4 bool, r5 int, r6 decimal, r7 decimal, r8 decimal, r9 decimal, r10 decimal, r11 decimal
+  b0:
+    r3 = id
+    r4 = le.dec r1, decimal(0)
+    br r4, b1, b2
+  b1:
+    error Accounts.Account.invalidSum(sum: r1)
+    jmp b2
+  b2:
+    r4 = eq.id r0, r3
+    br r4, b3, b4
+  b3:
+    error Accounts.Account.sameAccount()
+    jmp b4
+  b4:
+    r4 = ref.exists Accounts.Account r0
+    br r4, b6, b5
+  b5:
+    error Accounts.Account.accountNotFound(accountId: r0)
+    jmp b6
+  b6:
+    r4 = field frozen
+    br r4, b7, b8
+  b7:
+    error Accounts.Account.accountFrozen(accountId: r3)
+    jmp b8
+  b8:
+    r5 = intrinsic str.length(r2)
+    r4 = gt.i64 r5, 140
+    br r4, b9, b10
+  b9:
+    error Accounts.Account.commentTooLong(max: 140)
+    jmp b10
+  b10:
+    r4 = haserrors
+    br r4, b11, b12
+  b11:
+    ret
+  b12:
+    event Accounts.Account.withdrawn(amount: r1, target: r0, note: r2)
+    r6 = after.field balance
+    r7 = field overdraft
+    r8 = neg.dec r7
+    r4 = lt.dec r6, r8
+    br r4, b13, b14
+  b13:
+    r9 = field balance
+    r10 = field overdraft
+    r11 = add.dec r9, r10
+    error Accounts.Account.insufficientFunds(available: r11)
+    ret
+  b14:
+    cmd [r0] Accounts.Account.deposit(amount: r1, source: r3)
+    request Accounts.Antifraud.score(accountId: r3, target: r0, sum: r1)
+    r8 = after.field balance
+    notify Accounts.Account.transferDone(newBalance: r8)
+    ret
+
+func command Accounts.Account.deposit(amount decimal, source Accounts.Account.Id)
+  slots: r0 amount decimal, r1 source Accounts.Account.Id, r2 id Accounts.Account.Id, r3 bool
+  b0:
+    r2 = id
+    r3 = field frozen
+    br r3, b1, b2
+  b1:
+    error Accounts.Account.accountFrozen(accountId: r2)
+    ret
+  b2:
+    event Accounts.Account.deposited(amount: r0, source: r1)
+    ret
+
+func command Accounts.Account.Freeze(reason string) access=[role compliance, role antifraud]
+  slots: r0 reason string
+  b0:
+    event Accounts.Account.frozenBy(reason: r0)
+    ret
+
+func command Accounts.Account.SetOverdraft(limit decimal) access=[role compliance]
+  slots: r0 limit decimal, r1 bool
+  b0:
+    r1 = lt.dec r0, decimal(0)
+    br r1, b1, b2
+  b1:
+    error Accounts.Account.invalidSum(sum: r0)
+    ret
+  b2:
+    event Accounts.Account.overdraftSet(limit: r0)
+    ret
+
+func apply Accounts.Account.accountCreated(ownerId Accounts.Client.Id)
+  slots: r0 ownerId Accounts.Client.Id
+  b0:
+    set owner, r0
+    ret
+
+func apply Accounts.Account.withdrawn(amount decimal, target Accounts.Account.Id, note string)
+  slots: r0 amount decimal, r1 target Accounts.Account.Id, r2 note string, r3 decimal, r4 decimal
+  b0:
+    r3 = field balance
+    r4 = sub.dec r3, r0
+    set balance, r4
+    ret
+
+func apply Accounts.Account.deposited(amount decimal, source Accounts.Account.Id)
+  slots: r0 amount decimal, r1 source Accounts.Account.Id, r2 decimal, r3 decimal
+  b0:
+    r2 = field balance
+    r3 = add.dec r2, r0
+    set balance, r3
+    ret
+
+func apply Accounts.Account.frozenBy(reason string)
+  slots: r0 reason string
+  b0:
+    set frozen, true
+    ret
+
+func apply Accounts.Account.overdraftSet(limit decimal)
+  slots: r0 limit decimal
+  b0:
+    set overdraft, r0
+    ret
+
+func query Accounts.Account.MyAccounts(pageReq PageRequest) page<Accounts.AccountRow> access=[actor Accounts.Client]
+  slots: r0 pageReq PageRequest, r1 me Accounts.Client.Id, r2 page<Accounts.Account>, r3 list<Accounts.Account>, r4 list<Accounts.AccountRow>, r5 int, r6 int, r7 bool, r8 Accounts.Account, r9 Accounts.Account.Id, r10 decimal, r11 bool, r12 Accounts.AccountRow, r13 page<Accounts.AccountRow>
+  b0:
+    r1 = me
+    r2 = find Accounts.Account by byOwner where owner == r1 page r0
+    r3 = intrinsic page.items(r2)
+    r4 = coll.list
+    r5 = coll.len r3
+    r6 = move 0
+    jmp b1
+  b1:
+    loop.guard
+    r7 = lt.i64 r6, r5
+    br r7, b2, b3
+  b2:
+    r8 = coll.get r3, r6
+    r9 = rec.get r8, id
+    r10 = rec.get r8, balance
+    r11 = rec.get r8, frozen
+    r12 = val.new Accounts.AccountRow(accountId: r9, balance: r10, frozen: r11)
+    r4 = coll.append r4, r12
+    r6 = add.i64 r6, 1
+    jmp b1
+  b3:
+    r13 = page.with r2, r4
+    ret.val r13
+
+func query Accounts.Account.Details(accountId Accounts.Account.Id) Accounts.AccountRow access=[actor Accounts.Client]
+  slots: r0 accountId Accounts.Account.Id, r1 me Accounts.Client.Id, r2 a Accounts.Account?, r3 bool, r4 Accounts.Client.Id?, r5 bool, r6 decimal, r7 Accounts.AccountRow
+  b0:
+    r1 = me
+    r2 = rec.load Accounts.Account r0
+    r3 = opt.isnone r2
+    br r3, b2, b1
+  b1:
+    r4 = rec.get r2, owner
+    r5 = ne.id r4, r1
+    br r5, b2, b3
+  b2:
+    error Accounts.Account.accountNotFound(accountId: r0)
+    ret
+  b3:
+    r6 = rec.get r2, balance
+    r5 = rec.get r2, frozen
+    r7 = val.new Accounts.AccountRow(accountId: r0, balance: r6, frozen: r5)
+    ret.val r7
+
+func command Accounts.Antifraud.Setup(limitAmount decimal)
+  slots: r0 limitAmount decimal
+  b0:
+    event Accounts.Antifraud.configured(limitAmount: r0)
+    ret
+
+func apply Accounts.Antifraud.configured(limitAmount decimal)
+  slots: r0 limitAmount decimal
+  b0:
+    set limit, r0
+    ret
+
+func command Accounts.Antifraud.score(accountId Accounts.Account.Id, target Accounts.Account.Id, sum decimal)
+  slots: r0 accountId Accounts.Account.Id, r1 target Accounts.Account.Id, r2 sum decimal, r3 decimal, r4 bool
+  b0:
+    r3 = field limit
+    r4 = gt.dec r2, r3
+    br r4, b1, b2
+  b1:
+    callout [r0] Accounts.Account.Freeze(reason: "suspicious transfer")
+    jmp b2
+  b2:
+    ret
+
+func test "Antifraud freezes the account after a large transfer"
+  slots: r0 c1 Accounts.Client.Id, r1 c2 Accounts.Client.Id, r2 a1 Accounts.Account.Id, r3 a2 Accounts.Account.Id, r4 Accounts.AccountRow
+  b0:
+    r0 = newid Accounts.Client
+    r1 = newid Accounts.Client
+    r2 = newid Accounts.Account
+    r3 = newid Accounts.Account
+    test.cmd Accounts.Antifraud.Setup(limitAmount: decimal(1000))
+    test.cmd [r0] Accounts.Client.Join(clientName: "Anna") as r0
+    test.cmd [r1] Accounts.Client.Join(clientName: "Boris") as r1
+    test.cmd [r2] Accounts.Account.Open() as r0
+    test.cmd [r3] Accounts.Account.Open() as r1
+    test.cmd [r2] Accounts.Account.SetOverdraft(limit: decimal(5000)) as compliance
+    test.when
+    test.cmd [r2] Accounts.Account.Transfer(target: r3, sum: decimal(2000), comment: "for a car") as r0
+    expect.request Accounts.Antifraud.score(accountId: r2, target: r3, sum: decimal(2000))
+    r4 = test.query Accounts.Account.Details(accountId: r2) as r0
+    expect.matches r4 Accounts.AccountRow(balance: decimal(-2000), frozen: true)
+    ret
+
+func test "A transfer within the antifraud limit does not freeze the account"
+  slots: r0 c1 Accounts.Client.Id, r1 c2 Accounts.Client.Id, r2 a1 Accounts.Account.Id, r3 a2 Accounts.Account.Id, r4 Accounts.AccountRow
+  b0:
+    r0 = newid Accounts.Client
+    r1 = newid Accounts.Client
+    r2 = newid Accounts.Account
+    r3 = newid Accounts.Account
+    test.cmd Accounts.Antifraud.Setup(limitAmount: decimal(1000))
+    test.cmd [r0] Accounts.Client.Join(clientName: "Anna") as r0
+    test.cmd [r1] Accounts.Client.Join(clientName: "Boris") as r1
+    test.cmd [r2] Accounts.Account.Open() as r0
+    test.cmd [r3] Accounts.Account.Open() as r1
+    test.cmd [r2] Accounts.Account.SetOverdraft(limit: decimal(5000)) as compliance
+    test.when
+    test.cmd [r2] Accounts.Account.Transfer(target: r3, sum: decimal(300), comment: "") as r0
+    r4 = test.query Accounts.Account.Details(accountId: r2) as r0
+    expect.matches r4 Accounts.AccountRow(balance: decimal(-300), frozen: false)
+    ret
+
+func test "A month of transfers"
+  slots: r0 list<int>, r1 int, r2 int, r3 bool, r4 i int, r5 c Accounts.Client.Id, r6 main Accounts.Account.Id, r7 savings Accounts.Account.Id, r8 string, r9 decimal, r10 int, r11 list<int>, r12 int, r13 int, r14 bool, r15 day int
+  b0:
+    test.time -30d
+    r0 = intrinsic range(10)
+    r1 = coll.len r0
+    r2 = move 0
+    jmp b1
+  b1:
+    loop.guard
+    r3 = lt.i64 r2, r1
+    br r3, b2, b7
+  b2:
+    r4 = coll.get r0, r2
+    r5 = newid Accounts.Client
+    r6 = newid Accounts.Account
+    r7 = newid Accounts.Account
+    r8 = intrinsic faker.name()
+    test.cmd [r5] Accounts.Client.Join(clientName: r8) as r5
+    test.cmd [r6] Accounts.Account.Open() as r5
+    test.cmd [r7] Accounts.Account.Open() as r5
+    r9 = intrinsic faker.decimal(decimal(3000), decimal(5000))
+    test.cmd [r6] Accounts.Account.SetOverdraft(limit: r9) as compliance
+    r10 = intrinsic faker.int(3, 6)
+    r11 = intrinsic range(r10)
+    r12 = coll.len r11
+    r13 = move 0
+    jmp b3
+  b3:
+    loop.guard
+    r14 = lt.i64 r13, r12
+    br r14, b4, b6
+  b4:
+    r15 = coll.get r11, r13
+    r9 = intrinsic faker.decimal(decimal(10), decimal(500))
+    r8 = intrinsic faker.text(3)
+    test.cmd [r6] Accounts.Account.Transfer(target: r7, sum: r9, comment: r8) as r5
+    test.time 1d
+    jmp b5
+  b5:
+    r13 = add.i64 r13, 1
+    jmp b3
+  b6:
+    r2 = add.i64 r2, 1
+    jmp b1
+  b7:
+    test.when
+    ret
+
+func test "All validation errors come at once"
+  slots: r0 c1 Accounts.Client.Id, r1 a1 Accounts.Account.Id, r2 a2 Accounts.Account.Id
+  b0:
+    r0 = newid Accounts.Client
+    r1 = newid Accounts.Account
+    r2 = newid Accounts.Account
+    test.cmd [r0] Accounts.Client.Join(clientName: "Anna") as r0
+    test.cmd [r1] Accounts.Account.Open() as r0
+    test.when
+    test.cmd [r1] Accounts.Account.Transfer(target: r2, sum: decimal(-5), comment: "") as r0
+    expect.error Accounts.Account.invalidSum(sum: decimal(-5))
+    expect.error Accounts.Account.accountNotFound(accountId: r2)
+    ret
+
+func test "A transfer within the overdraft"
+  slots: r0 c1 Accounts.Client.Id, r1 c2 Accounts.Client.Id, r2 a1 Accounts.Account.Id, r3 a2 Accounts.Account.Id, r4 Accounts.AccountRow, r5 Accounts.AccountRow
+  b0:
+    r0 = newid Accounts.Client
+    r1 = newid Accounts.Client
+    r2 = newid Accounts.Account
+    r3 = newid Accounts.Account
+    test.cmd [r0] Accounts.Client.Join(clientName: "Anna") as r0
+    test.cmd [r1] Accounts.Client.Join(clientName: "Boris") as r1
+    test.cmd [r2] Accounts.Account.Open() as r0
+    test.cmd [r3] Accounts.Account.Open() as r1
+    test.cmd [r2] Accounts.Account.SetOverdraft(limit: decimal(500)) as compliance
+    test.when
+    test.cmd [r2] Accounts.Account.Transfer(target: r3, sum: decimal(200), comment: "for lunch") as r0
+    expect.notify Accounts.Account.transferDone(newBalance: decimal(-200)) to r0
+    r4 = test.query Accounts.Account.Details(accountId: r2) as r0
+    expect.matches r4 Accounts.AccountRow(balance: decimal(-200))
+    r5 = test.query Accounts.Account.Details(accountId: r3) as r1
+    expect.matches r5 Accounts.AccountRow(balance: decimal(200))
+    ret
+
+func test "A transfer beyond the overdraft is rejected as a whole"
+  slots: r0 c1 Accounts.Client.Id, r1 c2 Accounts.Client.Id, r2 a1 Accounts.Account.Id, r3 a2 Accounts.Account.Id, r4 Accounts.AccountRow
+  b0:
+    r0 = newid Accounts.Client
+    r1 = newid Accounts.Client
+    r2 = newid Accounts.Account
+    r3 = newid Accounts.Account
+    test.cmd [r0] Accounts.Client.Join(clientName: "Anna") as r0
+    test.cmd [r1] Accounts.Client.Join(clientName: "Boris") as r1
+    test.cmd [r2] Accounts.Account.Open() as r0
+    test.cmd [r3] Accounts.Account.Open() as r1
+    test.cmd [r2] Accounts.Account.SetOverdraft(limit: decimal(100)) as compliance
+    test.when
+    test.cmd [r2] Accounts.Account.Transfer(target: r3, sum: decimal(150), comment: "") as r0
+    expect.error Accounts.Account.insufficientFunds(available: decimal(100))
+    r4 = test.query Accounts.Account.Details(accountId: r2) as r0
+    expect.matches r4 Accounts.AccountRow(balance: decimal(0))
+    ret
+
+func test "An error of the target cancels the transfer"
+  slots: r0 c1 Accounts.Client.Id, r1 c2 Accounts.Client.Id, r2 a1 Accounts.Account.Id, r3 a2 Accounts.Account.Id, r4 Accounts.AccountRow
+  b0:
+    r0 = newid Accounts.Client
+    r1 = newid Accounts.Client
+    r2 = newid Accounts.Account
+    r3 = newid Accounts.Account
+    test.cmd [r0] Accounts.Client.Join(clientName: "Anna") as r0
+    test.cmd [r1] Accounts.Client.Join(clientName: "Boris") as r1
+    test.cmd [r2] Accounts.Account.Open() as r0
+    test.cmd [r3] Accounts.Account.Open() as r1
+    test.cmd [r2] Accounts.Account.SetOverdraft(limit: decimal(500)) as compliance
+    test.cmd [r3] Accounts.Account.Freeze(reason: "review") as compliance
+    test.when
+    test.cmd [r2] Accounts.Account.Transfer(target: r3, sum: decimal(100), comment: "") as r0
+    expect.error Accounts.Account.accountFrozen(accountId: r3)
+    r4 = test.query Accounts.Account.Details(accountId: r2) as r0
+    expect.matches r4 Accounts.AccountRow(balance: decimal(0))
+    ret
+
+func test "Another client's account is not accessible"
+  slots: r0 c1 Accounts.Client.Id, r1 c2 Accounts.Client.Id, r2 a1 Accounts.Account.Id, r3 a2 Accounts.Account.Id
+  b0:
+    r0 = newid Accounts.Client
+    r1 = newid Accounts.Client
+    r2 = newid Accounts.Account
+    r3 = newid Accounts.Account
+    test.cmd [r0] Accounts.Client.Join(clientName: "Anna") as r0
+    test.cmd [r1] Accounts.Client.Join(clientName: "Boris") as r1
+    test.cmd [r2] Accounts.Account.Open() as r0
+    test.cmd [r3] Accounts.Account.Open() as r1
+    test.when
+    test.cmd [r2] Accounts.Account.Transfer(target: r3, sum: decimal(1), comment: "") as r1
+    expect.error forbidden()
+    ret
+
+func test "Another client's account is not visible"
+  slots: r0 c1 Accounts.Client.Id, r1 c2 Accounts.Client.Id, r2 a1 Accounts.Account.Id, r3 Accounts.AccountRow
+  b0:
+    r0 = newid Accounts.Client
+    r1 = newid Accounts.Client
+    r2 = newid Accounts.Account
+    test.cmd [r0] Accounts.Client.Join(clientName: "Anna") as r0
+    test.cmd [r1] Accounts.Client.Join(clientName: "Boris") as r1
+    test.cmd [r2] Accounts.Account.Open() as r0
+    test.when
+    r3 = test.query Accounts.Account.Details(accountId: r2) as r1
+    expect.error Accounts.Account.accountNotFound(accountId: r2)
+    ret
+
+func test "After forgetting, the client name is unreadable and the accounts stay"
+  slots: r0 c1 Accounts.Client.Id, r1 a1 Accounts.Account.Id, r2 Accounts.ClientProfile, r3 Accounts.AccountRow
+  b0:
+    r0 = newid Accounts.Client
+    r1 = newid Accounts.Account
+    test.cmd [r0] Accounts.Client.Join(clientName: "Anna") as r0
+    test.cmd [r1] Accounts.Account.Open() as r0
+    test.when
+    test.cmd [r0] Accounts.Client.Forget() as compliance
+    r2 = test.query Accounts.Client.Profile() as r0
+    expect.matches r2 Accounts.ClientProfile(fullName: none)
+    r3 = test.query Accounts.Account.Details(accountId: r1) as r0
+    expect.matches r3 Accounts.AccountRow(balance: decimal(0))
+    ret
+
+func test "After forgetting, the client gives their name again"
+  slots: r0 c1 Accounts.Client.Id, r1 Accounts.ClientProfile
+  b0:
+    r0 = newid Accounts.Client
+    test.cmd [r0] Accounts.Client.Join(clientName: "Anna") as r0
+    test.cmd [r0] Accounts.Client.Forget() as r0
+    test.when
+    test.cmd [r0] Accounts.Client.Rename(clientName: "Anna Smith") as r0
+    r1 = test.query Accounts.Client.Profile() as r0
+    expect.matches r1 Accounts.ClientProfile(fullName: "Anna Smith")
+    ret

@@ -1,0 +1,10 @@
+role matching
+
+external(matching) Matching
+  request findDriver(orderId uuid)
+
+external Silent
+  request ping()
+
+fake Stray  # want "E1204"
+  hits int

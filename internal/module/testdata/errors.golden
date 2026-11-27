@@ -1,0 +1,58 @@
+== (base)
+  Entity Order
+    ID id
+    Field status
+    Event placed
+    Rule rate (1 instr.)
+    Command place
+  Value Money
+  Projection Mart
+    ID id
+  Screen OrderPage
+  Screen Twice
+  Test "Base"
+== acme
+  Entity Order
+    ID id
+    Field status
+    Event placed
+    Rule rate (1 instr.)
+    Command place
+  + On placed
+  + Field extra
+  Value Money
+  Projection Mart
+    ID id
+  Screen OrderPage
+  Screen Twice
+  Test "Base"
+== beta
+  Entity Order
+    ID id
+    Field status
+    Event placed
+    Rule rate (1 instr.)
+    Command place
+  Value Money
+  Projection Mart
+    ID id
+  Screen OrderPage
+  Screen Twice
+  Test "Base"
++ Entity B
+  + Field x
+== gamma
+  Entity Order
+    ID id
+    Field status
+    Event placed
+    Rule rate (1 instr.)
+    Command place
+  Value Money
+  Projection Mart
+    ID id
+  Screen OrderPage
+  Screen Twice
+  Test "Base"
++ Entity C
+  + Field x

@@ -1,0 +1,22 @@
+flowchart LR
+  Admin(("Admin")):::app
+  Ordering_AdminOrders["Ordering.AdminOrders"]:::screen
+  Dispatch_NewDriver["Dispatch.NewDriver"]:::screen
+  Ordering_AdminProfile["Ordering.AdminProfile"]:::screen
+  Ordering_AdminNewOrder["Ordering.AdminNewOrder"]:::screen
+  Ordering_AdminOrder["Ordering.AdminOrder"]:::screen
+  Admin --> Ordering_AdminOrders
+  Admin --> Dispatch_NewDriver
+  Admin --> Ordering_AdminProfile
+  Ordering_AdminOrders --> Ordering_AdminNewOrder
+  Ordering_AdminOrders -- open --> Ordering_AdminOrder
+  Ordering_AdminNewOrder -- done --> Ordering_AdminOrder
+  classDef command fill:#a7c7e7,stroke:#4a6f94
+  classDef public fill:#a7c7e7,stroke:#1f3f66,stroke-width:3px
+  classDef event fill:#ffb347,stroke:#b36b00
+  classDef reaction fill:#c8a2c8,stroke:#7a4f7a
+  classDef request fill:#f4a6c6,stroke:#a3456e
+  classDef projection fill:#b5e7a0,stroke:#4f8a3a
+  classDef app fill:#fff3b0,stroke:#9c8a1f
+  classDef screen fill:#e8e8e8,stroke:#666666
+  classDef context fill:#fdfdfd,stroke:#333333,stroke-width:2px

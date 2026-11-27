@@ -1,0 +1,14 @@
+entity Dispatch.Trip 00000000-0000-0000-0000-000000000002 existed=true version=1
+  #0 event Dispatch.Trip.Offer.opened(id: 1, offeredTo: 00000000-0000-0000-0000-000000000001)
+  #1 event Dispatch.Trip.offerSent(driverId: 00000000-0000-0000-0000-000000000001, timer: ee000000-0000-0000-0000-000000000004)
+  state Trip(stage: offered, pickup: GeoPoint(lat: 55.75, lon: 37.62), carClass: economy, fare: Money(amount: 190, currency: rub), driver: none, candidate: 00000000-0000-0000-0000-000000000001, searchTimer: none, offerTimer: ee000000-0000-0000-0000-000000000004, searchRetries: 0, Offer: [1: Offer(driver: 00000000-0000-0000-0000-000000000001, outcome: pending)])
+entity Dispatch.Driver 00000000-0000-0000-0000-000000000001 existed=true version=1
+  #2 event Dispatch.Driver.tripOffered(tripId: 00000000-0000-0000-0000-000000000002)
+  state Driver(name: Ivan, car: Car(plate: A001AA77, model: Kia Rio, carClass: economy), status: offered, currentTrip: 00000000-0000-0000-0000-000000000002)
+entity Ordering.Order 00000000-0000-0000-0000-000000000002 existed=true version=1
+  #3 event Ordering.Order.offerPending()
+  state Order(status: offered, customer: 00000000-0000-0000-0000-000000000001, route: Route(from: GeoPoint(lat: 55.75, lon: 37.62), to: GeoPoint(lat: 55.8, lon: 37.6), distanceKm: 3), carClass: economy, price: Money(amount: 190, currency: rub), driverName: none, driverPlate: none, placedAt: 0001-01-01T00:00:00Z, tip: none)
+#4 projection upsert Ordering.OrderMart 00000000-0000-0000-0000-000000000002 {status: offered, driverName: none, plate: none, placedAt: 0001-01-01T00:00:00Z}
+timer delete 00000000-0000-0000-0000-000000000007
+timer ee000000-0000-0000-0000-000000000004 at 2026-10-04T12:00:20Z: [00000000-0000-0000-0000-000000000002].Dispatch.Trip.expireOffer(driverId: 00000000-0000-0000-0000-000000000001)
+notify Dispatch.Driver.newOffer(tripId: 00000000-0000-0000-0000-000000000002, pickup: GeoPoint(lat: 55.75, lon: 37.62), fare: Money(amount: 190, currency: rub)) to 00000000-0000-0000-0000-000000000001

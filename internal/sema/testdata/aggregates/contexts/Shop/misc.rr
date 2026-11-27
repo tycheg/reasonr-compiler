@@ -1,0 +1,32 @@
+entity Loose  # want "E1419"
+  id uuid
+
+entity Nope.Part  # want "E1420"
+  id uuid
+
+value StopRef
+  stop Order.Stop.Id
+
+aggregate Cart
+  id uuid
+  stop Order.Stop.Id?  # want "E1423"
+  ref StopRef?  # want "E1423"
+
+  command(admin) Touch(s Order.Stop.Id)  # want "E1423"
+    [s].arrive()  # want "E1422"
+
+  command(admin) create Make()
+    made()
+
+  event made()
+
+aggregate Named
+  id string
+
+  command(admin) create Make()  # want "E1424"
+    made()
+
+  command create hidden()  # want "E1424"
+    made()
+
+  event made()

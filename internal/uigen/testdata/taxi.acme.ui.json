@@ -1,0 +1,3885 @@
+{
+  "apps": [
+    {
+      "name": "Admin",
+      "title": "Admin",
+      "language": "en",
+      "platforms": [
+        "web"
+      ],
+      "roles": [
+        "admin",
+        "support"
+      ],
+      "actors": [
+        "Ordering.Staff"
+      ],
+      "me": "Ordering.Staff",
+      "nodes": [
+        {
+          "id": 1,
+          "kind": "primitive",
+          "primitive": "Menu",
+          "key": "Menu",
+          "children": [
+            {
+              "id": 2,
+              "kind": "screen",
+              "key": "AdminOrders",
+              "to": {
+                "screen": "Ordering.AdminOrders"
+              }
+            },
+            {
+              "id": 3,
+              "kind": "screen",
+              "key": "NewDriver",
+              "to": {
+                "screen": "Dispatch.NewDriver"
+              }
+            },
+            {
+              "id": 4,
+              "kind": "screen",
+              "key": "AdminProfile",
+              "to": {
+                "screen": "Ordering.AdminProfile"
+              }
+            }
+          ]
+        }
+      ],
+      "screens": [
+        "Ordering.AdminOrders",
+        "Dispatch.NewDriver",
+        "Ordering.AdminProfile",
+        "Ordering.AdminNewOrder",
+        "Ordering.AdminOrder"
+      ],
+      "places": [
+        {
+          "name": "Admin.AdminOrders:Order.List",
+          "screen": "Ordering.AdminOrders",
+          "node": 3,
+          "type": "Ordering.Order",
+          "method": "List"
+        },
+        {
+          "name": "Admin.AdminOrders:Order.Cancel",
+          "screen": "Ordering.AdminOrders",
+          "node": 11,
+          "type": "Ordering.Order",
+          "method": "Cancel",
+          "command": true
+        },
+        {
+          "name": "Admin.NewDriver:Driver.Register",
+          "screen": "Dispatch.NewDriver",
+          "node": 1,
+          "type": "Dispatch.Driver",
+          "method": "Register",
+          "command": true
+        },
+        {
+          "name": "Admin.AdminProfile:Staff.Profile",
+          "screen": "Ordering.AdminProfile",
+          "node": 1,
+          "type": "Ordering.Staff",
+          "method": "Profile"
+        },
+        {
+          "name": "Admin.AdminProfile:Staff.ChangeEmail",
+          "screen": "Ordering.AdminProfile",
+          "node": 3,
+          "type": "Ordering.Staff",
+          "method": "ChangeEmail",
+          "command": true
+        },
+        {
+          "name": "Admin.AdminNewOrder:Customer.OrderTaxi",
+          "screen": "Ordering.AdminNewOrder",
+          "node": 1,
+          "type": "Ordering.Customer",
+          "method": "OrderTaxi",
+          "command": true
+        },
+        {
+          "name": "Admin.AdminOrder:Order.Details",
+          "screen": "Ordering.AdminOrder",
+          "node": 1,
+          "type": "Ordering.Order",
+          "method": "Details"
+        },
+        {
+          "name": "Admin.AdminOrder:Order.Edit",
+          "screen": "Ordering.AdminOrder",
+          "node": 18,
+          "type": "Ordering.Order",
+          "method": "Edit",
+          "command": true
+        },
+        {
+          "name": "Admin.AdminOrder:Order.Cancel",
+          "screen": "Ordering.AdminOrder",
+          "node": 28,
+          "type": "Ordering.Order",
+          "method": "Cancel",
+          "command": true
+        }
+      ]
+    },
+    {
+      "name": "Dispatch",
+      "title": "Dispatch",
+      "language": "en",
+      "platforms": [
+        "web"
+      ],
+      "roles": [
+        "dispatcher"
+      ],
+      "nodes": [
+        {
+          "id": 1,
+          "kind": "primitive",
+          "primitive": "Menu",
+          "key": "Menu",
+          "children": [
+            {
+              "id": 2,
+              "kind": "screen",
+              "key": "Board",
+              "to": {
+                "screen": "Ordering.Board"
+              }
+            },
+            {
+              "id": 3,
+              "kind": "screen",
+              "key": "FreeDrivers",
+              "to": {
+                "screen": "Dispatch.FreeDrivers"
+              }
+            }
+          ]
+        }
+      ],
+      "screens": [
+        "Ordering.Board",
+        "Dispatch.FreeDrivers"
+      ],
+      "places": [
+        {
+          "name": "Dispatch.Board:OrderMart.Board",
+          "screen": "Ordering.Board",
+          "node": 1,
+          "type": "Ordering.OrderMart",
+          "method": "Board"
+        },
+        {
+          "name": "Dispatch.FreeDrivers:Driver.FreeDrivers",
+          "screen": "Dispatch.FreeDrivers",
+          "node": 1,
+          "type": "Dispatch.Driver",
+          "method": "FreeDrivers"
+        }
+      ]
+    },
+    {
+      "name": "DriverApp",
+      "title": "Driver",
+      "language": "en",
+      "platforms": [
+        "mobile"
+      ],
+      "actors": [
+        "Dispatch.Driver"
+      ],
+      "me": "Dispatch.Driver",
+      "nodes": [
+        {
+          "id": 1,
+          "kind": "primitive",
+          "primitive": "Menu",
+          "key": "Menu",
+          "children": [
+            {
+              "id": 2,
+              "kind": "screen",
+              "key": "Shift",
+              "to": {
+                "screen": "Dispatch.Shift"
+              }
+            }
+          ]
+        }
+      ],
+      "screens": [
+        "Dispatch.Shift"
+      ],
+      "places": [
+        {
+          "name": "DriverApp.Shift:Driver.MyState",
+          "screen": "Dispatch.Shift",
+          "node": 1,
+          "type": "Dispatch.Driver",
+          "method": "MyState"
+        },
+        {
+          "name": "DriverApp.Shift:Driver.GoOnline",
+          "screen": "Dispatch.Shift",
+          "node": 3,
+          "type": "Dispatch.Driver",
+          "method": "GoOnline",
+          "command": true
+        },
+        {
+          "name": "DriverApp.Shift:Driver.GoOffline",
+          "screen": "Dispatch.Shift",
+          "node": 4,
+          "type": "Dispatch.Driver",
+          "method": "GoOffline",
+          "command": true
+        },
+        {
+          "name": "DriverApp.Shift:Driver.Accept",
+          "screen": "Dispatch.Shift",
+          "node": 5,
+          "type": "Dispatch.Driver",
+          "method": "Accept",
+          "command": true
+        },
+        {
+          "name": "DriverApp.Shift:Driver.Decline",
+          "screen": "Dispatch.Shift",
+          "node": 6,
+          "type": "Dispatch.Driver",
+          "method": "Decline",
+          "command": true
+        },
+        {
+          "name": "DriverApp.Shift:Driver.FinishRide",
+          "screen": "Dispatch.Shift",
+          "node": 7,
+          "type": "Dispatch.Driver",
+          "method": "FinishRide",
+          "command": true
+        }
+      ]
+    },
+    {
+      "name": "Join",
+      "title": "Taxi with an account",
+      "language": "en",
+      "platforms": [
+        "web"
+      ],
+      "actors": [
+        "Auth.User"
+      ],
+      "me": "Auth.User",
+      "nodes": [
+        {
+          "id": 1,
+          "kind": "primitive",
+          "primitive": "Menu",
+          "key": "Menu",
+          "children": [
+            {
+              "id": 2,
+              "kind": "screen",
+              "key": "JoinTaxi",
+              "to": {
+                "screen": "Ordering.JoinTaxi"
+              }
+            },
+            {
+              "id": 3,
+              "kind": "screen",
+              "key": "TaxiAccount",
+              "to": {
+                "screen": "Ordering.TaxiAccount"
+              }
+            },
+            {
+              "id": 4,
+              "kind": "screen",
+              "key": "Home",
+              "to": {
+                "screen": "Ordering.Home"
+              }
+            },
+            {
+              "id": 5,
+              "kind": "screen",
+              "key": "MyAccount",
+              "to": {
+                "screen": "Auth.MyAccount"
+              }
+            }
+          ]
+        }
+      ],
+      "screens": [
+        "Ordering.JoinTaxi",
+        "Ordering.TaxiAccount",
+        "Ordering.Home",
+        "Auth.MyAccount"
+      ],
+      "places": [
+        {
+          "name": "Join.JoinTaxi:Customer.Join",
+          "screen": "Ordering.JoinTaxi",
+          "node": 1,
+          "type": "Ordering.Customer",
+          "method": "Join",
+          "command": true
+        },
+        {
+          "name": "Join.TaxiAccount:Customer.Profile",
+          "screen": "Ordering.TaxiAccount",
+          "node": 1,
+          "type": "Ordering.Customer",
+          "method": "Profile"
+        },
+        {
+          "name": "Join.Home:Customer.Home",
+          "screen": "Ordering.Home",
+          "node": 1,
+          "type": "Ordering.Customer",
+          "method": "Home"
+        },
+        {
+          "name": "Join.Home:Customer.SetHome",
+          "screen": "Ordering.Home",
+          "node": 3,
+          "type": "Ordering.Customer",
+          "method": "SetHome",
+          "command": true
+        },
+        {
+          "name": "Join.MyAccount:User.Me",
+          "screen": "Auth.MyAccount",
+          "node": 1,
+          "type": "Auth.User",
+          "method": "Me"
+        },
+        {
+          "name": "Join.MyAccount:User.Sync",
+          "screen": "Auth.MyAccount",
+          "node": 3,
+          "type": "Auth.User",
+          "method": "Sync",
+          "command": true
+        }
+      ]
+    },
+    {
+      "name": "Taxi",
+      "title": "Taxi",
+      "language": "en",
+      "platforms": [
+        "web",
+        "mobile"
+      ],
+      "actors": [
+        "Ordering.Customer"
+      ],
+      "me": "Ordering.Customer",
+      "nodes": [
+        {
+          "id": 1,
+          "kind": "primitive",
+          "primitive": "Menu",
+          "key": "Menu",
+          "children": [
+            {
+              "id": 2,
+              "kind": "screen",
+              "key": "NewOrder",
+              "to": {
+                "screen": "Ordering.NewOrder"
+              }
+            },
+            {
+              "id": 3,
+              "kind": "screen",
+              "key": "MyOrders",
+              "to": {
+                "screen": "Ordering.MyOrders"
+              }
+            },
+            {
+              "id": 4,
+              "kind": "screen",
+              "key": "Profile",
+              "to": {
+                "screen": "Ordering.Profile"
+              }
+            }
+          ]
+        }
+      ],
+      "screens": [
+        "Ordering.NewOrder",
+        "Ordering.MyOrders",
+        "Ordering.Profile",
+        "Ordering.MyOrder"
+      ],
+      "places": [
+        {
+          "name": "Taxi.NewOrder:Customer.OrderTaxi",
+          "screen": "Ordering.NewOrder",
+          "node": 1,
+          "type": "Ordering.Customer",
+          "method": "OrderTaxi",
+          "command": true
+        },
+        {
+          "name": "Taxi.MyOrders:Order.MyOrders",
+          "screen": "Ordering.MyOrders",
+          "node": 1,
+          "type": "Ordering.Order",
+          "method": "MyOrders"
+        },
+        {
+          "name": "Taxi.Profile:Customer.SignUp",
+          "screen": "Ordering.Profile",
+          "node": 1,
+          "type": "Ordering.Customer",
+          "method": "SignUp",
+          "command": true
+        },
+        {
+          "name": "Taxi.Profile:Customer.Profile",
+          "screen": "Ordering.Profile",
+          "node": 3,
+          "type": "Ordering.Customer",
+          "method": "Profile"
+        },
+        {
+          "name": "Taxi.Profile:Customer.Forget",
+          "screen": "Ordering.Profile",
+          "node": 5,
+          "type": "Ordering.Customer",
+          "method": "Forget",
+          "command": true
+        },
+        {
+          "name": "Taxi.MyOrder:Order.Card",
+          "screen": "Ordering.MyOrder",
+          "node": 1,
+          "type": "Ordering.Order",
+          "method": "Card"
+        },
+        {
+          "name": "Taxi.MyOrder:Order.Cancel",
+          "screen": "Ordering.MyOrder",
+          "node": 3,
+          "type": "Ordering.Order",
+          "method": "Cancel",
+          "command": true
+        },
+        {
+          "name": "Taxi.MyOrder:Order.LeaveTip",
+          "screen": "Ordering.MyOrder",
+          "node": 5,
+          "type": "Ordering.Order",
+          "method": "LeaveTip",
+          "command": true
+        },
+        {
+          "name": "Taxi.MyOrder:Order.SetCostCenter",
+          "screen": "Ordering.MyOrder",
+          "node": 9,
+          "type": "Ordering.Order",
+          "method": "SetCostCenter",
+          "command": true
+        }
+      ]
+    },
+    {
+      "name": "Account",
+      "title": "Account",
+      "language": "en",
+      "platforms": [
+        "web"
+      ],
+      "actors": [
+        "Auth.User"
+      ],
+      "me": "Auth.User",
+      "nodes": [
+        {
+          "id": 1,
+          "kind": "primitive",
+          "primitive": "Menu",
+          "key": "Menu",
+          "children": [
+            {
+              "id": 2,
+              "kind": "screen",
+              "key": "MyAccount",
+              "to": {
+                "screen": "Auth.MyAccount"
+              }
+            }
+          ]
+        }
+      ],
+      "screens": [
+        "Auth.MyAccount"
+      ],
+      "places": [
+        {
+          "name": "Account.MyAccount:User.Me",
+          "screen": "Auth.MyAccount",
+          "node": 1,
+          "type": "Auth.User",
+          "method": "Me"
+        },
+        {
+          "name": "Account.MyAccount:User.Sync",
+          "screen": "Auth.MyAccount",
+          "node": 3,
+          "type": "Auth.User",
+          "method": "Sync",
+          "command": true
+        }
+      ]
+    }
+  ],
+  "screens": [
+    {
+      "name": "Dispatch.Shift",
+      "title": "Shift",
+      "nodes": [
+        {
+          "id": 1,
+          "kind": "primitive",
+          "primitive": "Card",
+          "key": "Driver.MyState",
+          "types": {
+            "V": "Dispatch.DriverState"
+          },
+          "bind": {
+            "type": "Dispatch.Driver",
+            "method": "MyState",
+            "result": "Dispatch.DriverState"
+          },
+          "children": [
+            {
+              "id": 2,
+              "kind": "part",
+              "part": "Actions",
+              "key": "Actions",
+              "children": [
+                {
+                  "id": 3,
+                  "kind": "primitive",
+                  "primitive": "Button",
+                  "key": "Driver.GoOnline",
+                  "bind": {
+                    "type": "Dispatch.Driver",
+                    "method": "GoOnline",
+                    "command": true,
+                    "target": {
+                      "name": "driver",
+                      "type": "Dispatch.Driver.Id",
+                      "from": "me"
+                    }
+                  },
+                  "if": {
+                    "func": "ui.Dispatch.Shift:Driver.GoOnline.if",
+                    "args": [
+                      {
+                        "name": "status",
+                        "type": "Dispatch.DriverStatus",
+                        "from": "data",
+                        "node": 1,
+                        "field": "status"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "id": 4,
+                  "kind": "primitive",
+                  "primitive": "Button",
+                  "key": "Driver.GoOffline",
+                  "bind": {
+                    "type": "Dispatch.Driver",
+                    "method": "GoOffline",
+                    "command": true,
+                    "target": {
+                      "name": "driver",
+                      "type": "Dispatch.Driver.Id",
+                      "from": "me"
+                    }
+                  },
+                  "if": {
+                    "func": "ui.Dispatch.Shift:Driver.GoOffline.if",
+                    "args": [
+                      {
+                        "name": "status",
+                        "type": "Dispatch.DriverStatus",
+                        "from": "data",
+                        "node": 1,
+                        "field": "status"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "id": 5,
+                  "kind": "primitive",
+                  "primitive": "Button",
+                  "key": "Driver.Accept",
+                  "bind": {
+                    "type": "Dispatch.Driver",
+                    "method": "Accept",
+                    "command": true,
+                    "target": {
+                      "name": "driver",
+                      "type": "Dispatch.Driver.Id",
+                      "from": "me"
+                    }
+                  },
+                  "if": {
+                    "func": "ui.Dispatch.Shift:Driver.Accept.if",
+                    "args": [
+                      {
+                        "name": "status",
+                        "type": "Dispatch.DriverStatus",
+                        "from": "data",
+                        "node": 1,
+                        "field": "status"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "id": 6,
+                  "kind": "primitive",
+                  "primitive": "Button",
+                  "key": "Driver.Decline",
+                  "bind": {
+                    "type": "Dispatch.Driver",
+                    "method": "Decline",
+                    "command": true,
+                    "target": {
+                      "name": "driver",
+                      "type": "Dispatch.Driver.Id",
+                      "from": "me"
+                    }
+                  },
+                  "if": {
+                    "func": "ui.Dispatch.Shift:Driver.Decline.if",
+                    "args": [
+                      {
+                        "name": "status",
+                        "type": "Dispatch.DriverStatus",
+                        "from": "data",
+                        "node": 1,
+                        "field": "status"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "id": 7,
+                  "kind": "primitive",
+                  "primitive": "Button",
+                  "key": "Driver.FinishRide",
+                  "bind": {
+                    "type": "Dispatch.Driver",
+                    "method": "FinishRide",
+                    "command": true,
+                    "target": {
+                      "name": "driver",
+                      "type": "Dispatch.Driver.Id",
+                      "from": "me"
+                    }
+                  },
+                  "if": {
+                    "func": "ui.Dispatch.Shift:Driver.FinishRide.if",
+                    "args": [
+                      {
+                        "name": "status",
+                        "type": "Dispatch.DriverStatus",
+                        "from": "data",
+                        "node": 1,
+                        "field": "status"
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "id": 8,
+              "kind": "field",
+              "primitive": "Tag",
+              "field": "status",
+              "fieldType": "Dispatch.DriverStatus",
+              "key": "status",
+              "text": "Dispatch.DriverState.status",
+              "auto": true,
+              "types": {
+                "E": "Dispatch.DriverStatus"
+              }
+            },
+            {
+              "id": 9,
+              "kind": "field",
+              "primitive": "Text",
+              "field": "currentTrip",
+              "fieldType": "Dispatch.Trip.Id?",
+              "key": "currentTrip",
+              "text": "Dispatch.DriverState.currentTrip",
+              "auto": true,
+              "types": {
+                "T": "Dispatch.Trip.Id?"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Dispatch.FreeDrivers",
+      "title": "Free drivers",
+      "nodes": [
+        {
+          "id": 1,
+          "kind": "primitive",
+          "primitive": "Table",
+          "key": "Driver.FreeDrivers",
+          "types": {
+            "Row": "Dispatch.DriverInfo"
+          },
+          "params": [
+            {
+              "name": "size",
+              "value": {
+                "value": 20
+              }
+            }
+          ],
+          "bind": {
+            "type": "Dispatch.Driver",
+            "method": "FreeDrivers",
+            "result": "page\u003cDispatch.DriverInfo\u003e",
+            "args": [
+              {
+                "name": "wantedClass",
+                "type": "Dispatch.CarClass",
+                "from": "input",
+                "input": true
+              },
+              {
+                "name": "pageReq",
+                "type": "PageRequest",
+                "from": "primitive"
+              }
+            ]
+          },
+          "children": [
+            {
+              "id": 2,
+              "kind": "part",
+              "part": "Filters",
+              "key": "Filters",
+              "auto": true,
+              "children": [
+                {
+                  "id": 3,
+                  "kind": "field",
+                  "primitive": "Select",
+                  "field": "wantedClass",
+                  "fieldType": "Dispatch.CarClass",
+                  "input": true,
+                  "key": "wantedClass",
+                  "text": "Dispatch.Driver.FreeDrivers.wantedClass",
+                  "auto": true,
+                  "types": {
+                    "E": "Dispatch.CarClass"
+                  }
+                }
+              ]
+            },
+            {
+              "id": 4,
+              "kind": "part",
+              "part": "Columns",
+              "key": "Columns",
+              "auto": true,
+              "rows": true,
+              "children": [
+                {
+                  "id": 5,
+                  "kind": "field",
+                  "primitive": "Text",
+                  "field": "driverId",
+                  "fieldType": "Dispatch.Driver.Id",
+                  "key": "driverId",
+                  "text": "Dispatch.DriverInfo.driverId",
+                  "auto": true,
+                  "types": {
+                    "T": "Dispatch.Driver.Id"
+                  }
+                },
+                {
+                  "id": 6,
+                  "kind": "field",
+                  "primitive": "Text",
+                  "field": "name",
+                  "fieldType": "string",
+                  "key": "name",
+                  "text": "Dispatch.DriverInfo.name",
+                  "auto": true,
+                  "types": {
+                    "T": "string"
+                  }
+                },
+                {
+                  "id": 7,
+                  "kind": "field",
+                  "primitive": "Text",
+                  "field": "plate",
+                  "fieldType": "string",
+                  "key": "plate",
+                  "text": "Dispatch.DriverInfo.plate",
+                  "auto": true,
+                  "types": {
+                    "T": "string"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Dispatch.NewDriver",
+      "title": "New driver",
+      "nodes": [
+        {
+          "id": 1,
+          "kind": "primitive",
+          "primitive": "Form",
+          "key": "Driver.Register",
+          "bind": {
+            "type": "Dispatch.Driver",
+            "method": "Register",
+            "command": true,
+            "target": {
+              "name": "driver",
+              "type": "Dispatch.Driver.Id",
+              "from": "new"
+            },
+            "args": [
+              {
+                "name": "driverName",
+                "type": "string",
+                "from": "input",
+                "input": true
+              },
+              {
+                "name": "driverCar",
+                "type": "Dispatch.Car",
+                "from": "input",
+                "input": true
+              }
+            ]
+          },
+          "children": [
+            {
+              "id": 2,
+              "kind": "field",
+              "primitive": "TextInput",
+              "field": "driverName",
+              "fieldType": "string",
+              "input": true,
+              "key": "driverName",
+              "text": "Dispatch.Driver.Register.driverName",
+              "auto": true
+            },
+            {
+              "id": 3,
+              "kind": "field",
+              "primitive": "Group",
+              "field": "driverCar",
+              "fieldType": "Dispatch.Car",
+              "input": true,
+              "key": "driverCar",
+              "text": "Dispatch.Driver.Register.driverCar",
+              "auto": true,
+              "types": {
+                "V": "Dispatch.Car"
+              },
+              "children": [
+                {
+                  "id": 4,
+                  "kind": "field",
+                  "primitive": "TextInput",
+                  "field": "plate",
+                  "fieldType": "string",
+                  "input": true,
+                  "key": "plate",
+                  "text": "Dispatch.Car.plate",
+                  "auto": true
+                },
+                {
+                  "id": 5,
+                  "kind": "field",
+                  "primitive": "TextInput",
+                  "field": "model",
+                  "fieldType": "string",
+                  "input": true,
+                  "key": "model",
+                  "text": "Dispatch.Car.model",
+                  "auto": true
+                },
+                {
+                  "id": 6,
+                  "kind": "field",
+                  "primitive": "Select",
+                  "field": "carClass",
+                  "fieldType": "Dispatch.CarClass",
+                  "input": true,
+                  "key": "carClass",
+                  "text": "Dispatch.Car.carClass",
+                  "auto": true,
+                  "types": {
+                    "E": "Dispatch.CarClass"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Ordering.AdminOrders",
+      "title": "Orders",
+      "nodes": [
+        {
+          "id": 1,
+          "kind": "primitive",
+          "primitive": "Toolbar",
+          "key": "Toolbar",
+          "children": [
+            {
+              "id": 2,
+              "kind": "primitive",
+              "primitive": "Link",
+              "key": "AdminNewOrder",
+              "to": {
+                "screen": "Ordering.AdminNewOrder"
+              }
+            }
+          ]
+        },
+        {
+          "id": 3,
+          "kind": "primitive",
+          "primitive": "Table",
+          "key": "Order.List",
+          "types": {
+            "Row": "Ordering.OrderRow"
+          },
+          "params": [
+            {
+              "name": "size",
+              "value": {
+                "value": 20
+              }
+            }
+          ],
+          "bind": {
+            "type": "Ordering.Order",
+            "method": "List",
+            "result": "page\u003cOrdering.OrderRow\u003e",
+            "args": [
+              {
+                "name": "wanted",
+                "type": "Ordering.OrderStatus",
+                "from": "input",
+                "input": true,
+                "default": true,
+                "value": "searching"
+              },
+              {
+                "name": "pageReq",
+                "type": "PageRequest",
+                "from": "primitive"
+              }
+            ]
+          },
+          "children": [
+            {
+              "id": 4,
+              "kind": "part",
+              "part": "Columns",
+              "key": "Columns",
+              "rows": true,
+              "children": [
+                {
+                  "id": 5,
+                  "kind": "field",
+                  "primitive": "DateTime",
+                  "field": "placedAt",
+                  "fieldType": "timestamp",
+                  "key": "placedAt",
+                  "text": "Ordering.OrderRow.placedAt"
+                },
+                {
+                  "id": 6,
+                  "kind": "field",
+                  "primitive": "Tag",
+                  "field": "status",
+                  "fieldType": "Ordering.OrderStatus",
+                  "key": "status",
+                  "text": "Ordering.OrderRow.status",
+                  "types": {
+                    "E": "Ordering.OrderStatus"
+                  }
+                },
+                {
+                  "id": 7,
+                  "kind": "field",
+                  "primitive": "Fields",
+                  "field": "price",
+                  "fieldType": "Ordering.Money",
+                  "key": "price",
+                  "text": "Ordering.OrderRow.price",
+                  "types": {
+                    "V": "Ordering.Money"
+                  },
+                  "children": [
+                    {
+                      "id": 8,
+                      "kind": "field",
+                      "primitive": "Text",
+                      "field": "amount",
+                      "fieldType": "decimal",
+                      "key": "amount",
+                      "text": "Ordering.Money.amount",
+                      "auto": true,
+                      "types": {
+                        "T": "decimal"
+                      }
+                    },
+                    {
+                      "id": 9,
+                      "kind": "field",
+                      "primitive": "Tag",
+                      "field": "currency",
+                      "fieldType": "Ordering.Currency",
+                      "key": "currency",
+                      "text": "Ordering.Money.currency",
+                      "auto": true,
+                      "types": {
+                        "E": "Ordering.Currency"
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": 10,
+              "kind": "part",
+              "part": "RowActions",
+              "key": "RowActions",
+              "rows": true,
+              "children": [
+                {
+                  "id": 11,
+                  "kind": "primitive",
+                  "primitive": "Confirm",
+                  "key": "Order.Cancel",
+                  "bind": {
+                    "type": "Ordering.Order",
+                    "method": "Cancel",
+                    "command": true,
+                    "target": {
+                      "name": "order",
+                      "type": "Ordering.Order.Id",
+                      "from": "row",
+                      "node": 3,
+                      "field": "orderId"
+                    },
+                    "args": [
+                      {
+                        "name": "reason",
+                        "type": "string",
+                        "from": "input",
+                        "input": true
+                      }
+                    ]
+                  },
+                  "if": {
+                    "func": "ui.Ordering.AdminOrders:Order.Cancel.if",
+                    "args": [
+                      {
+                        "name": "status",
+                        "type": "Ordering.OrderStatus",
+                        "from": "row",
+                        "node": 3,
+                        "field": "status"
+                      }
+                    ]
+                  },
+                  "children": [
+                    {
+                      "id": 12,
+                      "kind": "field",
+                      "primitive": "TextInput",
+                      "field": "reason",
+                      "fieldType": "string",
+                      "input": true,
+                      "key": "reason",
+                      "text": "Ordering.Order.Cancel.reason",
+                      "auto": true
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": 13,
+              "kind": "on",
+              "to": {
+                "screen": "Ordering.AdminOrder",
+                "args": [
+                  {
+                    "name": "orderId",
+                    "type": "Ordering.Order.Id",
+                    "from": "event",
+                    "node": 3,
+                    "field": "orderId"
+                  }
+                ]
+              },
+              "event": "open"
+            },
+            {
+              "id": 14,
+              "kind": "part",
+              "part": "Filters",
+              "key": "Filters",
+              "auto": true,
+              "children": [
+                {
+                  "id": 15,
+                  "kind": "field",
+                  "primitive": "Select",
+                  "field": "wanted",
+                  "fieldType": "Ordering.OrderStatus",
+                  "input": true,
+                  "key": "wanted",
+                  "text": "Ordering.Order.List.wanted",
+                  "auto": true,
+                  "types": {
+                    "E": "Ordering.OrderStatus"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Ordering.AdminOrder",
+      "title": "Order",
+      "params": [
+        {
+          "name": "orderId",
+          "type": "Ordering.Order.Id"
+        }
+      ],
+      "nodes": [
+        {
+          "id": 1,
+          "kind": "primitive",
+          "primitive": "Card",
+          "key": "Order.Details",
+          "types": {
+            "V": "Ordering.OrderDetails"
+          },
+          "bind": {
+            "type": "Ordering.Order",
+            "method": "Details",
+            "result": "Ordering.OrderDetails",
+            "args": [
+              {
+                "name": "orderId",
+                "type": "Ordering.Order.Id",
+                "from": "param",
+                "field": "orderId"
+              }
+            ]
+          },
+          "children": [
+            {
+              "id": 2,
+              "kind": "field",
+              "primitive": "Tag",
+              "field": "status",
+              "fieldType": "Ordering.OrderStatus",
+              "key": "status",
+              "text": "Ordering.OrderDetails.status",
+              "types": {
+                "E": "Ordering.OrderStatus"
+              }
+            },
+            {
+              "id": 3,
+              "kind": "field",
+              "primitive": "Fields",
+              "field": "price",
+              "fieldType": "Ordering.Money",
+              "key": "price",
+              "text": "Ordering.OrderDetails.price",
+              "types": {
+                "V": "Ordering.Money"
+              },
+              "children": [
+                {
+                  "id": 4,
+                  "kind": "field",
+                  "primitive": "Text",
+                  "field": "amount",
+                  "fieldType": "decimal",
+                  "key": "amount",
+                  "text": "Ordering.Money.amount",
+                  "auto": true,
+                  "types": {
+                    "T": "decimal"
+                  }
+                },
+                {
+                  "id": 5,
+                  "kind": "field",
+                  "primitive": "Tag",
+                  "field": "currency",
+                  "fieldType": "Ordering.Currency",
+                  "key": "currency",
+                  "text": "Ordering.Money.currency",
+                  "auto": true,
+                  "types": {
+                    "E": "Ordering.Currency"
+                  }
+                }
+              ]
+            },
+            {
+              "id": 6,
+              "kind": "field",
+              "primitive": "Fields",
+              "field": "orderRoute",
+              "fieldType": "Ordering.Route",
+              "key": "orderRoute",
+              "text": "Ordering.OrderDetails.orderRoute",
+              "types": {
+                "V": "Ordering.Route"
+              },
+              "children": [
+                {
+                  "id": 7,
+                  "kind": "field",
+                  "primitive": "Fields",
+                  "field": "from",
+                  "fieldType": "Ordering.GeoPoint",
+                  "key": "from",
+                  "text": "Ordering.Route.from",
+                  "auto": true,
+                  "types": {
+                    "V": "Ordering.GeoPoint"
+                  },
+                  "children": [
+                    {
+                      "id": 8,
+                      "kind": "field",
+                      "primitive": "Text",
+                      "field": "lat",
+                      "fieldType": "float",
+                      "key": "lat",
+                      "text": "Ordering.GeoPoint.lat",
+                      "auto": true,
+                      "types": {
+                        "T": "float"
+                      }
+                    },
+                    {
+                      "id": 9,
+                      "kind": "field",
+                      "primitive": "Text",
+                      "field": "lon",
+                      "fieldType": "float",
+                      "key": "lon",
+                      "text": "Ordering.GeoPoint.lon",
+                      "auto": true,
+                      "types": {
+                        "T": "float"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "id": 10,
+                  "kind": "field",
+                  "primitive": "Fields",
+                  "field": "to",
+                  "fieldType": "Ordering.GeoPoint",
+                  "key": "to",
+                  "text": "Ordering.Route.to",
+                  "auto": true,
+                  "types": {
+                    "V": "Ordering.GeoPoint"
+                  },
+                  "children": [
+                    {
+                      "id": 11,
+                      "kind": "field",
+                      "primitive": "Text",
+                      "field": "lat",
+                      "fieldType": "float",
+                      "key": "lat",
+                      "text": "Ordering.GeoPoint.lat",
+                      "auto": true,
+                      "types": {
+                        "T": "float"
+                      }
+                    },
+                    {
+                      "id": 12,
+                      "kind": "field",
+                      "primitive": "Text",
+                      "field": "lon",
+                      "fieldType": "float",
+                      "key": "lon",
+                      "text": "Ordering.GeoPoint.lon",
+                      "auto": true,
+                      "types": {
+                        "T": "float"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "id": 13,
+                  "kind": "field",
+                  "primitive": "Text",
+                  "field": "distanceKm",
+                  "fieldType": "float",
+                  "key": "distanceKm",
+                  "text": "Ordering.Route.distanceKm",
+                  "auto": true,
+                  "types": {
+                    "T": "float"
+                  }
+                }
+              ]
+            },
+            {
+              "id": 14,
+              "kind": "field",
+              "primitive": "Tag",
+              "field": "requestedClass",
+              "fieldType": "Ordering.CarClass",
+              "key": "requestedClass",
+              "text": "Ordering.OrderDetails.requestedClass",
+              "types": {
+                "E": "Ordering.CarClass"
+              }
+            },
+            {
+              "id": 15,
+              "kind": "field",
+              "primitive": "DateTime",
+              "field": "placedAt",
+              "fieldType": "timestamp",
+              "key": "placedAt",
+              "text": "Ordering.OrderDetails.placedAt"
+            },
+            {
+              "id": 16,
+              "kind": "field",
+              "primitive": "Text",
+              "field": "driverName",
+              "fieldType": "string?",
+              "key": "driverName",
+              "text": "Ordering.OrderDetails.driverName",
+              "types": {
+                "T": "string?"
+              }
+            },
+            {
+              "id": 17,
+              "kind": "part",
+              "part": "Actions",
+              "key": "Actions",
+              "children": [
+                {
+                  "id": 18,
+                  "kind": "primitive",
+                  "primitive": "Edit",
+                  "key": "Order.Edit",
+                  "label": "Edit",
+                  "bind": {
+                    "type": "Ordering.Order",
+                    "method": "Edit",
+                    "command": true,
+                    "target": {
+                      "name": "order",
+                      "type": "Ordering.Order.Id",
+                      "from": "data",
+                      "node": 1,
+                      "field": "orderId"
+                    },
+                    "args": [
+                      {
+                        "name": "orderRoute",
+                        "type": "Ordering.Route",
+                        "from": "data",
+                        "node": 1,
+                        "field": "orderRoute",
+                        "input": true
+                      },
+                      {
+                        "name": "requestedClass",
+                        "type": "Ordering.CarClass",
+                        "from": "data",
+                        "node": 1,
+                        "field": "requestedClass",
+                        "input": true
+                      }
+                    ]
+                  },
+                  "if": {
+                    "func": "ui.Ordering.AdminOrder:Order.Edit.if",
+                    "args": [
+                      {
+                        "name": "status",
+                        "type": "Ordering.OrderStatus",
+                        "from": "data",
+                        "node": 1,
+                        "field": "status"
+                      }
+                    ]
+                  },
+                  "children": [
+                    {
+                      "id": 19,
+                      "kind": "field",
+                      "primitive": "Group",
+                      "field": "orderRoute",
+                      "fieldType": "Ordering.Route",
+                      "input": true,
+                      "key": "orderRoute",
+                      "text": "Ordering.Order.Edit.orderRoute",
+                      "auto": true,
+                      "types": {
+                        "V": "Ordering.Route"
+                      },
+                      "children": [
+                        {
+                          "id": 20,
+                          "kind": "field",
+                          "primitive": "Group",
+                          "field": "from",
+                          "fieldType": "Ordering.GeoPoint",
+                          "input": true,
+                          "key": "from",
+                          "text": "Ordering.Route.from",
+                          "auto": true,
+                          "types": {
+                            "V": "Ordering.GeoPoint"
+                          },
+                          "children": [
+                            {
+                              "id": 21,
+                              "kind": "field",
+                              "primitive": "NumberInput",
+                              "field": "lat",
+                              "fieldType": "float",
+                              "input": true,
+                              "key": "lat",
+                              "text": "Ordering.GeoPoint.lat",
+                              "auto": true
+                            },
+                            {
+                              "id": 22,
+                              "kind": "field",
+                              "primitive": "NumberInput",
+                              "field": "lon",
+                              "fieldType": "float",
+                              "input": true,
+                              "key": "lon",
+                              "text": "Ordering.GeoPoint.lon",
+                              "auto": true
+                            }
+                          ]
+                        },
+                        {
+                          "id": 23,
+                          "kind": "field",
+                          "primitive": "Group",
+                          "field": "to",
+                          "fieldType": "Ordering.GeoPoint",
+                          "input": true,
+                          "key": "to",
+                          "text": "Ordering.Route.to",
+                          "auto": true,
+                          "types": {
+                            "V": "Ordering.GeoPoint"
+                          },
+                          "children": [
+                            {
+                              "id": 24,
+                              "kind": "field",
+                              "primitive": "NumberInput",
+                              "field": "lat",
+                              "fieldType": "float",
+                              "input": true,
+                              "key": "lat",
+                              "text": "Ordering.GeoPoint.lat",
+                              "auto": true
+                            },
+                            {
+                              "id": 25,
+                              "kind": "field",
+                              "primitive": "NumberInput",
+                              "field": "lon",
+                              "fieldType": "float",
+                              "input": true,
+                              "key": "lon",
+                              "text": "Ordering.GeoPoint.lon",
+                              "auto": true
+                            }
+                          ]
+                        },
+                        {
+                          "id": 26,
+                          "kind": "field",
+                          "primitive": "NumberInput",
+                          "field": "distanceKm",
+                          "fieldType": "float",
+                          "input": true,
+                          "key": "distanceKm",
+                          "text": "Ordering.Route.distanceKm",
+                          "auto": true
+                        }
+                      ]
+                    },
+                    {
+                      "id": 27,
+                      "kind": "field",
+                      "primitive": "Select",
+                      "field": "requestedClass",
+                      "fieldType": "Ordering.CarClass",
+                      "input": true,
+                      "key": "requestedClass",
+                      "text": "Ordering.Order.Edit.requestedClass",
+                      "auto": true,
+                      "types": {
+                        "E": "Ordering.CarClass"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "id": 28,
+                  "kind": "primitive",
+                  "primitive": "Confirm",
+                  "key": "Order.Cancel",
+                  "label": "Cancel",
+                  "bind": {
+                    "type": "Ordering.Order",
+                    "method": "Cancel",
+                    "command": true,
+                    "target": {
+                      "name": "order",
+                      "type": "Ordering.Order.Id",
+                      "from": "data",
+                      "node": 1,
+                      "field": "orderId"
+                    },
+                    "args": [
+                      {
+                        "name": "reason",
+                        "type": "string",
+                        "from": "input",
+                        "input": true
+                      }
+                    ]
+                  },
+                  "if": {
+                    "func": "ui.Ordering.AdminOrder:Order.Cancel.if",
+                    "args": [
+                      {
+                        "name": "status",
+                        "type": "Ordering.OrderStatus",
+                        "from": "data",
+                        "node": 1,
+                        "field": "status"
+                      }
+                    ]
+                  },
+                  "children": [
+                    {
+                      "id": 29,
+                      "kind": "field",
+                      "primitive": "TextInput",
+                      "field": "reason",
+                      "fieldType": "string",
+                      "input": true,
+                      "key": "reason",
+                      "text": "Ordering.Order.Cancel.reason",
+                      "auto": true
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Ordering.AdminNewOrder",
+      "title": "New order",
+      "nodes": [
+        {
+          "id": 1,
+          "kind": "primitive",
+          "primitive": "Form",
+          "key": "Customer.OrderTaxi",
+          "bind": {
+            "type": "Ordering.Customer",
+            "method": "OrderTaxi",
+            "command": true,
+            "target": {
+              "name": "customer",
+              "type": "Ordering.Customer.Id",
+              "from": "input",
+              "input": true
+            },
+            "args": [
+              {
+                "name": "orderId",
+                "type": "Ordering.Order.Id",
+                "from": "new"
+              },
+              {
+                "name": "orderRoute",
+                "type": "Ordering.Route",
+                "from": "input",
+                "input": true
+              },
+              {
+                "name": "requestedClass",
+                "type": "Ordering.CarClass",
+                "from": "input",
+                "input": true
+              }
+            ]
+          },
+          "children": [
+            {
+              "id": 2,
+              "kind": "on",
+              "to": {
+                "screen": "Ordering.AdminOrder",
+                "args": [
+                  {
+                    "name": "orderId",
+                    "type": "Ordering.Order.Id",
+                    "from": "event",
+                    "node": 1,
+                    "field": "orderId"
+                  }
+                ]
+              },
+              "event": "done"
+            },
+            {
+              "id": 3,
+              "kind": "field",
+              "primitive": "Group",
+              "field": "orderRoute",
+              "fieldType": "Ordering.Route",
+              "input": true,
+              "key": "orderRoute",
+              "text": "Ordering.Customer.OrderTaxi.orderRoute",
+              "auto": true,
+              "types": {
+                "V": "Ordering.Route"
+              },
+              "children": [
+                {
+                  "id": 4,
+                  "kind": "field",
+                  "primitive": "Group",
+                  "field": "from",
+                  "fieldType": "Ordering.GeoPoint",
+                  "input": true,
+                  "key": "from",
+                  "text": "Ordering.Route.from",
+                  "auto": true,
+                  "types": {
+                    "V": "Ordering.GeoPoint"
+                  },
+                  "children": [
+                    {
+                      "id": 5,
+                      "kind": "field",
+                      "primitive": "NumberInput",
+                      "field": "lat",
+                      "fieldType": "float",
+                      "input": true,
+                      "key": "lat",
+                      "text": "Ordering.GeoPoint.lat",
+                      "auto": true
+                    },
+                    {
+                      "id": 6,
+                      "kind": "field",
+                      "primitive": "NumberInput",
+                      "field": "lon",
+                      "fieldType": "float",
+                      "input": true,
+                      "key": "lon",
+                      "text": "Ordering.GeoPoint.lon",
+                      "auto": true
+                    }
+                  ]
+                },
+                {
+                  "id": 7,
+                  "kind": "field",
+                  "primitive": "Group",
+                  "field": "to",
+                  "fieldType": "Ordering.GeoPoint",
+                  "input": true,
+                  "key": "to",
+                  "text": "Ordering.Route.to",
+                  "auto": true,
+                  "types": {
+                    "V": "Ordering.GeoPoint"
+                  },
+                  "children": [
+                    {
+                      "id": 8,
+                      "kind": "field",
+                      "primitive": "NumberInput",
+                      "field": "lat",
+                      "fieldType": "float",
+                      "input": true,
+                      "key": "lat",
+                      "text": "Ordering.GeoPoint.lat",
+                      "auto": true
+                    },
+                    {
+                      "id": 9,
+                      "kind": "field",
+                      "primitive": "NumberInput",
+                      "field": "lon",
+                      "fieldType": "float",
+                      "input": true,
+                      "key": "lon",
+                      "text": "Ordering.GeoPoint.lon",
+                      "auto": true
+                    }
+                  ]
+                },
+                {
+                  "id": 10,
+                  "kind": "field",
+                  "primitive": "NumberInput",
+                  "field": "distanceKm",
+                  "fieldType": "float",
+                  "input": true,
+                  "key": "distanceKm",
+                  "text": "Ordering.Route.distanceKm",
+                  "auto": true
+                }
+              ]
+            },
+            {
+              "id": 11,
+              "kind": "field",
+              "primitive": "Select",
+              "field": "requestedClass",
+              "fieldType": "Ordering.CarClass",
+              "input": true,
+              "key": "requestedClass",
+              "text": "Ordering.Customer.OrderTaxi.requestedClass",
+              "auto": true,
+              "types": {
+                "E": "Ordering.CarClass"
+              }
+            },
+            {
+              "id": 12,
+              "kind": "field",
+              "primitive": "EntityPicker",
+              "field": "customer",
+              "fieldType": "Ordering.Customer.Id",
+              "input": true,
+              "key": "customer",
+              "text": "Ordering.Customer",
+              "auto": true,
+              "types": {
+                "K": "Ordering.Customer.Id"
+              },
+              "params": [
+                {
+                  "name": "search",
+                  "query": {
+                    "type": "Ordering.Customer",
+                    "method": "FindByPhone",
+                    "result": "list\u003cOrdering.CustomerRow\u003e",
+                    "args": [
+                      {
+                        "name": "phoneNumber",
+                        "type": "string",
+                        "from": "provided",
+                        "field": "text"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "name": "key",
+                  "field": "customerId"
+                },
+                {
+                  "name": "label",
+                  "field": "phone"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Ordering.AdminProfile",
+      "title": "Profile",
+      "nodes": [
+        {
+          "id": 1,
+          "kind": "primitive",
+          "primitive": "Card",
+          "key": "Staff.Profile",
+          "types": {
+            "V": "Ordering.StaffProfile"
+          },
+          "bind": {
+            "type": "Ordering.Staff",
+            "method": "Profile",
+            "result": "Ordering.StaffProfile"
+          },
+          "children": [
+            {
+              "id": 2,
+              "kind": "part",
+              "part": "Actions",
+              "key": "Actions",
+              "children": [
+                {
+                  "id": 3,
+                  "kind": "primitive",
+                  "primitive": "Edit",
+                  "key": "Staff.ChangeEmail",
+                  "label": "Change email",
+                  "bind": {
+                    "type": "Ordering.Staff",
+                    "method": "ChangeEmail",
+                    "command": true,
+                    "target": {
+                      "name": "staff",
+                      "type": "Ordering.Staff.Id",
+                      "from": "me"
+                    },
+                    "args": [
+                      {
+                        "name": "newEmail",
+                        "type": "string",
+                        "from": "data",
+                        "node": 1,
+                        "field": "email",
+                        "input": true
+                      }
+                    ]
+                  },
+                  "children": [
+                    {
+                      "id": 4,
+                      "kind": "field",
+                      "primitive": "TextInput",
+                      "field": "newEmail",
+                      "fieldType": "string",
+                      "input": true,
+                      "key": "newEmail",
+                      "text": "Ordering.Staff.ChangeEmail.newEmail",
+                      "auto": true
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": 5,
+              "kind": "field",
+              "primitive": "Text",
+              "field": "name",
+              "fieldType": "string",
+              "key": "name",
+              "text": "Ordering.StaffProfile.name",
+              "auto": true,
+              "types": {
+                "T": "string"
+              }
+            },
+            {
+              "id": 6,
+              "kind": "field",
+              "primitive": "Text",
+              "field": "email",
+              "fieldType": "string?",
+              "key": "email",
+              "text": "Ordering.StaffProfile.email",
+              "auto": true,
+              "types": {
+                "T": "string?"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Ordering.NewOrder",
+      "title": "Order a taxi",
+      "nodes": [
+        {
+          "id": 1,
+          "kind": "primitive",
+          "primitive": "Form",
+          "key": "Customer.OrderTaxi",
+          "bind": {
+            "type": "Ordering.Customer",
+            "method": "OrderTaxi",
+            "command": true,
+            "target": {
+              "name": "customer",
+              "type": "Ordering.Customer.Id",
+              "from": "me"
+            },
+            "args": [
+              {
+                "name": "orderId",
+                "type": "Ordering.Order.Id",
+                "from": "new"
+              },
+              {
+                "name": "orderRoute",
+                "type": "Ordering.Route",
+                "from": "input",
+                "input": true
+              },
+              {
+                "name": "requestedClass",
+                "type": "Ordering.CarClass",
+                "from": "input",
+                "input": true
+              }
+            ]
+          },
+          "children": [
+            {
+              "id": 2,
+              "kind": "on",
+              "to": {
+                "screen": "Ordering.MyOrder",
+                "args": [
+                  {
+                    "name": "orderId",
+                    "type": "Ordering.Order.Id",
+                    "from": "event",
+                    "node": 1,
+                    "field": "orderId"
+                  }
+                ]
+              },
+              "event": "done"
+            },
+            {
+              "id": 3,
+              "kind": "field",
+              "primitive": "Group",
+              "field": "orderRoute",
+              "fieldType": "Ordering.Route",
+              "input": true,
+              "key": "orderRoute",
+              "text": "Ordering.Customer.OrderTaxi.orderRoute",
+              "auto": true,
+              "types": {
+                "V": "Ordering.Route"
+              },
+              "children": [
+                {
+                  "id": 4,
+                  "kind": "field",
+                  "primitive": "Group",
+                  "field": "from",
+                  "fieldType": "Ordering.GeoPoint",
+                  "input": true,
+                  "key": "from",
+                  "text": "Ordering.Route.from",
+                  "auto": true,
+                  "types": {
+                    "V": "Ordering.GeoPoint"
+                  },
+                  "children": [
+                    {
+                      "id": 5,
+                      "kind": "field",
+                      "primitive": "NumberInput",
+                      "field": "lat",
+                      "fieldType": "float",
+                      "input": true,
+                      "key": "lat",
+                      "text": "Ordering.GeoPoint.lat",
+                      "auto": true
+                    },
+                    {
+                      "id": 6,
+                      "kind": "field",
+                      "primitive": "NumberInput",
+                      "field": "lon",
+                      "fieldType": "float",
+                      "input": true,
+                      "key": "lon",
+                      "text": "Ordering.GeoPoint.lon",
+                      "auto": true
+                    }
+                  ]
+                },
+                {
+                  "id": 7,
+                  "kind": "field",
+                  "primitive": "Group",
+                  "field": "to",
+                  "fieldType": "Ordering.GeoPoint",
+                  "input": true,
+                  "key": "to",
+                  "text": "Ordering.Route.to",
+                  "auto": true,
+                  "types": {
+                    "V": "Ordering.GeoPoint"
+                  },
+                  "children": [
+                    {
+                      "id": 8,
+                      "kind": "field",
+                      "primitive": "NumberInput",
+                      "field": "lat",
+                      "fieldType": "float",
+                      "input": true,
+                      "key": "lat",
+                      "text": "Ordering.GeoPoint.lat",
+                      "auto": true
+                    },
+                    {
+                      "id": 9,
+                      "kind": "field",
+                      "primitive": "NumberInput",
+                      "field": "lon",
+                      "fieldType": "float",
+                      "input": true,
+                      "key": "lon",
+                      "text": "Ordering.GeoPoint.lon",
+                      "auto": true
+                    }
+                  ]
+                },
+                {
+                  "id": 10,
+                  "kind": "field",
+                  "primitive": "NumberInput",
+                  "field": "distanceKm",
+                  "fieldType": "float",
+                  "input": true,
+                  "key": "distanceKm",
+                  "text": "Ordering.Route.distanceKm",
+                  "auto": true
+                }
+              ]
+            },
+            {
+              "id": 11,
+              "kind": "field",
+              "primitive": "Select",
+              "field": "requestedClass",
+              "fieldType": "Ordering.CarClass",
+              "input": true,
+              "key": "requestedClass",
+              "text": "Ordering.Customer.OrderTaxi.requestedClass",
+              "auto": true,
+              "types": {
+                "E": "Ordering.CarClass"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Ordering.MyOrders",
+      "title": "My orders",
+      "nodes": [
+        {
+          "id": 1,
+          "kind": "primitive",
+          "primitive": "List",
+          "key": "Order.MyOrders",
+          "rows": true,
+          "types": {
+            "Row": "Ordering.OrderRow"
+          },
+          "bind": {
+            "type": "Ordering.Order",
+            "method": "MyOrders",
+            "result": "page\u003cOrdering.OrderRow\u003e",
+            "args": [
+              {
+                "name": "pageReq",
+                "type": "PageRequest",
+                "from": "primitive"
+              }
+            ]
+          },
+          "children": [
+            {
+              "id": 2,
+              "kind": "field",
+              "primitive": "Tag",
+              "field": "status",
+              "fieldType": "Ordering.OrderStatus",
+              "key": "status",
+              "text": "Ordering.OrderRow.status",
+              "types": {
+                "E": "Ordering.OrderStatus"
+              }
+            },
+            {
+              "id": 3,
+              "kind": "field",
+              "primitive": "Fields",
+              "field": "price",
+              "fieldType": "Ordering.Money",
+              "key": "price",
+              "text": "Ordering.OrderRow.price",
+              "types": {
+                "V": "Ordering.Money"
+              },
+              "children": [
+                {
+                  "id": 4,
+                  "kind": "field",
+                  "primitive": "Text",
+                  "field": "amount",
+                  "fieldType": "decimal",
+                  "key": "amount",
+                  "text": "Ordering.Money.amount",
+                  "auto": true,
+                  "types": {
+                    "T": "decimal"
+                  }
+                },
+                {
+                  "id": 5,
+                  "kind": "field",
+                  "primitive": "Tag",
+                  "field": "currency",
+                  "fieldType": "Ordering.Currency",
+                  "key": "currency",
+                  "text": "Ordering.Money.currency",
+                  "auto": true,
+                  "types": {
+                    "E": "Ordering.Currency"
+                  }
+                }
+              ]
+            },
+            {
+              "id": 6,
+              "kind": "field",
+              "primitive": "DateTime",
+              "field": "placedAt",
+              "fieldType": "timestamp",
+              "key": "placedAt",
+              "text": "Ordering.OrderRow.placedAt"
+            },
+            {
+              "id": 7,
+              "kind": "on",
+              "to": {
+                "screen": "Ordering.MyOrder",
+                "args": [
+                  {
+                    "name": "orderId",
+                    "type": "Ordering.Order.Id",
+                    "from": "event",
+                    "node": 1,
+                    "field": "orderId"
+                  }
+                ]
+              },
+              "event": "open"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Ordering.MyOrder",
+      "title": "Order",
+      "params": [
+        {
+          "name": "orderId",
+          "type": "Ordering.Order.Id"
+        }
+      ],
+      "nodes": [
+        {
+          "id": 1,
+          "kind": "primitive",
+          "primitive": "Card",
+          "key": "Order.Card",
+          "types": {
+            "V": "Ordering.OrderCard"
+          },
+          "bind": {
+            "type": "Ordering.Order",
+            "method": "Card",
+            "result": "Ordering.OrderCard",
+            "args": [
+              {
+                "name": "orderId",
+                "type": "Ordering.Order.Id",
+                "from": "param",
+                "field": "orderId"
+              }
+            ]
+          },
+          "children": [
+            {
+              "id": 2,
+              "kind": "part",
+              "part": "Actions",
+              "key": "Actions",
+              "children": [
+                {
+                  "id": 3,
+                  "kind": "primitive",
+                  "primitive": "Confirm",
+                  "key": "Order.Cancel",
+                  "bind": {
+                    "type": "Ordering.Order",
+                    "method": "Cancel",
+                    "command": true,
+                    "target": {
+                      "name": "order",
+                      "type": "Ordering.Order.Id",
+                      "from": "param",
+                      "field": "orderId"
+                    },
+                    "args": [
+                      {
+                        "name": "reason",
+                        "type": "string",
+                        "from": "input",
+                        "input": true
+                      }
+                    ]
+                  },
+                  "if": {
+                    "func": "ui.Ordering.MyOrder:Order.Cancel.if",
+                    "args": [
+                      {
+                        "name": "status",
+                        "type": "Ordering.OrderStatus",
+                        "from": "data",
+                        "node": 1,
+                        "field": "status"
+                      }
+                    ]
+                  },
+                  "children": [
+                    {
+                      "id": 4,
+                      "kind": "field",
+                      "primitive": "TextInput",
+                      "field": "reason",
+                      "fieldType": "string",
+                      "input": true,
+                      "key": "reason",
+                      "text": "Ordering.Order.Cancel.reason",
+                      "auto": true
+                    }
+                  ]
+                },
+                {
+                  "id": 5,
+                  "kind": "primitive",
+                  "primitive": "Edit",
+                  "key": "Order.LeaveTip",
+                  "label": "Tip",
+                  "bind": {
+                    "type": "Ordering.Order",
+                    "method": "LeaveTip",
+                    "command": true,
+                    "target": {
+                      "name": "order",
+                      "type": "Ordering.Order.Id",
+                      "from": "param",
+                      "field": "orderId"
+                    },
+                    "args": [
+                      {
+                        "name": "amount",
+                        "type": "Ordering.Money",
+                        "from": "input",
+                        "input": true
+                      }
+                    ]
+                  },
+                  "if": {
+                    "func": "ui.Ordering.MyOrder:Order.LeaveTip.if",
+                    "args": [
+                      {
+                        "name": "status",
+                        "type": "Ordering.OrderStatus",
+                        "from": "data",
+                        "node": 1,
+                        "field": "status"
+                      }
+                    ]
+                  },
+                  "children": [
+                    {
+                      "id": 6,
+                      "kind": "field",
+                      "primitive": "Group",
+                      "field": "amount",
+                      "fieldType": "Ordering.Money",
+                      "input": true,
+                      "key": "amount",
+                      "text": "Ordering.Order.LeaveTip.amount",
+                      "auto": true,
+                      "types": {
+                        "V": "Ordering.Money"
+                      },
+                      "children": [
+                        {
+                          "id": 7,
+                          "kind": "field",
+                          "primitive": "NumberInput",
+                          "field": "amount",
+                          "fieldType": "decimal",
+                          "input": true,
+                          "key": "amount",
+                          "text": "Ordering.Money.amount",
+                          "auto": true
+                        },
+                        {
+                          "id": 8,
+                          "kind": "field",
+                          "primitive": "Select",
+                          "field": "currency",
+                          "fieldType": "Ordering.Currency",
+                          "input": true,
+                          "key": "currency",
+                          "text": "Ordering.Money.currency",
+                          "auto": true,
+                          "types": {
+                            "E": "Ordering.Currency"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": 9,
+                  "kind": "primitive",
+                  "primitive": "Edit",
+                  "key": "Order.SetCostCenter",
+                  "bind": {
+                    "type": "Ordering.Order",
+                    "method": "SetCostCenter",
+                    "command": true,
+                    "target": {
+                      "name": "order",
+                      "type": "Ordering.Order.Id",
+                      "from": "param",
+                      "field": "orderId"
+                    },
+                    "args": [
+                      {
+                        "name": "code",
+                        "type": "string",
+                        "from": "input",
+                        "input": true
+                      }
+                    ]
+                  },
+                  "children": [
+                    {
+                      "id": 10,
+                      "kind": "field",
+                      "primitive": "TextInput",
+                      "field": "code",
+                      "fieldType": "string",
+                      "input": true,
+                      "key": "code",
+                      "text": "Ordering.Order.SetCostCenter.code",
+                      "auto": true
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": 11,
+              "kind": "field",
+              "primitive": "Tag",
+              "field": "status",
+              "fieldType": "Ordering.OrderStatus",
+              "key": "status",
+              "text": "Ordering.OrderCard.status",
+              "auto": true,
+              "types": {
+                "E": "Ordering.OrderStatus"
+              }
+            },
+            {
+              "id": 12,
+              "kind": "field",
+              "primitive": "Fields",
+              "field": "price",
+              "fieldType": "Ordering.Money",
+              "key": "price",
+              "text": "Ordering.OrderCard.price",
+              "auto": true,
+              "types": {
+                "V": "Ordering.Money"
+              },
+              "children": [
+                {
+                  "id": 13,
+                  "kind": "field",
+                  "primitive": "Text",
+                  "field": "amount",
+                  "fieldType": "decimal",
+                  "key": "amount",
+                  "text": "Ordering.Money.amount",
+                  "auto": true,
+                  "types": {
+                    "T": "decimal"
+                  }
+                },
+                {
+                  "id": 14,
+                  "kind": "field",
+                  "primitive": "Tag",
+                  "field": "currency",
+                  "fieldType": "Ordering.Currency",
+                  "key": "currency",
+                  "text": "Ordering.Money.currency",
+                  "auto": true,
+                  "types": {
+                    "E": "Ordering.Currency"
+                  }
+                }
+              ]
+            },
+            {
+              "id": 15,
+              "kind": "field",
+              "primitive": "Fields",
+              "field": "driver",
+              "fieldType": "Ordering.AssignedDriver?",
+              "key": "driver",
+              "text": "Ordering.OrderCard.driver",
+              "auto": true,
+              "types": {
+                "V": "Ordering.AssignedDriver"
+              },
+              "children": [
+                {
+                  "id": 16,
+                  "kind": "field",
+                  "primitive": "Text",
+                  "field": "name",
+                  "fieldType": "string",
+                  "key": "name",
+                  "text": "Ordering.AssignedDriver.name",
+                  "auto": true,
+                  "types": {
+                    "T": "string"
+                  }
+                },
+                {
+                  "id": 17,
+                  "kind": "field",
+                  "primitive": "Text",
+                  "field": "plate",
+                  "fieldType": "string",
+                  "key": "plate",
+                  "text": "Ordering.AssignedDriver.plate",
+                  "auto": true,
+                  "types": {
+                    "T": "string"
+                  }
+                }
+              ]
+            },
+            {
+              "id": 18,
+              "kind": "field",
+              "primitive": "Fields",
+              "field": "tip",
+              "fieldType": "Ordering.Money?",
+              "key": "tip",
+              "text": "Ordering.OrderCard.tip",
+              "auto": true,
+              "types": {
+                "V": "Ordering.Money"
+              },
+              "children": [
+                {
+                  "id": 19,
+                  "kind": "field",
+                  "primitive": "Text",
+                  "field": "amount",
+                  "fieldType": "decimal",
+                  "key": "amount",
+                  "text": "Ordering.Money.amount",
+                  "auto": true,
+                  "types": {
+                    "T": "decimal"
+                  }
+                },
+                {
+                  "id": 20,
+                  "kind": "field",
+                  "primitive": "Tag",
+                  "field": "currency",
+                  "fieldType": "Ordering.Currency",
+                  "key": "currency",
+                  "text": "Ordering.Money.currency",
+                  "auto": true,
+                  "types": {
+                    "E": "Ordering.Currency"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Ordering.Profile",
+      "title": "Profile",
+      "nodes": [
+        {
+          "id": 1,
+          "kind": "primitive",
+          "primitive": "Edit",
+          "key": "Customer.SignUp",
+          "label": "Sign up",
+          "bind": {
+            "type": "Ordering.Customer",
+            "method": "SignUp",
+            "command": true,
+            "target": {
+              "name": "customer",
+              "type": "Ordering.Customer.Id",
+              "from": "me"
+            },
+            "args": [
+              {
+                "name": "phoneNumber",
+                "type": "string",
+                "from": "input",
+                "input": true
+              }
+            ]
+          },
+          "children": [
+            {
+              "id": 2,
+              "kind": "field",
+              "primitive": "TextInput",
+              "field": "phoneNumber",
+              "fieldType": "string",
+              "input": true,
+              "key": "phoneNumber",
+              "text": "Ordering.Customer.SignUp.phoneNumber",
+              "auto": true
+            }
+          ]
+        },
+        {
+          "id": 3,
+          "kind": "primitive",
+          "primitive": "Card",
+          "key": "Customer.Profile",
+          "types": {
+            "V": "Ordering.CustomerProfile"
+          },
+          "bind": {
+            "type": "Ordering.Customer",
+            "method": "Profile",
+            "result": "Ordering.CustomerProfile"
+          },
+          "children": [
+            {
+              "id": 4,
+              "kind": "part",
+              "part": "Actions",
+              "key": "Actions",
+              "children": [
+                {
+                  "id": 5,
+                  "kind": "primitive",
+                  "primitive": "Confirm",
+                  "key": "Customer.Forget",
+                  "bind": {
+                    "type": "Ordering.Customer",
+                    "method": "Forget",
+                    "command": true,
+                    "target": {
+                      "name": "customer",
+                      "type": "Ordering.Customer.Id",
+                      "from": "me"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "id": 6,
+              "kind": "field",
+              "primitive": "Text",
+              "field": "phone",
+              "fieldType": "string?",
+              "key": "phone",
+              "text": "Ordering.CustomerProfile.phone",
+              "auto": true,
+              "types": {
+                "T": "string?"
+              }
+            },
+            {
+              "id": 7,
+              "kind": "field",
+              "primitive": "Text",
+              "field": "blocked",
+              "fieldType": "bool",
+              "key": "blocked",
+              "text": "Ordering.CustomerProfile.blocked",
+              "auto": true,
+              "types": {
+                "T": "bool"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Ordering.JoinTaxi",
+      "title": "Become a customer",
+      "nodes": [
+        {
+          "id": 1,
+          "kind": "primitive",
+          "primitive": "Form",
+          "key": "Customer.Join",
+          "bind": {
+            "type": "Ordering.Customer",
+            "method": "Join",
+            "command": true,
+            "target": {
+              "name": "customer",
+              "type": "Ordering.Customer.Id",
+              "from": "me"
+            },
+            "args": [
+              {
+                "name": "phoneNumber",
+                "type": "string",
+                "from": "input",
+                "input": true
+              }
+            ]
+          },
+          "children": [
+            {
+              "id": 2,
+              "kind": "field",
+              "primitive": "TextInput",
+              "field": "phoneNumber",
+              "fieldType": "string",
+              "input": true,
+              "key": "phoneNumber",
+              "text": "Ordering.Customer.Join.phoneNumber",
+              "auto": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Ordering.TaxiAccount",
+      "title": "Taxi customer",
+      "nodes": [
+        {
+          "id": 1,
+          "kind": "primitive",
+          "primitive": "Card",
+          "key": "Customer.Profile",
+          "types": {
+            "V": "Ordering.CustomerProfile"
+          },
+          "bind": {
+            "type": "Ordering.Customer",
+            "method": "Profile",
+            "result": "Ordering.CustomerProfile"
+          },
+          "children": [
+            {
+              "id": 2,
+              "kind": "field",
+              "primitive": "Text",
+              "field": "phone",
+              "fieldType": "string?",
+              "key": "phone",
+              "text": "Ordering.CustomerProfile.phone",
+              "auto": true,
+              "types": {
+                "T": "string?"
+              }
+            },
+            {
+              "id": 3,
+              "kind": "field",
+              "primitive": "Text",
+              "field": "blocked",
+              "fieldType": "bool",
+              "key": "blocked",
+              "text": "Ordering.CustomerProfile.blocked",
+              "auto": true,
+              "types": {
+                "T": "bool"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Ordering.Home",
+      "title": "Home",
+      "nodes": [
+        {
+          "id": 1,
+          "kind": "primitive",
+          "primitive": "Card",
+          "key": "Customer.Home",
+          "types": {
+            "V": "Ordering.HomeAddress"
+          },
+          "bind": {
+            "type": "Ordering.Customer",
+            "method": "Home",
+            "result": "Ordering.HomeAddress"
+          },
+          "children": [
+            {
+              "id": 2,
+              "kind": "part",
+              "part": "Actions",
+              "key": "Actions",
+              "children": [
+                {
+                  "id": 3,
+                  "kind": "primitive",
+                  "primitive": "Edit",
+                  "key": "Customer.SetHome",
+                  "label": "Change address",
+                  "bind": {
+                    "type": "Ordering.Customer",
+                    "method": "SetHome",
+                    "command": true,
+                    "target": {
+                      "name": "customer",
+                      "type": "Ordering.Customer.Id",
+                      "from": "me"
+                    },
+                    "args": [
+                      {
+                        "name": "address",
+                        "type": "string",
+                        "from": "data",
+                        "node": 1,
+                        "field": "address",
+                        "input": true
+                      }
+                    ]
+                  },
+                  "children": [
+                    {
+                      "id": 4,
+                      "kind": "field",
+                      "primitive": "TextInput",
+                      "field": "address",
+                      "fieldType": "string",
+                      "input": true,
+                      "key": "address",
+                      "text": "Ordering.Customer.SetHome.address",
+                      "auto": true
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": 5,
+              "kind": "field",
+              "primitive": "Text",
+              "field": "address",
+              "fieldType": "string?",
+              "key": "address",
+              "text": "Ordering.HomeAddress.address",
+              "auto": true,
+              "types": {
+                "T": "string?"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Ordering.Board",
+      "title": "Order board",
+      "nodes": [
+        {
+          "id": 1,
+          "kind": "primitive",
+          "primitive": "Table",
+          "key": "OrderMart.Board",
+          "types": {
+            "Row": "Ordering.BoardRow"
+          },
+          "params": [
+            {
+              "name": "size",
+              "value": {
+                "value": 20
+              }
+            }
+          ],
+          "bind": {
+            "type": "Ordering.OrderMart",
+            "method": "Board",
+            "result": "page\u003cOrdering.BoardRow\u003e",
+            "args": [
+              {
+                "name": "wanted",
+                "type": "Ordering.OrderStatus",
+                "from": "input",
+                "input": true
+              },
+              {
+                "name": "pageReq",
+                "type": "PageRequest",
+                "from": "primitive"
+              }
+            ]
+          },
+          "children": [
+            {
+              "id": 2,
+              "kind": "part",
+              "part": "Filters",
+              "key": "Filters",
+              "auto": true,
+              "children": [
+                {
+                  "id": 3,
+                  "kind": "field",
+                  "primitive": "Select",
+                  "field": "wanted",
+                  "fieldType": "Ordering.OrderStatus",
+                  "input": true,
+                  "key": "wanted",
+                  "text": "Ordering.OrderMart.Board.wanted",
+                  "auto": true,
+                  "types": {
+                    "E": "Ordering.OrderStatus"
+                  }
+                }
+              ]
+            },
+            {
+              "id": 4,
+              "kind": "part",
+              "part": "Columns",
+              "key": "Columns",
+              "auto": true,
+              "rows": true,
+              "children": [
+                {
+                  "id": 5,
+                  "kind": "field",
+                  "primitive": "Text",
+                  "field": "orderId",
+                  "fieldType": "Ordering.Order.Id",
+                  "key": "orderId",
+                  "text": "Ordering.BoardRow.orderId",
+                  "auto": true,
+                  "types": {
+                    "T": "Ordering.Order.Id"
+                  }
+                },
+                {
+                  "id": 6,
+                  "kind": "field",
+                  "primitive": "Tag",
+                  "field": "status",
+                  "fieldType": "Ordering.OrderStatus",
+                  "key": "status",
+                  "text": "Ordering.BoardRow.status",
+                  "auto": true,
+                  "types": {
+                    "E": "Ordering.OrderStatus"
+                  }
+                },
+                {
+                  "id": 7,
+                  "kind": "field",
+                  "primitive": "Text",
+                  "field": "driverName",
+                  "fieldType": "string?",
+                  "key": "driverName",
+                  "text": "Ordering.BoardRow.driverName",
+                  "auto": true,
+                  "types": {
+                    "T": "string?"
+                  }
+                },
+                {
+                  "id": 8,
+                  "kind": "field",
+                  "primitive": "Text",
+                  "field": "plate",
+                  "fieldType": "string?",
+                  "key": "plate",
+                  "text": "Ordering.BoardRow.plate",
+                  "auto": true,
+                  "types": {
+                    "T": "string?"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Auth.MyAccount",
+      "title": "Account",
+      "nodes": [
+        {
+          "id": 1,
+          "kind": "primitive",
+          "primitive": "Card",
+          "key": "User.Me",
+          "types": {
+            "V": "Auth.Account"
+          },
+          "bind": {
+            "type": "Auth.User",
+            "method": "Me",
+            "result": "Auth.Account"
+          },
+          "children": [
+            {
+              "id": 2,
+              "kind": "part",
+              "part": "Actions",
+              "key": "Actions",
+              "children": [
+                {
+                  "id": 3,
+                  "kind": "primitive",
+                  "primitive": "Edit",
+                  "key": "User.Sync",
+                  "label": "Update name",
+                  "bind": {
+                    "type": "Auth.User",
+                    "method": "Sync",
+                    "command": true,
+                    "target": {
+                      "name": "user",
+                      "type": "Auth.User.Id",
+                      "from": "me"
+                    },
+                    "args": [
+                      {
+                        "name": "userName",
+                        "type": "string",
+                        "from": "input",
+                        "input": true
+                      }
+                    ]
+                  },
+                  "children": [
+                    {
+                      "id": 4,
+                      "kind": "field",
+                      "primitive": "TextInput",
+                      "field": "userName",
+                      "fieldType": "string",
+                      "input": true,
+                      "key": "userName",
+                      "text": "Auth.User.Sync.userName",
+                      "auto": true
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": 5,
+              "kind": "field",
+              "primitive": "Text",
+              "field": "name",
+              "fieldType": "string?",
+              "key": "name",
+              "text": "Auth.Account.name",
+              "auto": true,
+              "types": {
+                "T": "string?"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "primitives": [
+    {
+      "name": "Menu",
+      "std": true,
+      "children": {
+        "binds": "screens"
+      }
+    },
+    {
+      "name": "Tabs",
+      "std": true,
+      "children": {
+        "binds": "screens"
+      }
+    },
+    {
+      "name": "Link",
+      "std": true,
+      "binds": "screen"
+    },
+    {
+      "name": "Toolbar",
+      "std": true
+    },
+    {
+      "name": "Row",
+      "std": true
+    },
+    {
+      "name": "Stack",
+      "std": true
+    },
+    {
+      "name": "Section",
+      "std": true
+    },
+    {
+      "name": "Table",
+      "std": true,
+      "vars": [
+        {
+          "name": "Row"
+        }
+      ],
+      "binds": "query",
+      "bindType": "page\u003cRow\u003e",
+      "params": [
+        {
+          "name": "size",
+          "kind": "value",
+          "type": "int",
+          "optional": true
+        }
+      ],
+      "parts": [
+        {
+          "name": "Filters",
+          "binds": "params"
+        },
+        {
+          "name": "Columns",
+          "binds": "type",
+          "type": "Row"
+        },
+        {
+          "name": "RowActions",
+          "binds": "type",
+          "type": "Row"
+        }
+      ],
+      "events": [
+        {
+          "name": "open",
+          "params": [
+            {
+              "name": "row",
+              "type": "Row"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "List",
+      "std": true,
+      "vars": [
+        {
+          "name": "Row"
+        }
+      ],
+      "binds": "query",
+      "bindType": "page\u003cRow\u003e | list\u003cRow\u003e",
+      "children": {
+        "binds": "type",
+        "type": "Row"
+      },
+      "parts": [
+        {
+          "name": "Filters",
+          "binds": "params"
+        },
+        {
+          "name": "RowActions",
+          "binds": "type",
+          "type": "Row"
+        }
+      ],
+      "events": [
+        {
+          "name": "open",
+          "params": [
+            {
+              "name": "row",
+              "type": "Row"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Card",
+      "std": true,
+      "vars": [
+        {
+          "name": "V",
+          "constraint": "value"
+        }
+      ],
+      "binds": "query",
+      "bindType": "V",
+      "children": {
+        "binds": "type",
+        "type": "V"
+      },
+      "parts": [
+        {
+          "name": "Actions"
+        }
+      ]
+    },
+    {
+      "name": "Text",
+      "std": true,
+      "vars": [
+        {
+          "name": "T"
+        }
+      ],
+      "binds": "field",
+      "bindType": "T"
+    },
+    {
+      "name": "Tag",
+      "std": true,
+      "vars": [
+        {
+          "name": "E",
+          "constraint": "enum"
+        }
+      ],
+      "binds": "field",
+      "bindType": "E"
+    },
+    {
+      "name": "DateTime",
+      "std": true,
+      "binds": "field",
+      "bindType": "timestamp"
+    },
+    {
+      "name": "Fields",
+      "std": true,
+      "vars": [
+        {
+          "name": "V",
+          "constraint": "value"
+        }
+      ],
+      "binds": "field",
+      "bindType": "V",
+      "children": {
+        "binds": "type",
+        "type": "V"
+      }
+    },
+    {
+      "name": "Items",
+      "std": true,
+      "vars": [
+        {
+          "name": "T"
+        }
+      ],
+      "binds": "field",
+      "bindType": "list\u003cT\u003e | set\u003cT\u003e"
+    },
+    {
+      "name": "Form",
+      "std": true,
+      "binds": "command",
+      "children": {
+        "binds": "inputs"
+      },
+      "events": [
+        {
+          "name": "done"
+        }
+      ]
+    },
+    {
+      "name": "Edit",
+      "std": true,
+      "binds": "command",
+      "children": {
+        "binds": "inputs"
+      },
+      "events": [
+        {
+          "name": "done"
+        }
+      ]
+    },
+    {
+      "name": "Confirm",
+      "std": true,
+      "binds": "command",
+      "children": {
+        "binds": "inputs"
+      },
+      "events": [
+        {
+          "name": "done"
+        }
+      ]
+    },
+    {
+      "name": "Button",
+      "std": true,
+      "binds": "command",
+      "events": [
+        {
+          "name": "done"
+        }
+      ]
+    },
+    {
+      "name": "TextInput",
+      "std": true,
+      "binds": "input",
+      "bindType": "string"
+    },
+    {
+      "name": "NumberInput",
+      "std": true,
+      "binds": "input",
+      "bindType": "int | bigint | decimal | float"
+    },
+    {
+      "name": "Checkbox",
+      "std": true,
+      "binds": "input",
+      "bindType": "bool"
+    },
+    {
+      "name": "Select",
+      "std": true,
+      "vars": [
+        {
+          "name": "E",
+          "constraint": "enum"
+        }
+      ],
+      "binds": "input",
+      "bindType": "E"
+    },
+    {
+      "name": "MultiSelect",
+      "std": true,
+      "vars": [
+        {
+          "name": "E",
+          "constraint": "enum"
+        }
+      ],
+      "binds": "input",
+      "bindType": "set\u003cE\u003e"
+    },
+    {
+      "name": "DateInput",
+      "std": true,
+      "binds": "input",
+      "bindType": "date"
+    },
+    {
+      "name": "TimeInput",
+      "std": true,
+      "binds": "input",
+      "bindType": "time"
+    },
+    {
+      "name": "DateTimeInput",
+      "std": true,
+      "binds": "input",
+      "bindType": "timestamp"
+    },
+    {
+      "name": "DurationInput",
+      "std": true,
+      "binds": "input",
+      "bindType": "duration"
+    },
+    {
+      "name": "EntityPicker",
+      "std": true,
+      "vars": [
+        {
+          "name": "R"
+        },
+        {
+          "name": "K",
+          "constraint": "id"
+        }
+      ],
+      "binds": "input",
+      "bindType": "K | set\u003cK\u003e",
+      "params": [
+        {
+          "name": "search",
+          "kind": "search",
+          "type": "list\u003cR\u003e",
+          "provided": [
+            {
+              "name": "text",
+              "type": "string"
+            }
+          ]
+        },
+        {
+          "name": "key",
+          "kind": "field",
+          "record": "R",
+          "fieldType": "K",
+          "optional": true,
+          "auto": true
+        },
+        {
+          "name": "label",
+          "kind": "field",
+          "record": "R",
+          "optional": true,
+          "auto": true
+        }
+      ]
+    },
+    {
+      "name": "Group",
+      "std": true,
+      "vars": [
+        {
+          "name": "V",
+          "constraint": "value"
+        }
+      ],
+      "binds": "input",
+      "bindType": "V",
+      "children": {
+        "binds": "type",
+        "type": "V"
+      }
+    },
+    {
+      "name": "ListInput",
+      "std": true,
+      "vars": [
+        {
+          "name": "T"
+        }
+      ],
+      "binds": "input",
+      "bindType": "list\u003cT\u003e | set\u003cT\u003e"
+    }
+  ],
+  "types": [
+    {
+      "name": "Dispatch.TripStage",
+      "values": [
+        "searching",
+        "offered",
+        "assigned",
+        "completed",
+        "noDrivers",
+        "cancelled"
+      ]
+    },
+    {
+      "name": "Dispatch.DriverStatus",
+      "values": [
+        "offline",
+        "free",
+        "offered",
+        "busy"
+      ]
+    },
+    {
+      "name": "Dispatch.OfferOutcome",
+      "values": [
+        "pending",
+        "accepted",
+        "declined",
+        "expired",
+        "withdrawn"
+      ]
+    },
+    {
+      "name": "Dispatch.CarClass",
+      "values": [
+        "economy",
+        "comfort"
+      ]
+    },
+    {
+      "name": "Dispatch.Currency",
+      "values": [
+        "rub"
+      ]
+    },
+    {
+      "name": "Dispatch.Money",
+      "fields": [
+        {
+          "name": "amount",
+          "type": "decimal"
+        },
+        {
+          "name": "currency",
+          "type": "Dispatch.Currency"
+        }
+      ]
+    },
+    {
+      "name": "Dispatch.GeoPoint",
+      "fields": [
+        {
+          "name": "lat",
+          "type": "float"
+        },
+        {
+          "name": "lon",
+          "type": "float"
+        }
+      ]
+    },
+    {
+      "name": "Dispatch.Car",
+      "fields": [
+        {
+          "name": "plate",
+          "type": "string"
+        },
+        {
+          "name": "model",
+          "type": "string"
+        },
+        {
+          "name": "carClass",
+          "type": "Dispatch.CarClass"
+        }
+      ]
+    },
+    {
+      "name": "Dispatch.DriverInfo",
+      "fields": [
+        {
+          "name": "driverId",
+          "type": "Dispatch.Driver.Id"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "plate",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "Dispatch.DriverState",
+      "fields": [
+        {
+          "name": "status",
+          "type": "Dispatch.DriverStatus"
+        },
+        {
+          "name": "currentTrip",
+          "type": "Dispatch.Trip.Id?"
+        }
+      ]
+    },
+    {
+      "name": "Ordering.OrderStatus",
+      "values": [
+        "searching",
+        "offered",
+        "assigned",
+        "completed",
+        "paid",
+        "unpaid",
+        "cancelled",
+        "noDrivers"
+      ]
+    },
+    {
+      "name": "Ordering.CarClass",
+      "values": [
+        "economy",
+        "comfort"
+      ]
+    },
+    {
+      "name": "Ordering.Currency",
+      "values": [
+        "rub"
+      ]
+    },
+    {
+      "name": "Ordering.Money",
+      "fields": [
+        {
+          "name": "amount",
+          "type": "decimal"
+        },
+        {
+          "name": "currency",
+          "type": "Ordering.Currency"
+        }
+      ]
+    },
+    {
+      "name": "Ordering.GeoPoint",
+      "fields": [
+        {
+          "name": "lat",
+          "type": "float"
+        },
+        {
+          "name": "lon",
+          "type": "float"
+        }
+      ]
+    },
+    {
+      "name": "Ordering.Route",
+      "fields": [
+        {
+          "name": "from",
+          "type": "Ordering.GeoPoint"
+        },
+        {
+          "name": "to",
+          "type": "Ordering.GeoPoint"
+        },
+        {
+          "name": "distanceKm",
+          "type": "float"
+        }
+      ]
+    },
+    {
+      "name": "Ordering.OrderRow",
+      "fields": [
+        {
+          "name": "orderId",
+          "type": "Ordering.Order.Id"
+        },
+        {
+          "name": "status",
+          "type": "Ordering.OrderStatus"
+        },
+        {
+          "name": "price",
+          "type": "Ordering.Money"
+        },
+        {
+          "name": "placedAt",
+          "type": "timestamp"
+        }
+      ]
+    },
+    {
+      "name": "Ordering.OrderCard",
+      "fields": [
+        {
+          "name": "status",
+          "type": "Ordering.OrderStatus"
+        },
+        {
+          "name": "price",
+          "type": "Ordering.Money"
+        },
+        {
+          "name": "driver",
+          "type": "Ordering.AssignedDriver?"
+        },
+        {
+          "name": "tip",
+          "type": "Ordering.Money?"
+        }
+      ]
+    },
+    {
+      "name": "Ordering.AssignedDriver",
+      "fields": [
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "plate",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "Ordering.BoardRow",
+      "fields": [
+        {
+          "name": "orderId",
+          "type": "Ordering.Order.Id"
+        },
+        {
+          "name": "status",
+          "type": "Ordering.OrderStatus"
+        },
+        {
+          "name": "driverName",
+          "type": "string?"
+        },
+        {
+          "name": "plate",
+          "type": "string?"
+        }
+      ]
+    },
+    {
+      "name": "Ordering.CustomerProfile",
+      "fields": [
+        {
+          "name": "phone",
+          "type": "string?"
+        },
+        {
+          "name": "blocked",
+          "type": "bool"
+        }
+      ]
+    },
+    {
+      "name": "Ordering.HomeAddress",
+      "fields": [
+        {
+          "name": "address",
+          "type": "string?"
+        }
+      ]
+    },
+    {
+      "name": "Ordering.StaffProfile",
+      "fields": [
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "email",
+          "type": "string?"
+        }
+      ]
+    },
+    {
+      "name": "Ordering.OrderDetails",
+      "fields": [
+        {
+          "name": "orderId",
+          "type": "Ordering.Order.Id"
+        },
+        {
+          "name": "status",
+          "type": "Ordering.OrderStatus"
+        },
+        {
+          "name": "orderRoute",
+          "type": "Ordering.Route"
+        },
+        {
+          "name": "requestedClass",
+          "type": "Ordering.CarClass"
+        },
+        {
+          "name": "price",
+          "type": "Ordering.Money"
+        },
+        {
+          "name": "placedAt",
+          "type": "timestamp"
+        },
+        {
+          "name": "driverName",
+          "type": "string?"
+        }
+      ]
+    },
+    {
+      "name": "Ordering.CustomerRow",
+      "fields": [
+        {
+          "name": "customerId",
+          "type": "Ordering.Customer.Id"
+        },
+        {
+          "name": "phone",
+          "type": "string?"
+        }
+      ]
+    },
+    {
+      "name": "Auth.Account",
+      "fields": [
+        {
+          "name": "name",
+          "type": "string?"
+        }
+      ]
+    }
+  ],
+  "texts": {
+    "en": {
+      "Account": "Account",
+      "Admin": "Admin",
+      "Auth.MyAccount": "Account",
+      "Auth.MyAccount:User.Sync": "Update name",
+      "Dispatch": "Dispatch",
+      "Dispatch.FreeDrivers": "Free drivers",
+      "Dispatch.NewDriver": "New driver",
+      "Dispatch.Shift": "Shift",
+      "Dispatch.Trip.tipReceived": "Tip {amount}",
+      "DriverApp": "Driver",
+      "Join": "Taxi with an account",
+      "Ordering.AdminNewOrder": "New order",
+      "Ordering.AdminOrder": "Order",
+      "Ordering.AdminOrder:Order.Cancel": "Cancel",
+      "Ordering.AdminOrder:Order.Edit": "Edit",
+      "Ordering.AdminOrders": "Orders",
+      "Ordering.AdminProfile": "Profile",
+      "Ordering.AdminProfile:Staff.ChangeEmail": "Change email",
+      "Ordering.Board": "Order board",
+      "Ordering.Customer.OrderTaxi.orderRoute": "Route",
+      "Ordering.Customer.OrderTaxi.requestedClass": "Class",
+      "Ordering.Home": "Home",
+      "Ordering.Home:Customer.SetHome": "Change address",
+      "Ordering.JoinTaxi": "Become a customer",
+      "Ordering.MyOrder": "Order",
+      "Ordering.MyOrder:Order.LeaveTip": "Tip",
+      "Ordering.MyOrders": "My orders",
+      "Ordering.NewOrder": "Order a taxi",
+      "Ordering.Order.Cancel": "Cancel order",
+      "Ordering.Order.LeaveTip": "Leave a tip",
+      "Ordering.Order.cannotCancel": "Cannot cancel an order with status {currentStatus}",
+      "Ordering.Order.cannotEdit": "Cannot change an order with status {currentStatus}",
+      "Ordering.Order.cannotTip": "Tips come after the ride is paid, now {currentStatus}",
+      "Ordering.Order.driverOnTheWay": "The driver is on the way",
+      "Ordering.Order.orderPlaced": "Order placed, price {price}",
+      "Ordering.Order.tipsDisabled": "Tips are not available yet",
+      "Ordering.OrderRow.placedAt": "Placed",
+      "Ordering.OrderStatus.assigned": "The driver is on the way",
+      "Ordering.OrderStatus.cancelled": "Cancelled",
+      "Ordering.OrderStatus.completed": "Ride completed",
+      "Ordering.OrderStatus.noDrivers": "No drivers",
+      "Ordering.OrderStatus.offered": "Offered to a driver",
+      "Ordering.OrderStatus.paid": "Paid",
+      "Ordering.OrderStatus.searching": "Looking for a driver",
+      "Ordering.OrderStatus.unpaid": "Not paid",
+      "Ordering.Profile": "Profile",
+      "Ordering.Profile:Customer.SignUp": "Sign up",
+      "Ordering.TaxiAccount": "Taxi customer",
+      "Taxi": "Taxi"
+    }
+  }
+}

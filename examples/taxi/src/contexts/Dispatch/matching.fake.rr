@@ -1,0 +1,28 @@
+# taxi/contexts/Dispatch/matching.fake.rr
+
+fake Matching
+  drivers list<Driver.Id>
+  silent bool
+
+  ## Drivers the matching service offers, in order
+  command Setup(freeDrivers list<Driver.Id>)
+    configured(freeDrivers: freeDrivers)
+
+  ## The matching service stops answering
+  command GoSilent()
+    silenced()
+
+  event configured(freeDrivers list<Driver.Id>)
+    drivers = freeDrivers
+
+  event silenced()
+    silent = true
+
+  request findDriver(tripId Trip.Id, pickup GeoPoint, requestedClass CarClass, exclude set<Driver.Id>)
+    if silent
+      return
+    for d in drivers
+      if d not in exclude
+        [tripId].DriverFound(driverId: d)
+        return
+    [tripId].NoDriverFound()

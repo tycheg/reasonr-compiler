@@ -1,0 +1,29 @@
+role admin
+
+aggregate Order
+  id uuid
+  status string
+
+  command(admin) Place()
+    placed()
+
+  event placed()
+    status = "placed"
+
+  error orderNotFound()
+
+  query(admin) Card(orderId Order.Id) OrderCard
+    let o = [orderId]
+    if o is none
+      orderNotFound()
+      return
+    return OrderCard(status: o.status)
+
+value OrderCard
+  status string
+
+screen Orders "Orders"
+  Link OrderPage(orderId: new)
+
+screen OrderPage(orderId Order.Id) "Order"
+  Card Order.Card

@@ -1,0 +1,4 @@
+app(admin) Admin "Admin"
+  language en
+  Menu
+    Orders

@@ -1,0 +1,18 @@
+# taxi/contexts/Dispatch/ui.rr
+# Driver screens (apps/DriverApp), free drivers for the dispatcher (apps/Dispatch)
+# and a new driver for the admin app (apps/Admin)
+
+screen Shift "Shift"
+  Card Driver.MyState
+    Actions
+      Button Driver.GoOnline if status == offline
+      Button Driver.GoOffline if status == free
+      Button Driver.Accept if status == offered
+      Button Driver.Decline if status == offered
+      Button Driver.FinishRide if status == busy
+
+screen FreeDrivers "Free drivers"
+  Table Driver.FreeDrivers
+
+screen NewDriver "New driver"
+  Form [new Driver.Id].Register

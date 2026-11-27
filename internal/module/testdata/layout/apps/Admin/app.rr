@@ -1,0 +1,10 @@
+app(admin) Backoffice "Admin"  # want "E1403"
+  Menu
+    Home
+
+app(admin) Admin "Admin"  # want "E1403"
+  Menu
+    Home
+
+aggregate InApp  # want "E1404"
+  id uuid

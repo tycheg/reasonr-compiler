@@ -1,0 +1,106 @@
+
+
+role   admin
+role support
+enum  Status
+
+  active
+  closed
+value Money
+  amount   decimal   =   0
+  currency  string
+  check amount>=0   and   currency!=""
+  rounded( digits  int )   decimal
+    return round( amount ,digits )
+entity    Order
+  id   uuid
+  status Status
+  phone string?  personal
+  owner Customer.Id?   personal( owner )
+  tags   list< string >
+  prices map<string,Money>
+  title string was   name
+  index   byStatus( status ,  placedAt   desc )   unique   duplicate
+  command( admin ,support )   Cancel( reason string , force bool = false )
+    if not   force and status==closed
+      cannotCancel( )
+      return
+    else   if status  in  [ active ]
+      let n   int =  -1
+      n=n+2*( 3-1 )%4
+    else
+      return
+    for   t in   tags
+      continue
+    while   n< 10
+      break
+    delete   timer
+    forget   [ owner ]
+    closed( reason :reason ) to   owner
+    let found = [ Order ]?.status ?? active
+    let m = [ : ]
+    let mm = [ "a" :1 , "b": 2 ]
+    let id = new   Order.Id
+    let s = "Order {id}  {{ braces }}"
+    if x is   not none and y  is none and z  not  in  [ 1, 2, ]
+      return
+  event   closed( reason string )
+    status = closed
+  error   cannotCancel
+  error  failed( code int )
+  notification   sent( text string )
+  query( admin )   All( q PageRequest )   page< Order >
+    return [Order]
+      where status == active
+      sort   placedAt desc ,  id
+      page    q
+      select   Row( id :id )
+  rule   rate( c   string )  decimal
+    return 1.5
+  on   placed
+    status = active
+external(  payments )   Pay
+  request   charge( amount Money ,timeout   Timer.Id )
+primitive   Grid<Row >( size  int=20 ,search( text   string )   list<Row>,key  field<Row ,K>  =   auto )
+  binds   page<Row>|list<Row>
+  part   Columns   binds   Row
+  children   binds   inputs
+  event   open( row   Row )
+default   enum   Tag
+app( admin )   Back   "Admin"
+  language   de
+  platforms   web ,mobile
+  default   Customer.Id   EntityPicker( search :Customer.Find )
+  Menu
+    OrderPage
+screen   OrderPage( orderId   Order.Id )   "Order"
+  Card   Order.Details( orderId :orderId )
+    status   Tag   "Status"   if   status  ==  active
+    Actions
+      Confirm [ orderId ].Cancel( reason :"x" )
+        on   done   back
+  Form   Customer.OrderTaxi( orderId :new )
+    on   done   OrderPage( orderId :orderId )
+texts   en
+  Order.Cancel   "Cancel"
+  OrderPage:Order.Cancel#2   "Cancel {x}"
+migration   fill
+  for o in all   Order
+    [ o ].touch( )
+let car = Car( plate :"A001" )
+test   "Name"
+  let c1 = new   Customer.Id
+  given
+    [ c1 ].SignUp( phone :"1" )   as   c1
+    time   passes   60s
+  when
+    [ c1 ].Order( )   as c1
+  then
+    notification   sent( text :"x" )   to   c1
+    error   failed( code :1 )
+    request   Pay.charge( amount :m )
+    matches   ( status :active )
+    Order.Card( orderId :o1 )   as c1   matches ( status :active )
+extend   Order
+  extra int
+exclude   test   "Name"   because   "different"

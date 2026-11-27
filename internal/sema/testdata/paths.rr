@@ -1,0 +1,40 @@
+aggregate Order
+  id uuid
+  status string
+
+  query A(x int) int  # want "E0507"
+    if x > 0
+      return 1
+
+  query B(x int) int
+    if x > 0
+      failed()
+      return
+    return x
+
+  query C(x int) int
+    return  # want "E0507"
+
+  rule r1(x int) int  # want "E0508"
+    if x > 0
+      return 1
+
+  rule r2(x int) int
+    return  # want "E0508"
+
+  command c1(x int)
+    return
+    status2()  # want "W1002"
+
+  command c2(x int)
+    for i in [1, 2]
+      break
+    break  # want "E0214"
+
+  command c3()
+    return 1  # want "E0214"
+
+  command status2()
+    return
+
+  error failed

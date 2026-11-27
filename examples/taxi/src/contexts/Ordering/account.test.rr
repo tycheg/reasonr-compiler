@@ -1,0 +1,24 @@
+# taxi/contexts/Ordering/account.test.rr
+
+test "A Keycloak user becomes a customer"
+  let u1 = new Auth.User.Id
+  when
+    [Customer.Id(u1)].Join(phoneNumber: "+79990000077") as u1
+  then
+    Customer.Profile() as u1 matches (phone: "+79990000077", blocked: false)
+
+test "The customer's home address from the account"
+  let u1 = new Auth.User.Id
+  given
+    [Customer.Id(u1)].Join(phoneNumber: "+79990000078") as u1
+  when
+    [Customer.Id(u1)].SetHome(address: "1 Main Street") as u1
+  then
+    Customer.Home() as u1 matches (address: "1 Main Street")
+
+test "A user updates their name in the account"
+  let u1 = new Auth.User.Id
+  when
+    [u1].Sync(userName: "Anna") as u1
+  then
+    User.Me() as u1 matches (name: "Anna")

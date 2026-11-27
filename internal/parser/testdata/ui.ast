@@ -1,0 +1,309 @@
+File
+  Name: "testdata/ui.rr"
+  Decls:
+    - AppDecl
+        Access: AccessList
+          Names:
+            - Staff
+        Name: Admin
+        Title: BasicLit STRING "Admin"
+        Items:
+          - LanguageItem
+              Name: en
+          - PlatformsItem
+              Names:
+                - web
+                - mobile
+          - DefaultDecl
+              Type: NamedType Customer.Id
+              Prim: EntityPicker
+              Args: ArgList
+                Args:
+                  - Arg
+                      Name: search
+                      Value: CallExpr
+                        Fun: SelectorExpr
+                          X: Customer
+                          Sel: FindByPhone
+                        Args: ArgList
+                          Args:
+                            - Arg
+                                Name: phoneNumber
+                                Value: text
+          - PrimNode
+              Name: Menu
+              Children:
+                - PrimNode
+                    Name: AdminOrders
+    - AppDecl
+        Access: AccessList
+          Names:
+            - dispatcher
+        Name: Dispatch
+        Auto: true
+    - DefaultDecl
+        Type: NamedType enum
+        Prim: Tag
+    - DefaultDecl
+        Type: GenericType
+          Name: set
+          Args:
+            - NamedType enum
+        Prim: MultiSelect
+    - ScreenDecl
+        Name: AdminOrders
+        Title: BasicLit STRING "Orders"
+        Nodes:
+          - PrimNode
+              Name: Toolbar
+              Children:
+                - PrimNode
+                    Name: Link
+                    Binding: Binding
+                      Type: AdminNewOrder
+          - PrimNode
+              Name: Table
+              Args: ArgList
+                Args:
+                  - Arg
+                      Name: size
+                      Value: BasicLit INT 50
+              Binding: Binding
+                Type: Order
+                Method: List
+              Children:
+                - PrimNode
+                    Name: Columns
+                    Children:
+                      - FieldNode
+                          Name: placedAt
+                      - FieldNode
+                          Name: status
+                          Prim: Tag
+                          Label: BasicLit STRING "Status"
+                - PrimNode
+                    Name: RowActions
+                    Children:
+                      - PrimNode
+                          Name: Confirm
+                          Binding: Binding
+                            Type: Order
+                            Method: Cancel
+                          Cond: InExpr
+                            X: status
+                            Y: BracketExpr
+                              Elems:
+                                - searching
+                                - offered
+                - OnNode
+                    Event: open
+                    Screen: AdminOrder
+    - ScreenDecl
+        Name: AdminOrder
+        Params: ParamList
+          List:
+            - Param
+                Name: orderId
+                Type: NamedType Order.Id
+        Title: BasicLit STRING "Order"
+        Nodes:
+          - PrimNode
+              Name: Card
+              Binding: Binding
+                Type: Order
+                Method: Details
+              Children:
+                - FieldNode
+                    Name: customer
+                    Prim: EntityPicker
+                    PrimArgs: ArgList
+                      Args:
+                        - Arg
+                            Name: search
+                            Value: CallExpr
+                              Fun: SelectorExpr
+                                X: Customer
+                                Sel: FindByPhone
+                              Args: ArgList
+                                Args:
+                                  - Arg
+                                      Name: phoneNumber
+                                      Value: text
+                        - Arg
+                            Name: key
+                            Value: customerId
+                - PrimNode
+                    Name: Actions
+                    Children:
+                      - PrimNode
+                          Name: Edit
+                          Binding: Binding
+                            Type: Order
+                            Method: Edit
+                          Label: BasicLit STRING "Edit"
+                          Cond: BinaryExpr
+                            X: status
+                            Op: ==
+                            Y: searching
+                      - PrimNode
+                          Name: Form
+                          Binding: Binding
+                            Target: BracketExpr
+                              Elems:
+                                - NewIDExpr
+                                    Type: NamedType Driver.Id
+                            Method: Register
+                          Children:
+                            - OnNode
+                                Event: done
+                                Back: true
+          - PrimNode
+              Name: Form
+              Binding: Binding
+                Type: Customer
+                Method: OrderTaxi
+                Args: ArgList
+                  Args:
+                    - Arg
+                        Name: orderId
+                        Value: NewIDExpr
+              Children:
+                - OnNode
+                    Event: done
+                    Screen: AdminOrder
+                    Args: ArgList
+                      Args:
+                        - Arg
+                            Name: orderId
+                            Value: orderId
+    - PrimitiveDecl
+        Name: Table
+        TypeParams: TypeParamList
+          List:
+            - TypeParam
+                Name: Row
+        Params: PrimParamList
+          List:
+            - PrimParam
+                Name: size
+                Type: NamedType int
+                Default: BasicLit INT 20
+        Items:
+          - BindsItem
+              Type: GenericType
+                Name: page
+                Args:
+                  - NamedType Row
+          - PartItem
+              Name: Filters
+              Kind: "params"
+          - PartItem
+              Name: Columns
+              Type: NamedType Row
+          - PartItem
+              Name: RowActions
+              Type: NamedType Row
+          - PrimEvent
+              Name: open
+              Params: ParamList
+                List:
+                  - Param
+                      Name: row
+                      Type: NamedType Row
+    - PrimitiveDecl
+        Name: Toolbar
+    - PrimitiveDecl
+        Name: EntityPicker
+        TypeParams: TypeParamList
+          List:
+            - TypeParam
+                Name: R
+            - TypeParam
+                Name: K
+                Constraint: id
+        Params: PrimParamList
+          List:
+            - PrimParam
+                Name: search
+                Query: ParamList
+                  List:
+                    - Param
+                        Name: text
+                        Type: NamedType string
+                Type: GenericType
+                  Name: list
+                  Args:
+                    - NamedType R
+            - PrimParam
+                Name: key
+                Type: GenericType
+                  Name: field
+                  Args:
+                    - NamedType R
+                    - NamedType K
+                Auto: true
+            - PrimParam
+                Name: label
+                Type: GenericType
+                  Name: field
+                  Args:
+                    - NamedType R
+                Auto: true
+        Items:
+          - BindsItem
+              Kind: "input"
+              Type: UnionType
+                Types:
+                  - NamedType K
+                  - GenericType
+                      Name: set
+                      Args:
+                        - NamedType K
+    - PrimitiveDecl
+        Name: Edit
+        Items:
+          - BindsItem
+              Kind: "command"
+          - PartItem
+              Children: true
+              Kind: "inputs"
+          - PrimEvent
+              Name: done
+    - PrimitiveDecl
+        Name: Menu
+        Items:
+          - PartItem
+              Children: true
+              Kind: "screens"
+    - PrimitiveDecl
+        Name: Link
+        Items:
+          - BindsItem
+              Kind: "screen"
+    - TextsDecl
+        Lang: en
+        Entries:
+          - TextEntry
+              Key: TextKey
+                Path: Path Admin
+              Value: BasicLit STRING "Admin"
+          - TextEntry
+              Key: TextKey
+                Path: Path Order.cannotCancel
+              Value: InterpString
+                Parts:
+                  - InterpPart
+                      Text: "Cannot cancel an order with status "
+                  - InterpPart
+                      X: currentStatus
+          - TextEntry
+              Key: TextKey
+                Path: Path AdminOrder
+                Node: Path Order.Edit
+              Value: BasicLit STRING "Edit"
+          - TextEntry
+              Key: TextKey
+                Path: Path AdminOrders
+                Node: Path Toolbar
+                N: BasicLit INT 2
+              Value: BasicLit STRING "Tools"

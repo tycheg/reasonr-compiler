@@ -1,0 +1,2 @@
+let a = "no end    # want "E0005"
+let c = "{x   # want "E0005" "E0001"
