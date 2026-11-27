@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Basis** | [Roadmap](../roadmap.md), item 11; [plan 0007](0007-structure.md), S8 (tags and publishing) |
-| **Status** | Approved (2026-11-22): decisions §2.1 and proposals §2.2; answers to the questions — §8. Restructuring and documentation done (§9); copy and publish (§6) — on command |
+| **Status** | Approved (2026-11-22): decisions §2.1 and proposals §2.2; answers to the questions — §8. Restructuring and documentation done (§9); copy and publish (§6) in progress since 2026-11-28 (§9) |
 | **Branch** | `split-plan` |
 
 This repository becomes several repositories with their own versions, releases, documentation and plans. They start with a clean history; this repository becomes read-only when the stage is done.
@@ -227,3 +227,30 @@ The fixes: Kafka gets an internal listener for its readiness probe; the Kafka te
 5. **Links to another part** are GitHub URLs of the new repositories (they resolve after §6); links inside a part stay relative. The pilot roadmap items (14, 17) moved to [pilot/platform/docs/roadmap.md](https://github.com/tycheg/pilot-platform/blob/main/docs/roadmap.md) and keep their numbers; the link becomes a `pilot-platform` URL in §6.
 6. **The engine copy of the constructs test model** is the compiler's (`lower/testdata/constructs`).
 7. **Stale cached test results.** The engine, engine kind, adapter and web driver tests read the example models from the compiler module, outside their own module, and `go test` reused cached results after the examples changed. `make test` runs those modules with `-count=1`.
+
+### Copy and publish (2026-11-28)
+
+Copied from `tycheg/reasonr@d105ee51` (branch `phase-c`: npm on npmjs.com, the pilot open source) in the release order, each repository one import commit `Initial import from tycheg/reasonr@<sha>` and the commits after it; every repository was checked as its CI does before its tags, on PostgreSQL, MongoDB, Kafka and Vault where it has tests on them.
+
+| Repository | Tags | CI |
+|---|---|---|
+| `reasonr-auth` | `v0.1.0` | green |
+| `reasonr-compiler` | `v0.1.0`, `docs/v0.1.0` | green (the examples on the released `reasonrd`) |
+| `reasonr-engine` | `port/v0.1.0`, `v0.1.0`, `v0.1.1`, `v0.1.2` | green |
+| `reasonr-stateless`, `reasonr-postgres`, `reasonr-mongodb`, `reasonr-kafka`, `reasonr-vault` | `v0.1.0` | green |
+| `reasonr-web` | `v0.1.0`, `bundle/v0.1.0`, `driver/v0.1.0` | green; the npm packages wait for an npm account with the `@tycheg` scope |
+| `reasonr-dist` | `v0.1.0`, `v0.1.1` | `main` waits for the npm packages (the lock of `integration/web/testdata/ui`) |
+| `pilot-model`, `pilot-integrations` | `v0.1.0` | green |
+| `pilot-ui`, `pilot-platform` | — | wait for the npm packages |
+
+Deviations from §6:
+
+1. **Tags before `main`.** A repository whose CI needs a later one (`reasonr-auth` and the compiler's examples need the released `reasonrd`, the distribution's web job needs the npm packages) got its tags first and its `main` when the later one was released.
+2. **A repository of two modules that require one another's release** gets two commits: the import with the tag of the required module, then its `go.sum` with the tag of the other (`reasonr-engine`: `port/v0.1.0`, then `v0.1.0`).
+3. **`go.work` in `reasonr-engine`**: the core and `port` are developed together, the core's `go.mod` requires a released contract (a versioned replace: Go reads the `go.mod` of every requirement).
+4. **The example models require `reasonr-auth` by version** with `reasonr.lock` (proposal 2.2.7); `make modules` puts the module into the cache in every repository whose tests read them. The engine's `testmodels.Modules` takes the module from the example's `replace` or the cache; the RFC example cache copies `reasonr.lock`.
+5. **The `reasonr-build` test** builds with a test engine kind (`testdata/fakekind`, the `kindtest` double) instead of stateless, which requires the engine. The `reasonr-builder` image builds from the engine repository alone; the pilot platform image installs `reasonr-build` with `go install` instead of starting from `reasonr-builder`.
+6. **`TestPlatformUI`'s UI build** moved from `reasonr-web/testdata/ui` to `reasonr-dist/integration/web/testdata/ui`, where the test is: the web packages from npm, the taxi model of the compiler module (`REASONR_TAXI`).
+7. **The pilot parts read one another by version**: `make deps` checks out `pilot-model` at `MODEL` and `pilot-ui` at `UI` (the Makefile) into `.deps/`; `PILOT_MODEL` and `PILOT_UI` take checkouts instead.
+8. **Found by the race detector and fixed**, each failing in the CI of the parts before the split as well (`make check` here ran the tests without `-race`): the coordinator of a main store without one made lazily from two goroutines; the request body and projection rows built in the arena of a committed unit that other consumers read at the same time (`storekit.Own`); the bus woken before the events consumer's cursor moved (`dispatch.Mover`; `TestBus` failed under load). `staticcheck` 2026.2.1 cannot read the export data of Go 1.27.4: CI uses 2026.2.2.
+
